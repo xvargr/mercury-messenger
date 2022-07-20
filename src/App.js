@@ -1,23 +1,22 @@
-import logo from './logo.svg';
-import './App.css';
+// this is a react component, it is a function that returns jsx, but otherwise
+// is a normal js function
+//
+// you can use normal html elements in react components or other
+// custom components and elements
+
+import Card from "./components/Card";
+import Modal from "./components/Modal";
+import Backdrop from "./components/Backdrop";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>MERCURY</h1>
+      <Card title="whoa" />
+      <Card title="wow" />
+      <Card title="wowza" />
+      <Modal />
+      <Backdrop />
     </div>
   );
 }
