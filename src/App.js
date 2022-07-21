@@ -4,19 +4,10 @@
 // you can use normal html elements in react components or other
 // custom components and elements
 
-import Card from "./components/Card";
-import Modal from "./components/Modal";
-import Backdrop from "./components/Backdrop";
-
 function App() {
   return (
     <div>
-      <h1>MERCURY</h1>
-      <Card title="whoa" />
-      <Card title="wow" />
-      <Card title="wowza" />
-      <Modal />
-      <Backdrop />
+      <h1 className="text-3xl font-bold underline">MERCURY</h1>
     </div>
   );
 }
