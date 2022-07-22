@@ -1,9 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 
 import "./reset.css";
 import "./index.css";
 import App from "./App";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />); // render <App> in #root element
+root.render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+); // render <App> in #root element
