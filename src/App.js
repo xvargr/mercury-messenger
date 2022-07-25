@@ -14,14 +14,15 @@ import EditTask from "./pages/EditTask";
 import Chats from "./pages/Chat";
 import Home from "./pages/Home";
 
-import Navbar from "./components/Navbar";
+import GroupsBar from "./components/GroupsBar";
+import ChannelsBar from "./components/ChannelsBar";
 
 function App() {
   return (
     // nested routes' component will always be rendered in the parent component
-    <div>
-      <Navbar />
-
+    <div className="flex">
+      <GroupsBar />
+      <ChannelsBar />
       {/* Route constructs the paths and choses which to render , no / before 
         path means that the path is relative*/}
       <Routes>
