@@ -1,5 +1,3 @@
-// import { Outlet } from "react-router-dom";
-
 function Home() {
   return (
     <div className="bg-slate-600 h-screen flex-grow">
