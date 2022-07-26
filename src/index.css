@@ -11,8 +11,8 @@
   }
 
   .scrollbar-dark::-webkit-scrollbar {
-    width: 15px;
-    height: 15px;
+    width: 0.5rem;
+    height: 0.5rem;
   }
   .scrollbar-dark::-webkit-scrollbar-track {
     border-radius: 100vh;
@@ -25,5 +25,15 @@
   }
   .scrollbar-dark::-webkit-scrollbar-thumb:hover {
     background: #383838;
+  }
+
+  .blurMask {
+    -webkit-mask: -webkit-gradient(
+      linear,
+      left 60%,
+      left 0%,
+      from(rgba(0, 0, 0, 1)),
+      to(rgba(0, 0, 0, 0))
+    );
   }
 }
