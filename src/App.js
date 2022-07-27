@@ -8,13 +8,12 @@ import { Routes, Route } from "react-router-dom"; // the route component define 
 // link changes the path without reloading  the page
 
 // importing all pages
-// import Tasks from "./pages/Tasks";
-// import NewTask from "./pages/NewTask";
-// import EditTask from "./pages/EditTask";
 import GroupWindow from "./pages/GroupWindow";
-
-import GroupsBar from "./components/GroupsBar";
-import ChatWindow from "./components/ChatWindow";
+import Home from "./pages/Home";
+import UserPage from "./pages/User";
+// import components
+import GroupsBar from "./components/layout/GroupsBar";
+import ChatWindow from "./components/layout/ChatWindow";
 
 function App() {
   return (
@@ -24,14 +23,15 @@ function App() {
       {/* Route constructs the paths and choses which to render , no / before 
         path means that the path is relative*/}
       <Routes>
-        {/* <Route path="/" element={<Home />} /> */}
+        <Route path="/" element={<Home />} />
+        <Route path="/user" element={<UserPage />} />
         {/* <Route path="/tasks" element={<Tasks />}>
           <Route path="new" element={<NewTask />} />
           <Route path="edit" element={<EditTask />} />
         </Route> */}
         <Route path="/chats">
           <Route path=":group" element={<GroupWindow />}>
-            <Route path=":chanel" element={<ChatWindow />} />
+            <Route path=":channel" element={<ChatWindow />} />
           </Route>
         </Route>
         <Route path="*" element={<div>404</div>} />

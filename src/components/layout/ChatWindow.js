@@ -1,14 +1,14 @@
 import { useParams } from "react-router-dom";
 
 function ChatWindow() {
-  const { chanel } = useParams();
+  const { channel } = useParams();
 
   return (
-    <div className=" bg-slate-600 h-screen w-3/4 flex-grow flex flex-col justify-between items-center relative">
-      <div>in {chanel}</div>
+    <div className="bg-slate-600 h-screen w-3/4 flex-grow flex flex-col justify-between items-center relative">
+      <div>in {channel}</div>
       <div className="w-full p-4 overflow-y-scroll scrollbar-dark">
         <div>message</div>
-        <div className=" w-full break-words">
+        <div>
           Lorem, ipsum dolor sit amet consectetur adipisicing elit. Error velit
           ea nihil ex maxime recusandae optio aspernatur hic explicabo eos!
           Accusantium explicabo impedit pariatur beatae numquam, nobis fugit ab
@@ -17,9 +17,26 @@ function ChatWindow() {
         <div>message</div>
         <div>message</div>
         <div>message</div>
+        <div>
+          special prop children always contains everything passed to it in
+          between the component's opening and closing tags
+        </div>
         <div>message</div>
-        <div>message</div>
-        <div>message</div>
+
+        <div className="flex mt-2 mb-2">
+          <img
+            src="https://picsum.photos/100/100?random=4"
+            alt="profile"
+            className=" w-1/12 mr-2 rounded-full"
+          />
+          <span className="flex flex-col">
+            <div className="text-mexican-red-700 font-kanit">Big Mackie</div>
+            <div>
+              <div>Yo me hungy</div>
+            </div>
+          </span>
+        </div>
+
         <div>message</div>
         <div>message</div>
         <div>message</div>
@@ -49,7 +66,7 @@ function ChatWindow() {
         <div className="w-full h-20"></div>
       </div>
       <div className="w-full h-1/6 backdrop-blur-sm bottom-0 absolute blurMask"></div>
-      <div className="w-4/5 m-4 p-2 bg-slate-500 rounded-lg flex justify-around backdrop-blur-xl absolute bottom-1">
+      <div className="w-4/5 m-4 p-2 bg-slate-500 rounded-lg flex justify-around shadow-lg absolute bottom-1">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-6 w-6 mr-1"
