@@ -27,10 +27,19 @@
     background: #383838;
   }
 
-  .blurMask {
+  .blurMask70 {
     -webkit-mask: -webkit-gradient(
       linear,
-      left 60%,
+      left 70%,
+      left 0%,
+      from(rgba(0, 0, 0, 1)),
+      to(rgba(0, 0, 0, 0))
+    );
+  }
+  .blurMask45 {
+    -webkit-mask: -webkit-gradient(
+      linear,
+      left 45%,
       left 0%,
       from(rgba(0, 0, 0, 1)),
       to(rgba(0, 0, 0, 0))
