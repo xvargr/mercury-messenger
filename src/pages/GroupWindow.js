@@ -6,7 +6,6 @@ function GroupWindow() {
     <div className="flex-grow flex">
       <ChannelsBar />
       <Outlet />
-      {/* should output chat window */}
     </div>
   );
 }

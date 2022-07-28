@@ -75,7 +75,7 @@ const DUMMY_DATA = [
 
 function GroupsBar() {
   return (
-    <div>
+    <div className="flex relative">
       <nav className="bg-slate-800 h-screen w-20 overflow-y-auto overflow-x-hidden scrollbar-none">
         <Link to="/user">
           <span className="bg-slate-700 m-2 p-4 h-16 w-16 rounded-3xl inline-block hover:rounded-lg transition-all ease-in"></span>
