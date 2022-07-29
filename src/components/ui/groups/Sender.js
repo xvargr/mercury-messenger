@@ -8,7 +8,7 @@ function Sender(props) {
   }
 
   return (
-    <div className="mt-2 mb-2 pr-3 hover:bg-slate-700 flex">
+    <div className="pr-3 hover:bg-slate-700 flex">
       {highlight}
       <div className="flex mt-2 mb-2 w-full">
         <img
