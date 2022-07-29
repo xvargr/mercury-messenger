@@ -1,8 +1,8 @@
 function TextInputBox() {
   return (
     <div className="flex justify-center">
-      <div className="w-full ml-2 h-1/6 rounded-bl-xl backdrop-blur-sm bottom-0 absolute blurMask45"></div>
-      <div className="w-full ml-2 h-1/6 rounded-bl-xl bg-slate-600 bottom-0 absolute blurMask70"></div>
+      <div className="w-full ml-2 h-1/6 backdrop-blur-sm bottom-0 absolute blurMask45"></div>
+      <div className="w-full ml-2 h-1/6 bg-slate-600 bottom-0 absolute blurMask70"></div>
       <div className="w-4/5 m-4 p-2 bg-slate-500 rounded-lg flex justify-around shadow-lg absolute bottom-1">
         <svg
           xmlns="http://www.w3.org/2000/svg"
