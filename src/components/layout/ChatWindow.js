@@ -1,17 +1,17 @@
 import { useParams } from "react-router-dom";
-
-import Sender from "../ui/groups/Sender";
-import Message from "../ui/groups/Message";
-import TextInputBox from "../ui/groups/TextInputBox";
+// components
+import Sender from "../chat/SenderWrapper";
+import Message from "../chat/Message";
+import ChatInputBox from "../chat/ChatInputBox";
+import ChannelBanner from "../chat/ChatBanner";
 
 function ChatWindow() {
   const { channel } = useParams();
 
   return (
-    <div className="bg-slate-600 h-screen w-3/4 flex flex-grow flex-col relative">
-      <div className="w-full h-10 bg-slate-800 flex justify-center items-center">
-        <div className="m-2">in {channel}</div>
-      </div>
+    <section className="bg-gray-600 h-screen w-3/4 flex flex-col relative">
+      <ChannelBanner name={channel} />
+
       <div className="w-full flex-grow overflow-y-scroll scrollbar-dark">
         <Sender
           user="Libre"
@@ -70,9 +70,9 @@ function ChatWindow() {
           </Message>
         </Sender>
         <div className="w-full h-24"></div>
-        <TextInputBox />
+        <ChatInputBox />
       </div>
-    </div>
+    </section>
   );
 }
 

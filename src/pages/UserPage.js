@@ -1,6 +1,6 @@
 function UserPage() {
   return (
-    <div className="bg-slate-700 h-screen flex-grow">
+    <div className="bg-gray-700 h-screen w-full">
       UserPage
       {/* <Outlet /> */}
       {/* outlet will nest the UI components for shared layout when the child route matches */}

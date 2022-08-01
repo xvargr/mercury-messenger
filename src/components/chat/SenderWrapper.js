@@ -1,15 +1,14 @@
 function Sender(props) {
-  let highlight;
-
+  let emphasis;
   if (props.type === "mention") {
-    highlight = <span className="bg-amber-500 w-1 mr-3"></span>;
+    emphasis = "bg-amber-500";
   } else {
-    highlight = <span className="w-1 mr-3"></span>;
+    emphasis = "";
   }
 
   return (
-    <div className="pr-3 hover:bg-slate-700 flex">
-      {highlight}
+    <div className="pr-3 hover:bg-gray-700 flex">
+      <span className={`w-1 mr-3 ${emphasis}`}></span>
       <div className="flex mt-2 mb-2 w-full">
         <img
           src={props.img}

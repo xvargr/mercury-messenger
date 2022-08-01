@@ -3,7 +3,7 @@ import ChannelsBar from "../components/layout/ChannelsBar";
 
 function GroupWindow() {
   return (
-    <div className="flex-grow flex">
+    <div className="w-full flex">
       <ChannelsBar />
       <Outlet />
     </div>
