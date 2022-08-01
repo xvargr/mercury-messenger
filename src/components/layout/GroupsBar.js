@@ -1,7 +1,12 @@
-import { Link, Outlet } from "react-router-dom";
-
-import GroupBadge from "../ui/groups/GroupBadge";
-import NewGroupButton from "../ui/groups/NewGroupButton";
+import { Outlet } from "react-router-dom";
+// components
+import GroupBadge from "../groups/GroupBadge";
+import NewGroupButton from "../groups/NewGroupButton";
+import Logo from "../groups/Logo";
+import UserBadge from "../groups/UserBadge";
+// context
+import { useContext } from "react";
+import { UiContext } from "../context/UiContext";
 
 const DUMMY_DATA = [
   {
@@ -75,30 +80,36 @@ const DUMMY_DATA = [
 ];
 
 function GroupsBar() {
+  const { selectedGroup } = useContext(UiContext);
+
   return (
-    <div className="h-screen flex relative">
-      <nav className="bg-slate-800 flex-grow w-20 flex flex-col overflow-hidden">
-        <div className="w-full h-10 bg-slate-800 text-mexican-red-600 flex justify-center items-center font-montserrat font-semibold">
-          <div className="m-2">MERC.</div>
-        </div>
+    <main className="h-screen w-screen flex">
+      <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden shrink-0">
+        <Logo />
 
-        <Link to="/u">
-          <span className="bg-slate-700 m-2 mt-0 p-4 h-16 w-16 rounded-2xl inline-block hover:rounded-lg transition-all ease-in"></span>
-        </Link>
+        <UserBadge />
 
-        <hr className="m-2 mb-0 mt-0 border-slate-600" />
+        <hr className="m-2 mb-0 mt-0 border-gray-600" />
 
-        <div className="w-full flex-grow overflow-y-scroll overflow-x-hidden scrollbar-none">
+        <div className="w-full overflow-y-scroll overflow-x-hidden scrollbar-none">
           {DUMMY_DATA.map((group) => {
+            let selected = selectedGroup === group.name ? true : false;
+
             return (
-              <GroupBadge name={group.name} img={group.img} key={group.id} />
+              <GroupBadge
+                name={group.name}
+                img={group.img}
+                selected={selected}
+                key={group.id}
+              />
             );
           })}
+
           <NewGroupButton />
         </div>
       </nav>
       <Outlet />
-    </div>
+    </main>
   );
 }
 
