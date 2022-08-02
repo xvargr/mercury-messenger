@@ -1,0 +1,70 @@
+[
+  {
+    "id": "01",
+    "name": "group-1",
+    "description": "lorem",
+    "img": "https://picsum.photos/100/100?random=1",
+    "channels": [
+      {
+        "name": "Channel 1"
+      },
+      {
+        "name": "Channel 2"
+      },
+      {
+        "name": "Incredibly long channel name"
+      }
+    ]
+  },
+  {
+    "id": "02",
+    "name": "group-2",
+    "description": "lorem",
+    "img": "https://picsum.photos/100/100?random=2",
+    "channels": [
+      {
+        "name": "Channel 1"
+      },
+      {
+        "name": "Channel 2"
+      },
+      {
+        "name": "Incredibly long channel name"
+      }
+    ]
+  },
+  {
+    "id": "03",
+    "name": "group-3",
+    "description": "lorem",
+    "img": "https://picsum.photos/100/100?random=3",
+    "channels": [
+      {
+        "name": "Channel 1"
+      },
+      {
+        "name": "Channel 2"
+      },
+      {
+        "name": "Incredibly long channel name"
+      }
+    ]
+  },
+  {
+    "id": "04",
+    "name": "group-4",
+    "description": "lorem",
+    "img": "https://picsum.photos/100/100?random=4",
+    "channels": [
+      {
+        "name": "Channel 1"
+      },
+      {
+        "name": "Channel 2"
+      },
+      {
+        "name": "Incredibly long channel name"
+      }
+    ]
+  }
+]
