@@ -2,19 +2,20 @@ import { useState } from "react";
 // import ui
 import CardFloat from "../ui/CardFloat";
 import CircleButton from "../ui/CircleButton";
-// vars
+// global vars
 let groupNameInput;
 let groupImageInput;
 
-function NewGroupForm() {
+function NewGroupForm(props) {
   const [inpErr, setInpErr] = useState(true);
   const [feedback, setFeedback] = useState("");
+  const [buttonStatus, setButtonStatus] = useState("error");
 
   function onChangeHandler(e) {
     if (e.target.type === "text") {
       groupNameInput = e.target.value;
     } else if (e.target.type === "file") {
-      groupImageInput = e.target.value;
+      groupImageInput = e.target.files[0];
     }
 
     if (!groupNameInput) {
@@ -29,21 +30,26 @@ function NewGroupForm() {
     } else if (!groupImageInput) {
       setInpErr(true);
       setFeedback("An image is required");
+    } else if (groupImageInput.size > 3145728) {
+      setInpErr(true);
+      setFeedback("Image exceeds 3MB");
     } else {
       setInpErr(false);
       setFeedback("Looks good");
+      setButtonStatus("ok");
     }
   }
 
   function submitHandler(e) {
     e.preventDefault();
     if (!inpErr) {
-      console.log("FORM SUBMITTED");
-      const newChannel = {
+      setButtonStatus("submitted");
+      setFeedback("Uploading...");
+      const newGroup = {
         name: groupNameInput,
-        type: groupImageInput,
+        image: groupImageInput,
       };
-      console.log(newChannel);
+      props.onNewGroup(newGroup); // run passed func on parent
     }
   }
 
@@ -76,14 +82,13 @@ function NewGroupForm() {
               required
               onChange={onChangeHandler}
             />
-            <span className="text-sm mt-0 my-1">.JPG, .JPEG, or .PNG</span>
+            <span className="text-sm mt-0 my-1">
+              .JPG, .JPEG, or .PNG (max 3MB)
+            </span>
           </label>
           <div className="flex justify-end mt-2">
             <div className="h-full p-2 pl-0">{feedback}</div>
-            <CircleButton
-              svg={inpErr ? "cross" : "check"}
-              disabled={inpErr ? true : false}
-            ></CircleButton>
+            <CircleButton status={buttonStatus}></CircleButton>
           </div>
         </form>
       </CardFloat>
