@@ -9,18 +9,16 @@ import { ArrowRightIcon } from "@heroicons/react/solid";
 let channelNameInput;
 let channelTypeInput;
 
-function NewChannelForm() {
+function NewChannelForm(props) {
   const [inpErr, setInpErr] = useState(true);
   const [feedback, setFeedback] = useState("");
+  const [buttonStatus, setButtonStatus] = useState("error");
 
   function onChangeHandler(e) {
-    // console.log(e.target.type);
     if (e.target.type === "text") {
       channelNameInput = e.target.value;
-      // console.log("title: ", channelNameInput);
     } else if (e.target.type === "radio") {
       channelTypeInput = e.target.value;
-      // console.log("type: ", channelTypeInput);
     }
 
     if (!channelNameInput) {
@@ -38,18 +36,20 @@ function NewChannelForm() {
     } else {
       setInpErr(false);
       setFeedback("Looks good");
+      setButtonStatus("ok");
     }
   }
 
   function submitHandler(e) {
     e.preventDefault();
     if (!inpErr) {
-      console.log("FORM SUBMITTED");
+      setButtonStatus("submitted");
+      setFeedback("Uploading...");
       const newChannel = {
         name: channelNameInput,
         type: channelTypeInput,
       };
-      console.log(newChannel);
+      props.onNewChannel(newChannel); // run passed func on parent
     }
   }
 
@@ -127,10 +127,7 @@ function NewChannelForm() {
           </div>
           <div className="flex justify-end items-center mt-3">
             <div className="h-full p-2 pl-0">{feedback}</div>
-            <CircleButton
-              svg={inpErr ? "cross" : "check"}
-              disabled={inpErr ? true : false}
-            ></CircleButton>
+            <CircleButton status={buttonStatus}></CircleButton>
           </div>
         </div>
       </CardFloat>
