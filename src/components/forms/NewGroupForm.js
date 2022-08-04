@@ -18,21 +18,24 @@ function NewGroupForm(props) {
       groupImageInput = e.target.files[0];
     }
 
+    function giveError(feedback) {
+      setInpErr(true);
+      setButtonStatus("error");
+      setFeedback(feedback);
+    }
+
     if (!groupNameInput) {
-      setInpErr(true);
-      setFeedback("A name is required");
+      giveError("A name is required");
     } else if (/[^\w\d ]+/.test(groupNameInput)) {
-      setInpErr(true);
-      setFeedback("Name cannot contain special characters");
+      giveError("Name cannot contain special characters");
     } else if (groupNameInput.length < 3) {
-      setInpErr(true);
-      setFeedback("Name must be at least 3 characters long");
+      giveError("Name must be at least 3 characters");
+    } else if (groupNameInput.length > 20) {
+      giveError("Name must not be more than 20 characters");
     } else if (!groupImageInput) {
-      setInpErr(true);
-      setFeedback("An image is required");
+      giveError("An image is required");
     } else if (groupImageInput.size > 3145728) {
-      setInpErr(true);
-      setFeedback("Image exceeds 3MB");
+      giveError("Image exceeds 3MB");
     } else {
       setInpErr(false);
       setFeedback("Looks good");

@@ -14,10 +14,6 @@ function NewChannelPage() {
     newChannelData.append("name", channelObject.name);
     newChannelData.append("type", channelObject.type);
 
-    // for (let pair of newChannelData.entries()) {
-    //   console.log(pair[0] + ", " + pair[1]);
-    // }
-
     axios
       .post("http://localhost:3100/c", newChannelData, axiosConfig)
       .then((res) => console.log("success:", res))
