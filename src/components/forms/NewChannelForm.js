@@ -21,22 +21,24 @@ function NewChannelForm(props) {
       channelTypeInput = e.target.value;
     }
 
+    function giveError(feedback) {
+      setInpErr(true);
+      setButtonStatus("error");
+      setFeedback(feedback);
+    }
+
     if (!channelNameInput) {
-      setInpErr(true);
-      setFeedback("A name is required");
+      giveError("A name is required");
     } else if (/[^\w\d ]+/.test(channelNameInput)) {
-      setInpErr(true);
-      setFeedback("Name cannot contain special characters");
-    } else if (channelNameInput.length < 3) {
-      setInpErr(true);
-      setFeedback("Name must be at least 3 characters long");
+      giveError("Name cannot contain special characters");
+    } else if (channelNameInput.length < 3 || channelNameInput.length > 20) {
+      giveError("Name must be between 3 and 20 characters");
     } else if (!channelTypeInput) {
-      setInpErr(true);
-      setFeedback("Select a channel type");
+      giveError("Select a channel type");
     } else {
       setInpErr(false);
-      setFeedback("Looks good");
       setButtonStatus("ok");
+      setFeedback("Looks good");
     }
   }
 
