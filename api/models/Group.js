@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 
-const channelSchema = new mongoose.Schema({
+const groupSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    unique: true,
   },
   type: { type: String, enum: ["text", "task"], required: true },
 });
