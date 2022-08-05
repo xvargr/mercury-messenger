@@ -55,7 +55,7 @@ app.get("/send", async (req, res) => {
   // await biggie.save((e) => console.log(e));
 
   console.log("GET REQUEST");
-  res.send(thing);
+  return res.send(thing);
 });
 
 app.get("/get", async (req, res) => {
@@ -74,52 +74,51 @@ app.get("/clear", async (req, res) => {
 
 // * need routes for /g /c new, /chats post get??
 
-app.post("/g", (req, res) => {
-  console.log("POST => GROUPS");
-  console.log(req.body);
-  console.log(req.files);
-  res.send(`POST => /g => ${req.body.name}`);
-});
+app.post(
+  "/g",
+  validateGroup,
+  asyncErrorWrapper(async function (req, res) {
+    console.log("POST => /G");
+    const newChannel = new Group(req.body);
+    const result = await newGroup.save((e) => console.log("SAVE-ERR: ", e));
+    console.log("res", result);
+    res.status(200).send(`successfully posted "${req.body.name}" to /c`);
+  })
+);
 
-// app.post(
-//   "/c",
-//   validateChannel,
-//   errorWrapper(async (req, res) => {
-//     console.log("POST => CHANNELS");
-//     const newChannel = new Channel(req.body);
-//     const result = await newChannel.save((e) => console.log("SAVE-ERR: ", e));
-//     console.log("res", result);
-//     res.send(`POST => /c => ${req.body.name}`);
-//   })
-// );
+// app.post("/g", (req, res) => {
+//   console.log("POST => GROUPS");
+//   console.log(req.body);
+//   console.log(req.files);
+//   res.send(`POST => /g => ${req.body.name}`);
+// });
 
 app.post(
   "/c",
   validateChannel,
   asyncErrorWrapper(async function (req, res) {
-    console.log("POST => CHANNELS");
-    const newChannel = new Channel(req.body);
-    const result = await newChannel.save((e) => console.log("SAVE-ERR: ", e));
-    console.log("res", result);
-    res.status(200).send(`POST => /c => ${req.body.name}`);
+    console.log("POST => /C");
+    // const newChannel = new Channel(req.body);
+    // const result = await newChannel.save((e) => console.log("SAVE-ERR: ", e));
+    // console.log("res", result);
+    res.status(200).send(`successfully posted "${req.body.name}" to /c`);
   })
 );
 
 // 404 catch
 app.all("*", function (req, res, next) {
   console.log("!-> 404 triggered");
-  next(new ExpressError(404, "Page Not Found")); // create new ExpErr with msg and status properties
+  next(new ExpressError(404, "Page Not Found"));
 });
 
 // Custom Error Handler
 app.use(function (err, req, res, next) {
   console.log("!-> handled error");
-  console.log(err);
-  // const { message = "Something went wrong", status = 500 } = err; //destructure msg and status from err, passed from next
-  // res.status(status).send(message);
-  // console.log(status, message);
-  res.status(400).send({ err });
-  // next(err);
+  const { message = "Something went wrong", status = 500 } = err;
+  console.log(status, message);
+  console.log("stack: ", err);
+  res.status(status).send(message);
+  // res.status(400).send({ err });
 });
 
 app.listen(PORT, () => {
