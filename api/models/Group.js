@@ -4,11 +4,16 @@ const groupSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    unique: true,
+    // unique: true,
   },
-  type: { type: String, enum: ["text", "task"], required: true },
+  // image: {
+  //   type: String,
+  //   required: true,
+  // },
+  // members: [{type: Schema.Users.id}]
+
+  // * image id, channels, members
 });
-const Channel = mongoose.model("Channel", channelSchema);
+const Channel = mongoose.model("Group", groupSchema);
 
 export default Channel;
-// module.exports = Channel;
