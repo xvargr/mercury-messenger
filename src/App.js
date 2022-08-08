@@ -8,38 +8,42 @@ import UserPage from "./pages/UserPage";
 import LoginPage from "./pages/LoginPage";
 
 // import components
+import GroupsBar from "./components/layout/GroupsBar";
 import ChatWindow from "./components/layout/ChatWindow";
 
 // import context
 import { UiStateProvider } from "./components/context/UiContext";
-import GroupsBar from "./components/layout/GroupsBar";
+import { DataStateProvider } from "./components/context/DataContext";
 
 function App() {
   // * temp logged in token
   let loggedIn = true;
-
   return (
-    <UiStateProvider>
-      <Routes>
-        <Route path="/Login" element={<LoginPage />} />
-        <Route
-          path="/"
-          element={loggedIn ? <GroupsBar /> : <Navigate to="/login"></Navigate>}
-        >
-          <Route path="u" element={<UserPage />} />
-          <Route path="g">
-            <Route path="new" element={<NewGroupPage />} />
-            <Route path=":group" element={<GroupWindow />}>
-              <Route path="c">
-                <Route path="new" element={<NewChannelPage />} />
-                <Route path=":channel" element={<ChatWindow />} />
+    <DataStateProvider>
+      <UiStateProvider>
+        <Routes>
+          <Route path="/Login" element={<LoginPage />} />
+          <Route
+            path="/"
+            element={
+              loggedIn ? <GroupsBar /> : <Navigate to="/login"></Navigate>
+            }
+          >
+            <Route path="u" element={<UserPage />} />
+            <Route path="g">
+              <Route path="new" element={<NewGroupPage />} />
+              <Route path=":group" element={<GroupWindow />}>
+                <Route path="c">
+                  <Route path="new" element={<NewChannelPage />} />
+                  <Route path=":channel" element={<ChatWindow />} />
+                </Route>
               </Route>
             </Route>
+            <Route path="*" element={<div>404</div>} />
           </Route>
-          <Route path="*" element={<div>404</div>} />
-        </Route>
-      </Routes>
-    </UiStateProvider>
+        </Routes>
+      </UiStateProvider>
+    </DataStateProvider>
   );
 }
 

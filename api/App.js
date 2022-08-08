@@ -2,8 +2,6 @@
 import express from "express";
 import "dotenv/config";
 import mongoose from "mongoose";
-import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
 import multer from "multer";
 // models
 import Group from "./models/Group.js";
@@ -13,27 +11,15 @@ import {
   validateGroup,
   validateChannel,
   validateImage,
-  // uploadImage,
-} from "./utils/middleware.js";
+} from "./utils/validation.js";
 import { asyncErrorWrapper } from "./utils/asyncErrorWrapper.js";
 import ExpressError from "./utils/ExpressError.js";
+import storage from "./utils/cloudinary.js";
 // global vars, env variables
 const app = express();
 const PORT = 3100;
 const DOMAIN = process.env.MERCURY_DOMAIN;
-
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "mercury",
-    allowedFormats: ["jpeg", "png", "jpg"],
-    // format: async (req, file) => "png",  // supports promises as well
-    // public_id: (req, file) => "computed-filename-using-request",
-  },
-});
-const upload = multer({ storage: storage });
-
-// const upload = multer({ dest: "uploads/" });
+const upload = multer({ storage }); // multer parses multiform data and set storage to cloudinary
 
 const db = mongoose.connection;
 mongoose.connect(process.env.ATLAS_URL, {
@@ -64,31 +50,12 @@ app.get("/", (req, res) => {
   res.send("polo");
 });
 
-// app.get("/send", async (req, res) => {
-//   const biggie = new Channel({ name: "chan1", type: "text" });
-//   // console.log(biggie);
-//   const { name, type } = biggie;
-//   let thing = channelSchema.validate({ name, type });
-//   console.log(thing.error);
-//   // await biggie.save((e) => console.log(e));
-
-//   console.log("GET REQUEST");
-//   return res.send(thing);
-// });
-
-// app.get("/get", async (req, res) => {
-//   const result = await Channel.find({ name: "chan1" });
-
-//   console.log("GET REQUEST");
-//   res.send(result);
-// });
-
-// app.get("/clear", async (req, res) => {
-//   const result = await Channel.deleteMany({});
-
-//   console.log("DELETED EVERYTHING");
-//   res.send(result);
-// });
+app.get("/clear", async (req, res) => {
+  const chan = await Channel.deleteMany({});
+  const grp = await Group.deleteMany({});
+  console.log("!!! DELETED EVERYTHING");
+  res.send(`${chan}, ${grp}`);
+});
 
 // * need routes for /g /c new, /chats post get??
 
@@ -97,33 +64,51 @@ app.post(
   upload.single("file"),
   validateGroup,
   validateImage,
-  // uploadImage,
   asyncErrorWrapper(async function (req, res) {
-    console.log("POST => /G");
-    // const newGroup = new Group(req.body);
-    // const result = await newGroup.save((e) => console.log("SAVE-ERR: ", e));
-    // console.log("res", result);
-    res.status(200).send(`successfully posted "${req.body.name}" to /g`);
+    console.log(`  > new group "${req.body.name}" made by user xx"`);
+    const newGroup = new Group({
+      name: req.body.name.trim(),
+      image: { url: req.file.path, filename: req.file.filename },
+      // channels: [],
+    });
+    await newGroup.save((e) => {
+      if (e) console.log("SAVE-ERR: ", e);
+    });
+    res.status(200).send(`successfully created "${req.body.name}"`);
   })
 );
+app.get("/g", async function (req, res) {
+  const result = await Group.find({});
+  // res.sendStatus(500);
+  // res.json(result);
+
+  function delay(time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+  }
+
+  await delay(5000).then();
+  console.count("sending get");
+  res.json(result);
+});
 
 app.post(
   "/c",
   upload.none(),
   validateChannel,
   asyncErrorWrapper(async function (req, res) {
-    console.log("POST => /C");
-    // const newChannel = new Channel(req.body);
-    // const result = await newChannel.save((e) => console.log("SAVE-ERR: ", e));
-    // console.log("res", result);
-    res.status(200).send(`successfully posted "${req.body.name}" to /c`);
+    console.log(`  > new channel "${req.body.name} made in channel xx"`);
+    const newChannel = new Channel(req.body);
+    await newChannel.save((e) => {
+      if (e) console.log("SAVE-ERR: ", e);
+    });
+    res.status(200).send(`successfully created "${req.body.name}"`);
   })
 );
 
 // 404 catch
 app.all("*", function (req, res, next) {
   console.log("!-> 404 triggered");
-  next(new ExpressError(404, "Page Not Found"));
+  next(new ExpressError("Page Not Found", 404));
 });
 
 // Custom Error Handler
@@ -131,8 +116,9 @@ app.use(function (err, req, res, next) {
   console.log("!-> handled error");
   const { message = "Something went wrong", status = 500 } = err;
   console.log(status, message);
-  console.log("stack: ", err);
-  res.sendStatus(status).send(message);
+  // console.log("stack: ", err);
+  res.sendStatus(status);
+  // res.sendStatus(status).send(message);
   // res.status(400).send({ err });
 });
 

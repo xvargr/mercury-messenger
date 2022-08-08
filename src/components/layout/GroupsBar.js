@@ -1,116 +1,125 @@
-import { Outlet } from "react-router-dom";
+import { useState, useContext, useEffect, useRef } from "react";
+import { Outlet, useParams } from "react-router-dom";
+import axios from "axios";
+import axiosRetry from "axios-retry";
 // components
 import GroupBadge from "../groups/GroupBadge";
 import NewGroupButton from "../groups/NewGroupButton";
 import Logo from "../groups/Logo";
 import UserBadge from "../groups/UserBadge";
+import SkeletonGroup from "../ui/SkeletonGroup";
 // context
-import { useContext } from "react";
 import { UiContext } from "../context/UiContext";
+import { DataContext } from "../context/DataContext";
 
-const DUMMY_DATA = [
-  {
-    id: "01",
-    name: "group-1",
-    description: "lorem",
-    img: "https://picsum.photos/100/100?random=1",
-    channels: [
-      {
-        name: "Channel 1",
-      },
-      {
-        name: "Channel 2",
-      },
-      {
-        name: "Incredibly long channel name",
-      },
-    ],
-  },
-  {
-    id: "02",
-    name: "group-2",
-    description: "lorem",
-    img: "https://picsum.photos/100/100?random=2",
-    channels: [
-      {
-        name: "Channel 1",
-      },
-      {
-        name: "Channel 2",
-      },
-      {
-        name: "Incredibly long channel name",
-      },
-    ],
-  },
-  {
-    id: "03",
-    name: "group-3",
-    description: "lorem",
-    img: "https://picsum.photos/100/100?random=3",
-    channels: [
-      {
-        name: "Channel 1",
-      },
-      {
-        name: "Channel 2",
-      },
-      {
-        name: "Incredibly long channel name",
-      },
-    ],
-  },
-  {
-    id: "04",
-    name: "group-4",
-    description: "lorem",
-    img: "https://picsum.photos/100/100?random=4",
-    channels: [
-      {
-        name: "Channel 1",
-      },
-      {
-        name: "Channel 2",
-      },
-      {
-        name: "Incredibly long channel name",
-      },
-    ],
-  },
-];
+//! this component rerenders every time a redirect happens
 
 function GroupsBar() {
-  const { selectedGroup } = useContext(UiContext);
+  const { group, channel } = useParams();
+  const { groupData, groupMounted, setGroupData, setGroupMounted } =
+    useContext(DataContext);
+  const {
+    selectedGroup,
+    selectedChannel,
+    setSelectedGroup,
+    setSelectedChannel,
+  } = useContext(UiContext);
+  const dataMountedRef = useRef(false);
 
-  return (
-    <main className="h-screen w-screen flex">
-      <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden shrink-0">
-        <Logo />
+  console.count("GROUP RERENDER");
+  console.log("DATA MOUNTED? ", groupMounted);
 
-        <UserBadge />
+  if (!groupMounted) {
+    // console.count("AXIOS FETCHING");
 
-        <hr className="m-2 mb-0 mt-0 border-gray-600" />
+    axiosRetry(axios, {
+      retries: 3, // number of retries
+      retryDelay: (retryCount) => {
+        console.log(`retry attempt: ${retryCount}`);
+        return retryCount * 2000; // time interval between retries
+      },
+      retryCondition: (error) => {
+        // if retry condition is not specified, by default idempotent requests are retried
+        // return error.response.status === 503; // retry only if err 503
+        return true; // retry every time
+      },
+    });
 
-        <div className="w-full overflow-y-scroll overflow-x-hidden scrollbar-none">
-          {DUMMY_DATA.map((group) => {
-            let selected = selectedGroup === group.name ? true : false;
+    axios
+      .get("http://localhost:3100/g")
+      .then((res) => {
+        // console.log("success:", res);
+        // setIsLoading(false);
+        dataMountedRef.current = true;
+        setSelectedGroup(group);
+        setSelectedChannel(channel);
+        setGroupMounted(true);
+        setGroupData(res.data);
+      })
+      .catch((err) => console.log("error:", err));
+  }
 
-            return (
-              <GroupBadge
-                name={group.name}
-                img={group.img}
-                selected={selected}
-                key={group.id}
-              />
-            );
-          })}
+  function groupChangeHandler(group) {
+    // console.log("CLICKED");
+    setSelectedGroup(group);
+    setSelectedChannel(null);
+    // console.log("params: ", group, channel);
+    // console.log("context: ", selectedGroup, selectedChannel);
+  }
 
-          <NewGroupButton />
-        </div>
-      </nav>
-      <Outlet />
-    </main>
-  );
+  if (!dataMountedRef.current) {
+    return (
+      <main className="h-screen w-screen flex">
+        <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden shrink-0">
+          <Logo />
+
+          <UserBadge />
+
+          <hr className="m-2 mb-0 mt-0 border-gray-600" />
+
+          <div className="w-full overflow-y-scroll overflow-x-hidden scrollbar-none">
+            <SkeletonGroup />
+            <SkeletonGroup />
+            <SkeletonGroup />
+
+            <NewGroupButton />
+          </div>
+        </nav>
+        <Outlet />
+      </main>
+    );
+  } else {
+    return (
+      <main className="h-screen w-screen flex">
+        <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden shrink-0">
+          <Logo />
+
+          <UserBadge />
+
+          <hr className="m-2 mb-0 mt-0 border-gray-600" />
+
+          <div className="w-full overflow-y-scroll overflow-x-hidden scrollbar-none">
+            {groupData?.map((grp) => {
+              let selected = selectedGroup === grp.name ? true : false;
+
+              return (
+                <GroupBadge
+                  name={grp.name}
+                  img={grp.image.thumbnail}
+                  selected={selected}
+                  key={grp.name}
+                  onClick={groupChangeHandler}
+                />
+              );
+            })}
+
+            <NewGroupButton />
+          </div>
+        </nav>
+        <Outlet />
+      </main>
+    );
+  }
 }
 
 export default GroupsBar;

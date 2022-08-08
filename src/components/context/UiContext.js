@@ -1,5 +1,4 @@
 import { useState, createContext } from "react";
-
 export const UiContext = createContext(); // use this to access the values here
 
 // use this to wrap around components that needs to access the values here

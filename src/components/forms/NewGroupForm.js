@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 // import ui
 import CardFloat from "../ui/CardFloat";
 import CircleButton from "../ui/CircleButton";
@@ -10,6 +10,11 @@ function NewGroupForm(props) {
   const [inpErr, setInpErr] = useState(true);
   const [feedback, setFeedback] = useState("");
   const [buttonStatus, setButtonStatus] = useState("error");
+
+  useEffect(() => {
+    groupNameInput = null;
+    groupImageInput = null;
+  }, []);
 
   function onChangeHandler(e) {
     if (e.target.type === "text") {

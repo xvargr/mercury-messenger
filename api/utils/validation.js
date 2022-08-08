@@ -1,14 +1,18 @@
 import { groupSchema, channelSchema } from "../schemas/Schemas.js";
 import ExpressError from "./ExpressError.js";
 import { v2 as cloudinary } from "cloudinary";
-// import multer from "multer";
 
 function validateGroup(req, res, next) {
-  const name = req.body.name;
-  const validation = groupSchema.validate({ name });
+  const { name } = req.body;
+  const validation = groupSchema.validate({
+    name,
+    image: req.file,
+    // channels: [],
+  });
 
   if (validation.error) {
     // console.log("VALIDATION ERROR : ", validation.error.details[0].message);
+    cloudinary.uploader.destroy(req.file.filename);
     next(new ExpressError(validation.error.details[0].message, 400));
   } else if (!req.file) {
     // console.log("VALIDATION ERROR : ", "No image provided");
@@ -22,7 +26,7 @@ function validateGroup(req, res, next) {
 function validateChannel(req, res, next) {
   const { name, type } = req.body;
   let validation = channelSchema.validate({ name, type });
-  // console.log(validation.error.details[0].message);
+
   if (validation.error) {
     // console.log("VALIDATION ERROR : ", validation.error.details[0].message);
     next(new ExpressError(validation.error.details[0].message, 400)); //! Important, in async functions, we must pass errors on to next
@@ -43,6 +47,7 @@ function validateImage(req, res, next) {
     next(new ExpressError("Image in wrong format", 400));
   } else if (image.size > 3145728) {
     // console.log("VALIDATION ERROR : ", "Image is too large");
+    cloudinary.uploader.destroy(req.file.filename);
     next(new ExpressError("Image is too large", 400));
   } else {
     // console.log("VALIDATION PASSED");
@@ -50,14 +55,4 @@ function validateImage(req, res, next) {
   }
 }
 
-function uploadImage(req, res, next) {
-  console.log(req.body);
-  console.log(req.files);
-  // console.log(req.files.file);
-  // console.log(upload);
-  cloudinary.uploader.upload(req.files.file.name, {}, (e) => console.log(e));
-
-  next();
-}
-
-export { validateGroup, validateChannel, validateImage, uploadImage };
+export { validateGroup, validateChannel, validateImage };
