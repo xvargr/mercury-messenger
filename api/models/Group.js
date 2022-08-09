@@ -18,19 +18,44 @@ ImageSchema.virtual("thumbnail").get(function () {
   return this.url.replace("/upload", "/upload/w_100");
 });
 
-const groupSchema = new mongoose.Schema(
+// const NestedChannelSchema = new mongoose.Schema(
+//   {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: "Channel",
+//   },
+//   options
+// );
+
+const GroupSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
+      unique: true,
       // unique: true,
     },
     image: ImageSchema,
+    // channels: {
+    //   text: [NestedChannelSchema],
+    //   task: [NestedChannelSchema],
+    // },
     channels: {
-      type: Array,
-      required: true,
-      default: [],
+      text: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Channel",
+        },
+      ],
+      task: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Channel",
+        },
+      ],
     },
+    // channels: [
+    //   { type: mongoose.Schema.Types.ObjectId, ref: "Channel", required: true },
+    // ],
     // members: [{type: Schema.Users.id}]
 
     // todo: are channels schema references?
@@ -40,6 +65,6 @@ const groupSchema = new mongoose.Schema(
   }
   // options
 );
-const Group = mongoose.model("Group", groupSchema);
+const Group = mongoose.model("Group", GroupSchema);
 
 export default Group;

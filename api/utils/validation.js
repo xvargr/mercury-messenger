@@ -6,7 +6,10 @@ function validateGroup(req, res, next) {
   const { name } = req.body;
   const validation = groupSchema.validate({
     name,
-    image: req.file,
+    image: {
+      url: req.file.path,
+      filename: req.file.filename,
+    },
     // channels: [],
   });
 
