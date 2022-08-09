@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 // import ui
 import CardFloat from "../ui/CardFloat";
 // import InputBox from "../components/ui/InputBox";
 import CircleButton from "../ui/CircleButton";
+// context
+import { UiContext } from "../context/UiContext";
+import { DataContext } from "../context/DataContext";
 // SVG
 import { ArrowRightIcon } from "@heroicons/react/solid";
 // vars
@@ -13,6 +16,8 @@ function NewChannelForm(props) {
   const [inpErr, setInpErr] = useState(true);
   const [feedback, setFeedback] = useState("");
   const [buttonStatus, setButtonStatus] = useState("error");
+  const { selectedGroup } = useContext(UiContext);
+  const { groupData } = useContext(DataContext);
 
   function onChangeHandler(e) {
     if (e.target.type === "text") {
@@ -31,8 +36,10 @@ function NewChannelForm(props) {
       giveError("A name is required");
     } else if (/[^\w\d ]+/.test(channelNameInput)) {
       giveError("Name cannot contain special characters");
-    } else if (channelNameInput.length < 3 || channelNameInput.length > 20) {
-      giveError("Name must be between 3 and 20 characters");
+    } else if (channelNameInput.length < 3) {
+      giveError("Name must be at least 3 characters");
+    } else if (channelNameInput.length > 20) {
+      giveError("Name must not exceed 20 characters");
     } else if (!channelTypeInput) {
       giveError("Select a channel type");
     } else {
@@ -47,10 +54,25 @@ function NewChannelForm(props) {
     if (!inpErr) {
       setButtonStatus("submitted");
       setFeedback("Uploading...");
+
+      // console.log(groupData);
+
+      // console.log("selectedGroup", selectedGroup);
+
+      const groupId = groupData.find(
+        (group) => group.name === selectedGroup
+      )._id;
+
+      // console.log("groupId", groupId);
+
       const newChannel = {
+        group: groupId,
         name: channelNameInput,
         type: channelTypeInput,
       };
+
+      // console.log("newChannel", newChannel);
+
       props.onNewChannel(newChannel); // run passed func on parent
     }
   }
@@ -127,8 +149,8 @@ function NewChannelForm(props) {
               </li>
             </ul>
           </div>
-          <div className="flex justify-end items-center mt-3">
-            <div className="h-full p-2 pl-0">{feedback}</div>
+          <div className="mt-6 flex justify-end items-center">
+            <div className="p-2 pl-0 text-md">{feedback}</div>
             <CircleButton status={buttonStatus}></CircleButton>
           </div>
         </div>

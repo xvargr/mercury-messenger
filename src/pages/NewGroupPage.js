@@ -34,8 +34,8 @@ function NewGroupPage() {
       .then(() => {
         setSelectedGroup(null);
         setSelectedChannel(null);
-        setGroupMounted(false); //! after navigate this is still true!
-        navigate("/"); //! confused new channel page with new group page AGAIN!
+        setGroupMounted(false);
+        navigate("/");
       });
   }
 

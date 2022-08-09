@@ -1,8 +1,8 @@
-import { useEffect, useContext, useState, useRef } from "react";
+import { useContext } from "react";
 import { useParams } from "react-router-dom";
 // import axios from "axios";
 // components
-import Channels from "../channels/ChannelBadge";
+import ChannelBadge from "../channels/ChannelBadge";
 import NewChannelButton from "../channels/NewChannelButton";
 import GroupBanner from "../channels/GroupBanner";
 // context
@@ -11,22 +11,23 @@ import { DataContext } from "../context/DataContext";
 import SkeletonChannel from "../ui/SkeletonChannel";
 
 function ChannelsBar() {
-  const { group, channel } = useParams();
-  const { groupData, setGroupData, groupMounted } = useContext(DataContext);
-  const {
-    selectedChannel,
-    selectedGroup,
-    setSelectedChannel,
-    setSelectedGroup,
-  } = useContext(UiContext);
+  const { group } = useParams();
+  const { groupData, groupMounted } = useContext(DataContext);
+  const { selectedChannel, selectedGroup, setSelectedChannel } =
+    useContext(UiContext);
 
-  console.count("CHANNEL RERENDED");
+  // console.count("CHANNEL RERENDED");
 
   const groupIndex = groupMounted
     ? groupData.findIndex((data) => {
         return data.name === selectedGroup;
       })
     : null;
+
+  function channelChangeHandler(channel) {
+    console.log("onclick fired");
+    setSelectedChannel(channel);
+  }
 
   if (!groupMounted) {
     return (
@@ -39,6 +40,10 @@ function ChannelsBar() {
           <SkeletonChannel />
           <SkeletonChannel />
           <hr className="w-1/3 mb-2 mt-2 border-gray-800" />
+          <SkeletonChannel />
+          <SkeletonChannel />
+          <SkeletonChannel />
+          <SkeletonChannel />
         </div>
       </section>
     );
@@ -48,8 +53,21 @@ function ChannelsBar() {
         <GroupBanner name={group} />
         <div className="w-full flex-grow overflow-y-scroll scrollbar-none flex flex-col items-center">
           <div className="w-1/3 mb-2 mt-2"></div>
-          {console.log(groupData[groupIndex].channels)}
-          {groupData[groupIndex].channels.map((channel) => {
+          {groupData[groupIndex].channels.text.map((channel) => {
+            let selected = selectedChannel === channel.name ? true : false;
+
+            return (
+              <ChannelBadge
+                name={channel.name}
+                selected={selected}
+                key={channel.name}
+                onClick={channelChangeHandler}
+              />
+            );
+          })}
+          <NewChannelButton />
+          <hr className="w-1/3 mb-2 mt-2 border-gray-800" />
+          {/* {groupData[groupIndex].channels.task.map((channel) => {
             let selected = selectedChannel === channel.name ? true : false;
 
             return (
@@ -59,9 +77,7 @@ function ChannelsBar() {
                 key={channel.name}
               />
             );
-          })}
-          <NewChannelButton />
-          <hr className="w-1/3 mb-2 mt-2 border-gray-800" />
+          })} */}
         </div>
       </section>
     );

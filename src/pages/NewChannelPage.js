@@ -19,6 +19,7 @@ function NewChannelPage() {
   const navigate = useNavigate();
   function newChannelHandler(channelObject) {
     let newChannelData = new FormData();
+    newChannelData.append("group", channelObject.group);
     newChannelData.append("name", channelObject.name);
     newChannelData.append("type", channelObject.type);
 
@@ -29,8 +30,8 @@ function NewChannelPage() {
       .then(() => {
         setSelectedGroup(null);
         setSelectedChannel(null);
-        setGroupMounted(false); //! after navigate this is still true!
-        navigate("/"); //! confused new channel page with new group page AGAIN!
+        setGroupMounted(false);
+        navigate("/");
       });
   }
 

@@ -66,19 +66,30 @@ app.post(
   validateImage,
   asyncErrorWrapper(async function (req, res) {
     console.log(`  > new group "${req.body.name}" made by user xx"`);
+
     const newGroup = new Group({
       name: req.body.name.trim(),
       image: { url: req.file.path, filename: req.file.filename },
-      // channels: [],
+      channels: { text: [], task: [] },
     });
+
     await newGroup.save((e) => {
       if (e) console.log("SAVE-ERR: ", e);
     });
+
+    // console.log(newGroup);
     res.status(200).send(`successfully created "${req.body.name}"`);
   })
 );
+
 app.get("/g", async function (req, res) {
-  const result = await Group.find({});
+  const result = await Group.find({}).populate({
+    path: "channels",
+    populate: [
+      { path: "text", model: "Channel" },
+      { path: "task", model: "Channel" },
+    ],
+  });
   // res.sendStatus(500);
   // res.json(result);
 
@@ -86,9 +97,10 @@ app.get("/g", async function (req, res) {
     return new Promise((resolve) => setTimeout(resolve, time));
   }
 
-  await delay(5000).then();
+  await delay(2000).then();
   console.count("sending get");
   res.json(result);
+  // res.json([]);
 });
 
 app.post(
@@ -96,11 +108,36 @@ app.post(
   upload.none(),
   validateChannel,
   asyncErrorWrapper(async function (req, res) {
-    console.log(`  > new channel "${req.body.name} made in channel xx"`);
+    // ?
+    // ? find associated group and push this group into its channels array
+    console.log(req.body);
+    const parentGroup = await Group.findById({ _id: req.body.group }); // ! _id not id, and use findbyid not find one
+    console.log(parentGroup);
+
     const newChannel = new Channel(req.body);
-    await newChannel.save((e) => {
-      if (e) console.log("SAVE-ERR: ", e);
-    });
+
+    if (req.body.type === "text") {
+      parentGroup.channels.text.push(newChannel);
+    } else if (req.body.type === "task") {
+      parentGroup.channels.task.push(newChannel);
+    } else {
+      return res.status(400).send("taskError");
+    }
+
+    await newChannel.save();
+    await parentGroup.save();
+
+    // console.log(newChannel);
+    // console.log(parentGroup.channels);
+
+    console.log(
+      `  > new channel "${req.body.name} made in group ${req.body.group}"`
+    );
+    // console.log(req.body);
+    // const newChannel = new Channel(req.body);
+    // await newChannel.save((e) => {
+    //   if (e) console.log("SAVE-ERR: ", e);
+    // });
     res.status(200).send(`successfully created "${req.body.name}"`);
   })
 );

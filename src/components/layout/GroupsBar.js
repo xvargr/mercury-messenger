@@ -1,5 +1,5 @@
-import { useState, useContext, useEffect, useRef } from "react";
-import { Outlet, useParams } from "react-router-dom";
+import { useContext } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import axiosRetry from "axios-retry";
 // components
@@ -20,14 +20,15 @@ function GroupsBar() {
     useContext(DataContext);
   const {
     selectedGroup,
-    selectedChannel,
+    // selectedChannel,
     setSelectedGroup,
     setSelectedChannel,
   } = useContext(UiContext);
-  const dataMountedRef = useRef(false);
+  // const dataMountedRef = useRef(false);
+  // console.log("selectedGrselectedGroup in bar ", selectedGroup);
 
-  console.count("GROUP RERENDER");
-  console.log("DATA MOUNTED? ", groupMounted);
+  // console.count("GROUP RERENDER");
+  // console.log("DATA MOUNTED? ", groupMounted);
 
   if (!groupMounted) {
     // console.count("AXIOS FETCHING");
@@ -35,7 +36,7 @@ function GroupsBar() {
     axiosRetry(axios, {
       retries: 3, // number of retries
       retryDelay: (retryCount) => {
-        console.log(`retry attempt: ${retryCount}`);
+        // console.log(`retry attempt: ${retryCount}`);
         return retryCount * 2000; // time interval between retries
       },
       retryCondition: (error) => {
@@ -50,7 +51,7 @@ function GroupsBar() {
       .then((res) => {
         // console.log("success:", res);
         // setIsLoading(false);
-        dataMountedRef.current = true;
+        // dataMountedRef.current = true;
         setSelectedGroup(group);
         setSelectedChannel(channel);
         setGroupMounted(true);
@@ -67,57 +68,51 @@ function GroupsBar() {
     // console.log("context: ", selectedGroup, selectedChannel);
   }
 
-  if (!dataMountedRef.current) {
+  if (!groupMounted) {
     return (
-      <main className="h-screen w-screen flex">
-        <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden shrink-0">
-          <Logo />
+      <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden shrink-0">
+        <Logo />
 
-          <UserBadge />
+        <UserBadge />
 
-          <hr className="m-2 mb-0 mt-0 border-gray-600" />
+        <hr className="m-2 mb-0 mt-0 border-gray-600" />
 
-          <div className="w-full overflow-y-scroll overflow-x-hidden scrollbar-none">
-            <SkeletonGroup />
-            <SkeletonGroup />
-            <SkeletonGroup />
+        <div className="w-full overflow-y-scroll overflow-x-hidden scrollbar-none">
+          <SkeletonGroup />
+          <SkeletonGroup />
+          <SkeletonGroup />
 
-            <NewGroupButton />
-          </div>
-        </nav>
-        <Outlet />
-      </main>
+          <NewGroupButton />
+        </div>
+      </nav>
     );
   } else {
     return (
-      <main className="h-screen w-screen flex">
-        <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden shrink-0">
-          <Logo />
+      <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden shrink-0">
+        <Logo />
 
-          <UserBadge />
+        <UserBadge />
 
-          <hr className="m-2 mb-0 mt-0 border-gray-600" />
+        <hr className="m-2 mb-0 mt-0 border-gray-600" />
 
-          <div className="w-full overflow-y-scroll overflow-x-hidden scrollbar-none">
-            {groupData?.map((grp) => {
-              let selected = selectedGroup === grp.name ? true : false;
+        <div className="w-full overflow-y-scroll overflow-x-hidden scrollbar-none">
+          {groupData?.map((grp) => {
+            let selected = selectedGroup === grp.name ? true : false;
 
-              return (
-                <GroupBadge
-                  name={grp.name}
-                  img={grp.image.thumbnail}
-                  selected={selected}
-                  key={grp.name}
-                  onClick={groupChangeHandler}
-                />
-              );
-            })}
+            return (
+              <GroupBadge
+                name={grp.name}
+                img={grp.image.thumbnail}
+                selected={selected}
+                key={grp.name}
+                onClick={groupChangeHandler}
+              />
+            );
+          })}
 
-            <NewGroupButton />
-          </div>
-        </nav>
-        <Outlet />
-      </main>
+          <NewGroupButton />
+        </div>
+      </nav>
     );
   }
 }
