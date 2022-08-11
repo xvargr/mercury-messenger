@@ -30,9 +30,8 @@ function GroupsBar() {
   // console.count("GROUP RERENDER");
   // console.log("DATA MOUNTED? ", groupMounted);
 
-  if (!groupMounted) {
-    // console.count("AXIOS FETCHING");
-
+  function fetchGroups() {
+    // console.log("refetch");
     axiosRetry(axios, {
       retries: 3, // number of retries
       retryDelay: (retryCount) => {
@@ -60,6 +59,45 @@ function GroupsBar() {
       .catch((err) => console.log("error:", err));
   }
 
+  if (!groupMounted) {
+    // console.log("unmounted fire");
+    fetchGroups();
+  }
+
+  // useEffect(() => {
+  //   fetchGroups();
+  // }, [groupMounted]);
+
+  // if (!groupMounted) {
+  //   // console.count("AXIOS FETCHING");
+
+  //   axiosRetry(axios, {
+  //     retries: 3, // number of retries
+  //     retryDelay: (retryCount) => {
+  //       // console.log(`retry attempt: ${retryCount}`);
+  //       return retryCount * 2000; // time interval between retries
+  //     },
+  //     retryCondition: (error) => {
+  //       // if retry condition is not specified, by default idempotent requests are retried
+  //       // return error.response.status === 503; // retry only if err 503
+  //       return true; // retry every time
+  //     },
+  //   });
+
+  //   axios
+  //     .get("http://localhost:3100/g")
+  //     .then((res) => {
+  //       // console.log("success:", res);
+  //       // setIsLoading(false);
+  //       // dataMountedRef.current = true;
+  //       setSelectedGroup(group);
+  //       setSelectedChannel(channel);
+  //       setGroupMounted(true);
+  //       setGroupData(res.data);
+  //     })
+  //     .catch((err) => console.log("error:", err));
+  // }
+
   function groupChangeHandler(group) {
     // console.log("CLICKED");
     setSelectedGroup(group);
@@ -71,7 +109,7 @@ function GroupsBar() {
   if (!groupMounted) {
     return (
       <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden shrink-0">
-        <Logo />
+        <Logo className="bg-gray-800" />
 
         <UserBadge />
 

@@ -8,8 +8,15 @@ export function DataStateProvider(props) {
   const [groupData, setGroupData] = useState({
     name: "",
     image: { url: "", filename: "", thumbnail: "" },
-    channels: [],
+    channels: {
+      text: [],
+      task: [],
+    },
   });
+
+  // * you can also put functions here and export them
+  // * push this this to array etc
+
   const dataState = { groupData, setGroupData, groupMounted, setGroupMounted };
 
   return (

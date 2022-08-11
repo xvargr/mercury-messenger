@@ -11,7 +11,14 @@ const channelSchema = new mongoose.Schema({
     required: true,
   },
   type: { type: String, enum: ["text", "task"], required: true },
-  // * messages
+  // messages: [
+  //   {
+  // ?     // ? how do we only populate tha last x messages to reduce bandwidth use
+  //     sender: {}, // ? reference to user
+  //     message: {},
+  //     timestamp: {},
+  //   },
+  // ],
 });
 const Channel = mongoose.model("Channel", channelSchema);
 

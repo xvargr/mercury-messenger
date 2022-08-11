@@ -68,6 +68,7 @@ function App() {
                   </Route>
                 </Route>
               </Route>
+              <Route path="404" element={<div>404</div>} />
               <Route path="*" element={<div>404</div>} />
             </Route>
           </Routes>

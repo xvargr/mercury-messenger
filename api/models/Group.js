@@ -35,10 +35,6 @@ const GroupSchema = new mongoose.Schema(
       // unique: true,
     },
     image: ImageSchema,
-    // channels: {
-    //   text: [NestedChannelSchema],
-    //   task: [NestedChannelSchema],
-    // },
     channels: {
       text: [
         {
@@ -53,9 +49,7 @@ const GroupSchema = new mongoose.Schema(
         },
       ],
     },
-    // channels: [
-    //   { type: mongoose.Schema.Types.ObjectId, ref: "Channel", required: true },
-    // ],
+
     // members: [{type: Schema.Users.id}]
 
     // todo: are channels schema references?

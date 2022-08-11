@@ -3,6 +3,12 @@ import express from "express";
 import "dotenv/config";
 import mongoose from "mongoose";
 import multer from "multer";
+import cors from "cors";
+import passport from "passport";
+import passportLocal from "passport-local";
+// import cookieParser from "cookie-parser";
+import bcrypt from "bcryptjs";
+import session from "express-session";
 // models
 import Group from "./models/Group.js";
 import Channel from "./models/Channel.js";
@@ -34,19 +40,40 @@ db.once("open", function () {
   console.log("--> Mongo.db connected");
 });
 
-app.use(express.urlencoded({ extended: true }));
+// middleware
+app.use(
+  cors({
+    // todo dynamic origin
+    origin: DOMAIN,
+    credentials: true,
+  })
+);
 
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", DOMAIN);
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+// app.use(express.urlencoded({ extended: true })); // ! <-- might not need this? bc multer
+
+app.use(
+  session({
+    secret: "testSecret",
+    resave: true, // force resave if not changed
+    maxAge: 2.592e8, // 3 days
+    saveUninitialized: true, // save new but unmodified
+    // store: "" // todo store in database
+  })
+);
+
+// ! replaced with cors module ^
+// app.use(function (req, res, next) {
+//   res.header("Access-Control-Allow-Origin", DOMAIN);
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept"
+//   );
+//   next();
+// });
 
 app.get("/", (req, res) => {
   console.log("GET REQUEST HOME");
+  // console.log(req.cookies); // undefined
   res.send("polo");
 });
 
@@ -56,6 +83,36 @@ app.get("/clear", async (req, res) => {
   console.log("!!! DELETED EVERYTHING");
   res.send(`${chan}, ${grp}`);
 });
+
+// * user routes
+// GET    /session/new gets the webpage that has the login form
+// POST   /session authenticates credentials against database
+// DELETE /session destroys session and redirect to /
+// GET  /users/new gets the webpage that has the registration form
+// POST /users records the entered information into database as a new /user/xxx
+// GET  /users/xxx // gets and renders current user data in a profile view
+// POST /users/xxx // updates new information about user
+
+app.post("/u", function (req, res) {
+  console.log(req.body);
+  res.send(req.body);
+}); // ? register new user
+app.get("/u", function (req, res) {
+  console.log(req.body);
+  res.send(req.body);
+}); // ? authenticate against database
+app.delete("/u", function (req, res) {
+  console.log(req.body);
+  res.send(req.body);
+}); // ? logout
+app.get("/u/:user", function (req, res) {
+  console.log(req.body);
+  res.send(req.body);
+}); // ? get user data
+app.post("/u/:user", function (req, res) {
+  console.log(req.body);
+  res.send(req.body);
+}); // ? update user data
 
 // * need routes for /g /c new, /chats post get??
 
@@ -71,6 +128,17 @@ app.post(
       name: req.body.name.trim(),
       image: { url: req.file.path, filename: req.file.filename },
       channels: { text: [], task: [] },
+    });
+
+    const newChannel = new Channel({
+      name: "General",
+      type: "text",
+    });
+
+    newGroup.channels.text.push(newChannel);
+
+    await newChannel.save((e) => {
+      if (e) console.log("SAVE-ERR: ", e);
     });
 
     await newGroup.save((e) => {
@@ -111,7 +179,7 @@ app.post(
     // ?
     // ? find associated group and push this group into its channels array
     console.log(req.body);
-    const parentGroup = await Group.findById({ _id: req.body.group }); // ! _id not id, and use findbyid not find one
+    const parentGroup = await Group.findById({ _id: req.body.group });
     console.log(parentGroup);
 
     const newChannel = new Channel(req.body);
