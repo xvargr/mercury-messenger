@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 // import axios from "axios";
 // components
 import ChannelBadge from "../channels/ChannelBadge";
@@ -15,8 +15,12 @@ function ChannelsBar() {
   const { groupData, groupMounted } = useContext(DataContext);
   const { selectedChannel, selectedGroup, setSelectedChannel } =
     useContext(UiContext);
+  const navigate = useNavigate();
 
-  // console.count("CHANNEL RERENDED");
+  // redirect 404 if group not found
+  if (groupMounted && !groupData.find((grp) => grp.name === group)) {
+    navigate("/404");
+  }
 
   const groupIndex = groupMounted
     ? groupData.findIndex((data) => {
@@ -25,7 +29,7 @@ function ChannelsBar() {
     : null;
 
   function channelChangeHandler(channel) {
-    console.log("onclick fired");
+    // console.log("onclick fired");
     setSelectedChannel(channel);
   }
 
@@ -67,14 +71,15 @@ function ChannelsBar() {
           })}
           <NewChannelButton />
           <hr className="w-1/3 mb-2 mt-2 border-gray-800" />
-          {/* {groupData[groupIndex].channels.task.map((channel) => {
+          {/* {groupData[groupIndex].channels.text.map((channel) => {
             let selected = selectedChannel === channel.name ? true : false;
-
+            // todo tasks here
             return (
-              <Channels
+              <ChannelBadge
                 name={channel.name}
                 selected={selected}
                 key={channel.name}
+                onClick={channelChangeHandler}
               />
             );
           })} */}

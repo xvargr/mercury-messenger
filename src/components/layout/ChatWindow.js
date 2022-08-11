@@ -1,12 +1,24 @@
 import { useParams } from "react-router-dom";
+// import { useParams, useNavigate } from "react-router-dom";
+// import { useContext } from "react";
 // components
 import Sender from "../chat/SenderWrapper";
 import Message from "../chat/Message";
 import ChatInputBox from "../chat/ChatInputBox";
 import ChannelBanner from "../chat/ChatBanner";
+// context
+// import { DataContext } from "../context/DataContext";
 
 function ChatWindow() {
   const { channel } = useParams();
+  // const { groupData, groupMounted } = useContext(DataContext);
+  // const navigate = useNavigate();
+
+  // ! waiting for channels remodel
+  // redirect 404 if channel not found
+  // if (groupMounted && !groupData.find((grp) => grp.name === channel)) {
+  //   navigate("/404");
+  // }
 
   return (
     <section className="bg-gray-600 h-screen w-3/4 flex flex-col relative">
