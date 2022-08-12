@@ -1,20 +1,20 @@
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
+import axios from "axios";
 // components
 import NewGroupForm from "../components/forms/NewGroupForm";
 // context
 import { UiContext } from "../components/context/UiContext";
 import { DataContext } from "../components/context/DataContext";
 
-const axios = require("axios").default;
 const axiosConfig = {
   headers: { "Content-Type": "multipart/form-data" },
-  // onUploadProgress: (progressEvent) => { // progress bar
+  // onUploadProgress: (progressEvent) => {
   //   let uploadProgress = Math.round(
   //     (progressEvent.loaded * 100) / progressEvent.total
   //   );
   //   console.log(uploadProgress);
-  // },
+  // }, // ? for progress bar if needed
 };
 
 function NewGroupPage() {
@@ -27,8 +27,10 @@ function NewGroupPage() {
     newGroupData.append("name", groupObject.name);
     newGroupData.append("file", groupObject.image);
 
-    axios
-      .post("http://localhost:3100/g", newGroupData, axiosConfig)
+    const axiosNewGroup = axios.create({ baseURL: "http://localhost:3100" });
+
+    axiosNewGroup
+      .post("/g", newGroupData, axiosConfig)
       .then((res) => console.log("success:", res))
       .catch((err) => console.log("error:", err))
       .then(() => {

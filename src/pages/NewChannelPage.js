@@ -14,7 +14,7 @@ const axiosConfig = {
 
 function NewChannelPage() {
   const { setGroupMounted } = useContext(DataContext);
-  const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
+  const { selectedGroup, setSelectedChannel } = useContext(UiContext);
 
   const navigate = useNavigate();
   function newChannelHandler(channelObject) {
@@ -23,15 +23,16 @@ function NewChannelPage() {
     newChannelData.append("name", channelObject.name);
     newChannelData.append("type", channelObject.type);
 
-    axios
+    const axiosNewChannel = axios.create({ baseURL: "http://localhost:3100" });
+
+    axiosNewChannel
       .post("http://localhost:3100/c", newChannelData, axiosConfig)
       .then((res) => console.log("success:", res))
       .catch((err) => console.log("error:", err))
       .then(() => {
-        setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
-        navigate("/");
+        navigate(`/g/${selectedGroup}`);
       });
   }
 

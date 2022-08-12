@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import axiosRetry from "axios-retry";
@@ -24,6 +24,7 @@ function GroupsBar() {
     setSelectedGroup,
     setSelectedChannel,
   } = useContext(UiContext);
+  const controller = new AbortController(); // axios abort controller
   // const dataMountedRef = useRef(false);
   // console.log("selectedGrselectedGroup in bar ", selectedGroup);
 
@@ -32,10 +33,13 @@ function GroupsBar() {
 
   function fetchGroups() {
     // console.log("refetch");
-    axiosRetry(axios, {
+
+    const axiosGroupFetch = axios.create({ baseURL: "http://localhost:3100" });
+
+    axiosRetry(axiosGroupFetch, {
       retries: 3, // number of retries
       retryDelay: (retryCount) => {
-        // console.log(`retry attempt: ${retryCount}`);
+        console.log(`retry attempt: ${retryCount}`);
         return retryCount * 2000; // time interval between retries
       },
       retryCondition: (error) => {
@@ -45,8 +49,8 @@ function GroupsBar() {
       },
     });
 
-    axios
-      .get("http://localhost:3100/g")
+    axiosGroupFetch
+      .get("/g", { signal: controller.signal })
       .then((res) => {
         // console.log("success:", res);
         // setIsLoading(false);
@@ -63,6 +67,14 @@ function GroupsBar() {
     // console.log("unmounted fire");
     fetchGroups();
   }
+
+  useEffect(() => {
+    return () => {
+      console.log("aborted");
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ? abort axios request on unmount
 
   // useEffect(() => {
   //   fetchGroups();
