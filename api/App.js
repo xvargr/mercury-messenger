@@ -12,6 +12,7 @@ import session from "express-session";
 // models
 import Group from "./models/Group.js";
 import Channel from "./models/Channel.js";
+import User from "./models/User.js";
 // middleware
 import {
   validateGroup,
@@ -93,26 +94,59 @@ app.get("/clear", async (req, res) => {
 // GET  /users/xxx // gets and renders current user data in a profile view
 // POST /users/xxx // updates new information about user
 
-app.post("/u", function (req, res) {
-  console.log(req.body);
-  res.send(req.body);
-}); // ? register new user
-app.get("/u", function (req, res) {
-  console.log(req.body);
+// todo add validation
+app.post(
+  "/u",
+  upload.none(),
+  asyncErrorWrapper(async function (req, res) {
+    // console.log(req.body);
+    // res.send(req.body);
+    const result = await User.findOne({ username: req.body.username });
+    console.log(result);
+    if (result) {
+      console.log(req.body.username);
+      return res.status(400).send("username already exists");
+    }
+
+    // const salt = bcrypt.genSaltSync(10);
+    // console.log(salt);
+    // const hash = bcrypt.hashSync("B4c0//", salt);
+    // console.log(hash);
+    // bcrypt.compareSync("B4c0//", hash); // true
+
+    const hashedPw = bcrypt.hashSync(req.body.password, 10);
+
+    const newUser = new User({
+      username: req.body.username,
+      password: hashedPw,
+    });
+    await newUser.save();
+    console.log(newUser);
+    console.log(`  > new user "${req.body.username}" created`);
+    res.status(200).send("user created");
+  })
+);
+
+app.get("/u", upload.none(), function (req, res) {
+  console.log("LOGIN");
+  console.log(req.body); // ! undefined <== wtf
+  console.log(req.body.username);
+  console.log(req.body.password);
   res.send(req.body);
 }); // ? authenticate against database
-app.delete("/u", function (req, res) {
-  console.log(req.body);
-  res.send(req.body);
-}); // ? logout
-app.get("/u/:user", function (req, res) {
-  console.log(req.body);
-  res.send(req.body);
-}); // ? get user data
-app.post("/u/:user", function (req, res) {
-  console.log(req.body);
-  res.send(req.body);
-}); // ? update user data
+
+// app.delete("/u", function (req, res) {
+//   console.log(req.body);
+//   res.send(req.body);
+// }); // ? logout
+// app.get("/u/:user", function (req, res) {
+//   console.log(req.body);
+//   res.send(req.body);
+// }); // ? get user data
+// app.post("/u/:user", function (req, res) {
+//   console.log(req.body);
+//   res.send(req.body);
+// }); // ? update user data
 
 // * need routes for /g /c new, /chats post get??
 
@@ -171,6 +205,7 @@ app.get("/g", async function (req, res) {
   // res.json([]);
 });
 
+// todo check uniqueness of channel name
 app.post(
   "/c",
   upload.none(),

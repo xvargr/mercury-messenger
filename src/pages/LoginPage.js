@@ -1,24 +1,50 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import InputBox from "../components/ui/InputBox";
 // import Logo from "../components/groups/Logo";
 
+const axiosConfig = {
+  headers: { "Content-Type": "multipart/form-data" },
+};
+
 function LoginPage() {
+  const navigate = useNavigate();
   const [formState, setFormState] = useState("login");
   const usernameRef = useRef(null);
   const passwordRef = useRef(null); // ! can use same ref for log and reg
 
   function submitHandler(e) {
     e.preventDefault();
+    const axiosUser = axios.create({ baseURL: "http://localhost:3100" });
+
+    let userData = new FormData();
+    userData.append("username", usernameRef.current.value);
+    userData.append("password", passwordRef.current.value);
+
+    for (var pair of userData.entries()) {
+      console.log(pair[0] + ", " + pair[1]); // ? not empty, req.body empty
+    }
+
     if (formState === "login") {
-      console.log("loginSubmit");
-      console.log(usernameRef.current.value);
-      console.log(passwordRef.current.value);
+      console.log("LOGIN");
+      axiosUser
+        .get("/u", userData, axiosConfig)
+        .then((res) => console.log("success:", res))
+        .catch((err) => console.log("error:", err))
+        .then(() => {
+          navigate("/");
+        });
     } else {
-      console.log("registerSubmit");
-      console.log(usernameRef.current.value);
-      console.log(passwordRef.current.value);
+      console.log("REGISTER");
+      axiosUser
+        .post("/u", userData, axiosConfig)
+        .then((res) => console.log("success:", res))
+        .catch((err) => console.log("error:", err))
+        .then(() => {
+          navigate("/");
+        });
     }
   }
 
@@ -67,6 +93,21 @@ function LoginPage() {
               ref={passwordRef}
             />
           </InputBox>
+          {formState === "login" ? (
+            ""
+          ) : (
+            <InputBox className="bg-gray-500 w-4/6 m-3">
+              <input
+                type="password"
+                name="confirm-password"
+                id="confirm-password"
+                placeholder="Confirm password"
+                className="block bg-gray-500 w-full focus:outline-none"
+                autoComplete="off"
+              />
+            </InputBox>
+          )}
+
           <button className="block">
             {formState === "login" ? "Login" : "Register"}
           </button>
