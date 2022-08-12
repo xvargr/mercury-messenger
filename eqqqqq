@@ -1,0 +1,239 @@
+[33mcommit 255b380bf070dd33119c65b1595dfb37ace70952[m[33m ([m[1;36mHEAD -> [m[1;32m2022.8.12[m[33m)[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Fri Aug 12 19:27:02 2022 +0800
+
+    basic login/register form
+
+[33mcommit 7dcbce88691258d50bbb09d8cf0744c556b5ef26[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m
+Merge: d948922 8994339
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Thu Aug 11 23:15:35 2022 +0800
+
+    Merge pull request #14 from xvargr:2022.8.11
+    
+    basic login/register form
+
+[33mcommit 8994339b06315a67eca9192127668165ec1b40ee[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Thu Aug 11 23:14:37 2022 +0800
+
+    basic login/register form
+
+[33mcommit d948922b559d91b9abbdfcc1ca5e8fc1c2e1f5d2[m
+Merge: 6d7e5fc 9e2c6ee
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Tue Aug 9 21:17:17 2022 +0800
+
+    Merge pull request #13 from xvargr:2022.8.9
+    
+    C:/Program Files/Git/c post implemented, schema/model rework, router rework, ui state switching rework
+
+[33mcommit 9e2c6ee12cc4bbf1982dac1947821981c2fe6b49[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Tue Aug 9 21:16:00 2022 +0800
+
+    C:/Program Files/Git/c post implemented, schema/model rework, router rework, ui state switching rework
+
+[33mcommit 6d7e5fc8840a91af0febfb0eab9434e445b0c243[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Mon Aug 8 23:54:17 2022 +0800
+
+    image upload, axios retry, group data context,
+
+[33mcommit d1a52c21c7e849247518eedeb181e67a30424946[m
+Merge: 563b34c 3e4b9b5
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Fri Aug 5 21:21:36 2022 +0800
+
+    Merge pull request #12 from xvargr:2022.8.5b
+    
+    cloudinary upload and post new group wip
+
+[33mcommit 3e4b9b519a5fa211f8d2c04ad18992a5c519ecac[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Fri Aug 5 21:19:57 2022 +0800
+
+    cloudinary upload and post new group wip
+
+[33mcommit 563b34cfa768c44b10703571090b434d6a0c4898[m
+Merge: 75598e7 e06fdab
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Fri Aug 5 15:48:42 2022 +0800
+
+    Merge pull request #11 from xvargr:2022.8.5a
+    
+    push before local delete and pull
+
+[33mcommit e06fdab51a0259a1617d07ff453d193cec49e4c3[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Fri Aug 5 15:48:18 2022 +0800
+
+    push before local delete and pull
+
+[33mcommit 75598e767194e5bab1a777768fa25da71afad662[m
+Merge: 32e83a8 6142d4a
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Fri Aug 5 00:35:20 2022 +0800
+
+    Merge pull request #10 from xvargr/2022.8.4
+    
+    backend work, routes, mongo models, joi validation, express error han…
+
+[33mcommit 6142d4a16b9a74901e96ffa1707cd96bc2edcda0[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Fri Aug 5 00:33:46 2022 +0800
+
+    backend work, routes, mongo models, joi validation, express error handling
+
+[33mcommit 32e83a8768ba8dba9663ab2a9e0b7ba8a21cf612[m
+Merge: bde4e88 c9ed31d
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Wed Aug 3 21:11:30 2022 +0800
+
+    Merge pull request #9 from xvargr:2022.8.3
+    
+    completed post/new forms and axios post implementation, basic backend started
+
+[33mcommit c9ed31da01228a3a3cca2e5a7c2039d32191174a[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Wed Aug 3 21:10:51 2022 +0800
+
+    completed post/new forms and axios post implementation, basic backend started
+
+[33mcommit bde4e88a0f085ce5f2b776a28eb4f8fe0287bfa2[m
+Merge: 87aa33a 2d5cce2
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Tue Aug 2 21:50:48 2022 +0800
+
+    Merge pull request #8 from xvargr:2022.8.2
+    
+    new forms and client side validation completed, todo http requests to backend api
+
+[33mcommit 2d5cce2794077834b0166a19519c93458c36f650[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Tue Aug 2 21:50:19 2022 +0800
+
+    new forms and client side validation completed, todo http requests to backend api
+
+[33mcommit 87aa33a21535198b184a08e9278d1257c5beb359[m
+Merge: 4cbfe46 be413de
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Tue Aug 2 01:31:18 2022 +0800
+
+    Merge pull request #7 from xvargr:2022.8.1
+    
+    wip and cleanup on layout, router rework, new items form, add global states
+
+[33mcommit be413deedc29b1516f820ecdc29f51d44a837501[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Tue Aug 2 01:30:40 2022 +0800
+
+    wip and cleanup on layout, router rework, new items form, add global states
+
+[33mcommit 4cbfe46b7ac98ffcaec5a59e21574c08f2ad95e0[m
+Merge: dfea998 332bf3d
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Fri Jul 29 23:58:55 2022 +0800
+
+    Merge pull request #6 from xvargr:2022.7.29
+    
+    more frontend styling, file and route restructuring
+
+[33mcommit 332bf3d2764f921e437bb683a2d16a75d98eb0c9[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Fri Jul 29 23:57:52 2022 +0800
+
+    more frontend styling, file and route restructuring
+
+[33mcommit dfea998fcaba04418c6fcd860fa38946674df9b4[m
+Merge: fd4d646 ae1cc89
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Fri Jul 29 00:19:30 2022 +0800
+
+    Merge pull request #5 from xvargr:2022.7.28
+    
+    chat window formatting and split into components
+
+[33mcommit ae1cc8927cb5fb8378470f5ca645122f1b2ba6a9[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Fri Jul 29 00:19:02 2022 +0800
+
+    chat window formatting and split into components
+
+[33mcommit fd4d6467586a9da3ce51490eb3795d83c39605ce[m
+Merge: 927b646 b22ecb6
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Wed Jul 27 21:11:30 2022 +0800
+
+    Merge pull request #4 from xvargr:2022.7.27
+    
+    moved groups to components, misc changes to styles, message window formatting wip
+
+[33mcommit b22ecb67b234cbe5c569ea561631afa0e1483069[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Wed Jul 27 21:10:56 2022 +0800
+
+    moved groups to components, misc changes to styles, message window formatting wip
+
+[33mcommit 927b64668e376fbdb4d52e82774b45e90331b529[m
+Merge: 3d256a7 725585e
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Wed Jul 27 00:51:35 2022 +0800
+
+    Merge pull request #3 from xvargr:2022.7.26
+    
+    layout more wip
+
+[33mcommit 725585eab56be189393725b50b7b1dcd2a8e5438[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Wed Jul 27 00:50:51 2022 +0800
+
+    layout more wip
+
+[33mcommit 3d256a729f41795ac6f2082eec7e973341a68fee[m
+Merge: 8bdaf59 d81d3c1
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Mon Jul 25 22:56:15 2022 +0800
+
+    Merge pull request #2 from xvargr:2022.7.25
+    
+    basic layout wip
+
+[33mcommit d81d3c124bb8ceeaf13abb896f4019698cc3f946[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Mon Jul 25 22:55:13 2022 +0800
+
+    basic layout wip
+
+[33mcommit 8bdaf592680c8bac27e9635aa3ac5e9365770535[m
+Merge: 231d0f3 14756e5
+Author: xvargr <97782894+xvargr@users.noreply.github.com>
+Date:   Fri Jul 22 21:46:05 2022 +0800
+
+    Merge pull request #1 from xvargr:2022.7.22
+    
+    basic routing
+
+[33mcommit 14756e54af4c60296ac00f43cc51b045ce6855d4[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Fri Jul 22 21:42:06 2022 +0800
+
+    basic routing
+
+[33mcommit 231d0f30b01ed87324de2b2882ef3b44ebb3542c[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Thu Jul 21 22:20:51 2022 +0800
+
+    cleanup and tailwind setup
+
+[33mcommit c4f9a815132fae18553f6f9407c93996d08d3f0c[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Wed Jul 20 20:08:09 2022 +0800
+
+    cards list react test
+
+[33mcommit a20e0839b5f3fc52eba4fb278767a539cca18a37[m
+Author: xvargr <targenta650@gmail.com>
+Date:   Wed Jul 20 13:12:11 2022 +0800
+
+    Initialize project using Create React App
