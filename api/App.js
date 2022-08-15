@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import multer from "multer";
 import cors from "cors";
 import passport from "passport";
-import passportLocal from "passport-local";
+import LocalStrategy from "passport-local";
 // import cookieParser from "cookie-parser";
 import bcrypt from "bcryptjs";
 import session from "express-session";
@@ -51,6 +51,7 @@ app.use(
 );
 
 // app.use(express.urlencoded({ extended: true })); // ! <-- might not need this? bc multer
+// app.use(express.json());
 
 app.use(
   session({
@@ -61,6 +62,35 @@ app.use(
     // store: "" // todo store in database
   })
 );
+
+// app.use(cookieParser("testSecret"));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// todo move this to a middleware file
+// ? defining passport's local strategy
+passport.use(
+  new LocalStrategy(function (username, password, done) {
+    User.findOne({ username }, function (err, user) {
+      if (err) throw new ExpressError(err, 500); // there is an error
+      if (!user) return done(null, false); // no user by that username, null error, false user
+      bcrypt.compare(password, user.password, (err, result) => {
+        if (err) throw new ExpressError(err, 500);
+        if (result === true) {
+          console.log("user found!");
+          console.log(user);
+          return done(null, user); // authenticated
+        } else {
+          return done(null, false); // wrong password
+        }
+      });
+    });
+  })
+);
+passport.serializeUser((user, done) => done(null, user.id)); // stores a cookie with the user's id
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => done(err, user));
+}); // find cookie's user id and match from db
 
 // ! replaced with cors module ^
 // app.use(function (req, res, next) {
@@ -74,6 +104,7 @@ app.use(
 
 app.get("/", (req, res) => {
   console.log("GET REQUEST HOME");
+  console.log(req.user); // ! <= undefined
   // console.log(req.cookies); // undefined
   res.send("polo");
 });
@@ -99,20 +130,12 @@ app.post(
   "/u",
   upload.none(),
   asyncErrorWrapper(async function (req, res) {
-    // console.log(req.body);
-    // res.send(req.body);
     const result = await User.findOne({ username: req.body.username });
     console.log(result);
     if (result) {
       console.log(req.body.username);
       return res.status(400).send("username already exists");
     }
-
-    // const salt = bcrypt.genSaltSync(10);
-    // console.log(salt);
-    // const hash = bcrypt.hashSync("B4c0//", salt);
-    // console.log(hash);
-    // bcrypt.compareSync("B4c0//", hash); // true
 
     const hashedPw = bcrypt.hashSync(req.body.password, 10);
 
@@ -127,13 +150,34 @@ app.post(
   })
 );
 
-app.get("/u", upload.none(), function (req, res) {
-  console.log("LOGIN");
-  console.log(req.body); // ! undefined <== wtf
-  console.log(req.body.username);
-  console.log(req.body.password);
-  res.send(req.body);
-}); // ? authenticate against database
+app.post(
+  "/u/login",
+  upload.none(),
+  // passport.authenticate("local", { failureRedirect: "/login" }),
+  function (req, res, next) {
+    passport.authenticate("local", (err, user, info) => {
+      if (err) throw new ExpressError(err, 500);
+      if (!user) res.send("No User Exists");
+      else {
+        req.logIn(user, (err) => {
+          if (err) throw err;
+          console.log("Successfully Authenticated");
+          console.log(req.user);
+          res.send(user);
+        });
+      }
+    })(req, res, next); // ! <= this for some reason is required, no idea why
+
+    // passport.authenticate("local")
+
+    // console.log("LOGIN"); // todo validate user
+    // console.log(req.body);
+    // console.log(req.body.username);
+    // console.log(req.body.password);
+    // // res.redirect("/");
+    // res.send("ok");
+  }
+);
 
 // app.delete("/u", function (req, res) {
 //   console.log(req.body);
@@ -185,6 +229,10 @@ app.post(
 );
 
 app.get("/g", async function (req, res) {
+  console.log("req.user", req.user);
+  console.log("req.session", req.session);
+  console.log("req.session.passport", req.session.passport);
+
   const result = await Group.find({}).populate({
     path: "channels",
     populate: [
@@ -256,7 +304,7 @@ app.use(function (err, req, res, next) {
   console.log("!-> handled error");
   const { message = "Something went wrong", status = 500 } = err;
   console.log(status, message);
-  // console.log("stack: ", err);
+  console.log("stack: ", err);
   res.sendStatus(status);
   // res.sendStatus(status).send(message);
   // res.status(400).send({ err });

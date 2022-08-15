@@ -34,7 +34,10 @@ function GroupsBar() {
   function fetchGroups() {
     // console.log("refetch");
 
-    const axiosGroupFetch = axios.create({ baseURL: "http://localhost:3100" });
+    const axiosGroupFetch = axios.create({
+      baseURL: "http://localhost:3100",
+      withCredentials: true, // ! <= doesn't work yet
+    });
 
     axiosRetry(axiosGroupFetch, {
       retries: 3, // number of retries
