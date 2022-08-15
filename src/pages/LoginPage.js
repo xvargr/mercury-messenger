@@ -13,39 +13,28 @@ function LoginPage() {
   const navigate = useNavigate();
   const [formState, setFormState] = useState("login");
   const usernameRef = useRef(null);
-  const passwordRef = useRef(null); // ! can use same ref for log and reg
+  const passwordRef = useRef(null);
 
   function submitHandler(e) {
     e.preventDefault();
-    const axiosUser = axios.create({ baseURL: "http://localhost:3100" });
+    const axiosUser = axios.create({
+      baseURL: "http://localhost:3100",
+      withCredentials: true, // ! <= this fixes undefined cookies
+    });
 
     let userData = new FormData();
     userData.append("username", usernameRef.current.value);
     userData.append("password", passwordRef.current.value);
 
-    for (var pair of userData.entries()) {
-      console.log(pair[0] + ", " + pair[1]); // ? not empty, req.body empty
-    }
+    let route = formState === "login" ? "/u/login" : "/u";
 
-    if (formState === "login") {
-      console.log("LOGIN");
-      axiosUser
-        .get("/u", userData, axiosConfig)
-        .then((res) => console.log("success:", res))
-        .catch((err) => console.log("error:", err))
-        .then(() => {
-          navigate("/");
-        });
-    } else {
-      console.log("REGISTER");
-      axiosUser
-        .post("/u", userData, axiosConfig)
-        .then((res) => console.log("success:", res))
-        .catch((err) => console.log("error:", err))
-        .then(() => {
-          navigate("/");
-        });
-    }
+    axiosUser
+      .post(route, userData, axiosConfig)
+      .then((res) => console.log("success:", res))
+      .catch((err) => console.log("error:", err))
+      .then(() => {
+        navigate("/");
+      });
   }
 
   function switchForm() {
