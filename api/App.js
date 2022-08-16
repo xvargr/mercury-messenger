@@ -6,7 +6,9 @@ import multer from "multer";
 import cors from "cors";
 import passport from "passport";
 import LocalStrategy from "passport-local";
+// import { Jwt } from "jsonwebtoken"; //? https://www.digitalocean.com/community/tutorials/api-authentication-with-json-web-tokensjwt-and-passport
 // import cookieParser from "cookie-parser";
+import MongoStore from "connect-mongo";
 import bcrypt from "bcryptjs";
 import session from "express-session";
 // models
@@ -29,10 +31,12 @@ const DOMAIN = process.env.MERCURY_DOMAIN;
 const upload = multer({ storage }); // multer parses multiform data and set storage to cloudinary
 
 const db = mongoose.connection;
-mongoose.connect(process.env.ATLAS_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const mongoClient = mongoose
+  .connect(process.env.ATLAS_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then((m) => m.connection.getClient());
 db.on(
   "error",
   console.error.bind(console, "!-> Connection to mongo.db failed")
@@ -55,11 +59,16 @@ app.use(
 
 app.use(
   session({
-    secret: "testSecret",
-    resave: true, // force resave if not changed
+    secret: process.env.SECRET,
+    resave: false, // force resave if not changed
     maxAge: 2.592e8, // 3 days
-    saveUninitialized: true, // save new but unmodified
-    // store: "" // todo store in database
+    saveUninitialized: false, // save new but unmodified
+    store: MongoStore.create({
+      // mongoUrl: process.env.ATLAS_URL,
+      clientPromise: mongoClient,
+      touchAfter: 24 * 3600,
+      crypto: { secret: process.env.SECRET },
+    }), // todo store in database
   })
 );
 
@@ -73,15 +82,14 @@ passport.use(
   new LocalStrategy(function (username, password, done) {
     User.findOne({ username }, function (err, user) {
       if (err) throw new ExpressError(err, 500); // there is an error
-      if (!user) return done(null, false); // no user by that username, null error, false user
+      if (!user)
+        return done(null, false, { message: "Wrong username or password" }); // no user by that username, null error, false user
       bcrypt.compare(password, user.password, (err, result) => {
         if (err) throw new ExpressError(err, 500);
         if (result === true) {
-          console.log("user found!");
-          console.log(user);
           return done(null, user); // authenticated
         } else {
-          return done(null, false); // wrong password
+          return done(null, false, { message: "Wrong username or password" }); // wrong password
         }
       });
     });
@@ -142,11 +150,29 @@ app.post(
     const newUser = new User({
       username: req.body.username,
       password: hashedPw,
+      userImage: {
+        url: undefined,
+        fileName: undefined,
+      },
     });
     await newUser.save();
-    console.log(newUser);
+
+    const user = await User.findOne({ username: newUser.username });
+
+    req.logIn(user, (err) => {
+      if (err) throw err;
+      console.log("Successfully Authenticated");
+      console.log(user.userImage);
+      res.send({
+        username: user.username,
+        userImage: user.userImage.url,
+        userImageSmall: user.userImage.thumbnailSmall,
+        userImageMedium: user.userImage.thumbnailMedium,
+      });
+    });
+
     console.log(`  > new user "${req.body.username}" created`);
-    res.status(200).send("user created");
+    // res.status(200).send("user created"); //?? send userdata
   })
 );
 
@@ -163,26 +189,24 @@ app.post(
           if (err) throw err;
           console.log("Successfully Authenticated");
           console.log(req.user);
-          res.send(user);
+          res.send({
+            username: user.username,
+            userImage: user.userImage.url,
+            userImageSmall: user.userImage.thumbnailSmall,
+            userImageMedium: user.userImage.thumbnailMedium,
+          });
         });
       }
     })(req, res, next); // ! <= this for some reason is required, no idea why
-
-    // passport.authenticate("local")
-
-    // console.log("LOGIN"); // todo validate user
-    // console.log(req.body);
-    // console.log(req.body.username);
-    // console.log(req.body.password);
-    // // res.redirect("/");
-    // res.send("ok");
   }
 );
 
-// app.delete("/u", function (req, res) {
-//   console.log(req.body);
-//   res.send(req.body);
-// }); // ? logout
+app.delete("/u", function (req, res) {
+  console.log(`logged out ${req.user.username}`);
+  req.logOut((err) => err);
+  res.status(200).send("ok"); // ! Check that api is not sending unnecessary info like user hashed pw
+}); // ? logout
+
 // app.get("/u/:user", function (req, res) {
 //   console.log(req.body);
 //   res.send(req.body);
@@ -232,6 +256,7 @@ app.get("/g", async function (req, res) {
   console.log("req.user", req.user);
   console.log("req.session", req.session);
   console.log("req.session.passport", req.session.passport);
+  console.log(req.isAuthenticated());
 
   const result = await Group.find({}).populate({
     path: "channels",

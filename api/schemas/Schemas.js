@@ -15,4 +15,6 @@ const channelSchema = Joi.object({
   type: Joi.string().valid("text", "task"),
 }).required();
 
+// todo userSchema
+
 export { groupSchema, channelSchema };
