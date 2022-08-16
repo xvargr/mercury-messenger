@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import InputBox from "../components/ui/InputBox";
-// import Logo from "../components/groups/Logo";
+// import { DataContext } from "../components/context/DataContext";
 
 const axiosConfig = {
   headers: { "Content-Type": "multipart/form-data" },
@@ -11,6 +11,7 @@ const axiosConfig = {
 
 function LoginPage() {
   const navigate = useNavigate();
+  // const { userData, setUserData } = useContext(DataContext);
   const [formState, setFormState] = useState("login");
   const usernameRef = useRef(null);
   const passwordRef = useRef(null);
@@ -30,7 +31,16 @@ function LoginPage() {
 
     axiosUser
       .post(route, userData, axiosConfig)
-      .then((res) => console.log("success:", res))
+      .then((res) => {
+        // setUserData(res.data);
+        console.log("success:", res);
+        // console.log(userData);
+
+        localStorage.setItem("username", res.data.username);
+        localStorage.setItem("userImage", res.data.userImage);
+        localStorage.setItem("userImageSmall", res.data.userImageSmall);
+        localStorage.setItem("userImageMedium", res.data.userImageMedium);
+      })
       .catch((err) => console.log("error:", err))
       .then(() => {
         navigate("/");

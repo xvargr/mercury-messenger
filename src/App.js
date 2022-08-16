@@ -22,7 +22,7 @@ import HomeWindow from "./components/layout/HomeWindow";
 
 function App() {
   // * temp logged in token
-  let loggedIn = true;
+  const loggedIn = localStorage.username ? true : false; // ! <= doesn't work after login redirect
   // let loggedIn = false;
   return (
     <main className="flex h-screen w-screen">

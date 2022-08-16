@@ -12,8 +12,6 @@ import SkeletonGroup from "../ui/SkeletonGroup";
 import { UiContext } from "../context/UiContext";
 import { DataContext } from "../context/DataContext";
 
-//! this component rerenders every time a redirect happens
-
 function GroupsBar() {
   const { group, channel } = useParams();
   const { groupData, groupMounted, setGroupData, setGroupMounted } =
@@ -24,6 +22,7 @@ function GroupsBar() {
     setSelectedGroup,
     setSelectedChannel,
   } = useContext(UiContext);
+  // const { userData, setUserData } = useContext(DataContext);
   const controller = new AbortController(); // axios abort controller
   // const dataMountedRef = useRef(false);
   // console.log("selectedGrselectedGroup in bar ", selectedGroup);
@@ -31,12 +30,20 @@ function GroupsBar() {
   // console.count("GROUP RERENDER");
   // console.log("DATA MOUNTED? ", groupMounted);
 
+  // console.log("sessionStorage", sessionStorage);
+  console.log("localStorage", localStorage);
+  // console.log("localStorage", localStorage.username);
+  // console.log("localStorage", localStorage.userImage);
+  // console.log("localStorage", localStorage.userImageSmall);
+  // console.log("localStorage", localStorage.userImageMedium);
+  // console.log("userData", userData);
+
   function fetchGroups() {
     // console.log("refetch");
 
     const axiosGroupFetch = axios.create({
       baseURL: "http://localhost:3100",
-      withCredentials: true, // ! <= doesn't work yet
+      withCredentials: true,
     });
 
     axiosRetry(axiosGroupFetch, {
@@ -73,7 +80,6 @@ function GroupsBar() {
 
   useEffect(() => {
     return () => {
-      console.log("aborted");
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
