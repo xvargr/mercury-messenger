@@ -1,14 +1,12 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom"; // the route component define urls we want to listen to
-
+import { Routes, Route, Outlet } from "react-router-dom"; // the route component define urls we want to listen to
 // importing all pages
-// import GroupWindow from "./pages/GroupWindow";
+import MainWindow from "./pages/MainWindow";
 import NewGroupPage from "./pages/NewGroupPage";
 import NewChannelPage from "./pages/NewChannelPage";
 import UserPage from "./pages/UserPage";
 import LoginPage from "./pages/LoginPage";
 
 // import components
-import GroupsBar from "./components/layout/GroupsBar";
 import ChatWindow from "./components/layout/ChatWindow";
 import ChannelsBar from "./components/layout/ChannelsBar";
 
@@ -17,38 +15,15 @@ import { UiStateProvider } from "./components/context/UiContext";
 import { DataStateProvider } from "./components/context/DataContext";
 import HomeWindow from "./components/layout/HomeWindow";
 
-// ! Router needs rework (again)
-// ? https://reactrouter.com/docs/en/v6/getting-started/tutorial
-
 function App() {
-  // * temp logged in token
-  const loggedIn = localStorage.username ? true : false; // ! <= doesn't work after login redirect
-  // let loggedIn = false;
   return (
     <main className="flex h-screen w-screen">
       <DataStateProvider>
         <UiStateProvider>
-          {/* <Routes>
-            <Route path="/" element={}></Route>
-          </Routes> */}
           <Routes>
-            <Route path="/Login" element={<LoginPage />} />
-            <Route
-              path="/"
-              element={
-                loggedIn ? (
-                  <>
-                    <GroupsBar /> <Outlet />
-                  </>
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-              // element={
-              //   loggedIn ? <GroupsBar /> : <Navigate to="/login"></Navigate>
-              // }
-            >
-              <Route index element={<HomeWindow />}></Route>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={<MainWindow />}>
+              <Route index element={<HomeWindow />} />
               <Route path="u" element={<UserPage />} />
               <Route path="g">
                 <Route path="new" element={<NewGroupPage />} />

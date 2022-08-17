@@ -6,6 +6,8 @@ export const DataContext = createContext(); // use this to access the values her
 export function DataStateProvider(props) {
   const [groupMounted, setGroupMounted] = useState(false);
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const [groupData, setGroupData] = useState({
     name: "",
     image: { url: "", filename: "", thumbnail: "" },
@@ -15,8 +17,6 @@ export function DataStateProvider(props) {
     },
   });
 
-  // const [userData, setUserData] = useState(null); // ! <= clears on refresh, store in local or session
-
   // * you can also put functions here and export them
   // * push this this to array etc
 
@@ -25,8 +25,8 @@ export function DataStateProvider(props) {
     setGroupData,
     groupMounted,
     setGroupMounted,
-    // userData,
-    // setUserData,
+    isLoggedIn,
+    setIsLoggedIn,
   };
 
   return (

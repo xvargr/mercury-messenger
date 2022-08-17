@@ -55,7 +55,7 @@ function CircleButton(props) {
 
   return (
     <button
-      className={`${emphasis} bg-gray-700 p-2 rounded-full w-fit transition-colors ease-in duration-75`}
+      className={`${emphasis} bg-gray-700 p-2 rounded-full w-fit transition-colors ease-in duration-75 ${props.className}`}
       disabled={disabled}
     >
       {svg}

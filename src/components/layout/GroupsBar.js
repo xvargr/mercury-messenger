@@ -31,7 +31,7 @@ function GroupsBar() {
   // console.log("DATA MOUNTED? ", groupMounted);
 
   // console.log("sessionStorage", sessionStorage);
-  console.log("localStorage", localStorage);
+  // console.log("localStorage", localStorage);
   // console.log("localStorage", localStorage.username);
   // console.log("localStorage", localStorage.userImage);
   // console.log("localStorage", localStorage.userImageSmall);

@@ -110,12 +110,9 @@ passport.deserializeUser((id, done) => {
 //   next();
 // });
 
-app.get("/", (req, res) => {
-  console.log("GET REQUEST HOME");
-  console.log(req.user); // ! <= undefined
-  // console.log(req.cookies); // undefined
-  res.send("polo");
-});
+// app.get("/", (req, res) => {
+//   res.send("polo");
+// });
 
 app.get("/clear", async (req, res) => {
   const chan = await Channel.deleteMany({});
@@ -124,24 +121,12 @@ app.get("/clear", async (req, res) => {
   res.send(`${chan}, ${grp}`);
 });
 
-// * user routes
-// GET    /session/new gets the webpage that has the login form
-// POST   /session authenticates credentials against database
-// DELETE /session destroys session and redirect to /
-// GET  /users/new gets the webpage that has the registration form
-// POST /users records the entered information into database as a new /user/xxx
-// GET  /users/xxx // gets and renders current user data in a profile view
-// POST /users/xxx // updates new information about user
-
-// todo add validation
 app.post(
   "/u",
   upload.none(),
   asyncErrorWrapper(async function (req, res) {
     const result = await User.findOne({ username: req.body.username });
-    console.log(result);
     if (result) {
-      console.log(req.body.username);
       return res.status(400).send("username already exists");
     }
 
@@ -162,7 +147,6 @@ app.post(
     req.logIn(user, (err) => {
       if (err) throw err;
       console.log("Successfully Authenticated");
-      console.log(user.userImage);
       res.send({
         username: user.username,
         userImage: user.userImage.url,
@@ -172,34 +156,27 @@ app.post(
     });
 
     console.log(`  > new user "${req.body.username}" created`);
-    // res.status(200).send("user created"); //?? send userdata
   })
 );
 
-app.post(
-  "/u/login",
-  upload.none(),
-  // passport.authenticate("local", { failureRedirect: "/login" }),
-  function (req, res, next) {
-    passport.authenticate("local", (err, user, info) => {
-      if (err) throw new ExpressError(err, 500);
-      if (!user) res.send("No User Exists");
-      else {
-        req.logIn(user, (err) => {
-          if (err) throw err;
-          console.log("Successfully Authenticated");
-          console.log(req.user);
-          res.send({
-            username: user.username,
-            userImage: user.userImage.url,
-            userImageSmall: user.userImage.thumbnailSmall,
-            userImageMedium: user.userImage.thumbnailMedium,
-          });
+app.post("/u/login", upload.none(), function (req, res, next) {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) throw new ExpressError(err, 500);
+    if (!user) res.send("No User Exists");
+    else {
+      req.logIn(user, (err) => {
+        if (err) throw err;
+        console.log("Successfully Authenticated");
+        res.send({
+          username: user.username,
+          userImage: user.userImage.url,
+          userImageSmall: user.userImage.thumbnailSmall,
+          userImageMedium: user.userImage.thumbnailMedium,
         });
-      }
-    })(req, res, next); // ! <= this for some reason is required, no idea why
-  }
-);
+      });
+    }
+  })(req, res, next); // ! <= this for some reason is required, no idea why
+});
 
 app.delete("/u", function (req, res) {
   console.log(`logged out ${req.user.username}`);
@@ -253,10 +230,7 @@ app.post(
 );
 
 app.get("/g", async function (req, res) {
-  console.log("req.user", req.user);
-  console.log("req.session", req.session);
-  console.log("req.session.passport", req.session.passport);
-  console.log(req.isAuthenticated());
+  console.log(req.isAuthenticated()); // ! <= authenticate each request?
 
   const result = await Group.find({}).populate({
     path: "channels",
