@@ -1,23 +1,31 @@
+import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
 import axios from "axios";
+
+import { DataContext } from "../components/context/DataContext";
 
 function UserPage() {
   const navigate = useNavigate();
+  const { setIsLoggedIn } = useContext(DataContext);
+
   function logOutHandler() {
     const axiosConfig = {
       headers: { "Content-Type": "multipart/form-data" },
     };
     const axiosUser = axios.create({
       baseURL: "http://localhost:3100",
-      withCredentials: true, // ! <= this fixes undefined cookies
+      withCredentials: true,
     });
     axiosUser
       .delete("/u", axiosConfig)
-      .then((res) => console.log("success:", res))
+      .then((res) => {
+        localStorage.clear();
+        setIsLoggedIn(false);
+      })
       .catch((err) => console.log("error:", err))
       .then(() => {
-        localStorage.clear();
-        navigate("/");
+        navigate("/login");
       });
   }
 
