@@ -9,7 +9,7 @@ import { DataContext } from "../context/DataContext";
 // SVG
 import { ArrowRightIcon } from "@heroicons/react/solid";
 // vars
-let channelNameInput;
+let channelNameInput; // todo this could be a state
 let channelTypeInput;
 
 function NewChannelForm(props) {
