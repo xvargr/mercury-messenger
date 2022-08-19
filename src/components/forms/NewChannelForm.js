@@ -29,7 +29,7 @@ function NewChannelForm(props) {
     function giveError(feedback) {
       setInpErr(true);
       setButtonStatus("error");
-      setFeedback(feedback); // todo set if !feedback, butStat=ok feed=ok
+      setFeedback(feedback);
     }
 
     if (!channelNameInput) {
