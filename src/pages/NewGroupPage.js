@@ -37,7 +37,7 @@ function NewGroupPage() {
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
-        navigate("/");
+        navigate("/"); // todo restructure so if err, show message and retry
       });
   }
 

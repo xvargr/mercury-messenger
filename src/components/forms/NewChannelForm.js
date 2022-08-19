@@ -9,7 +9,7 @@ import { DataContext } from "../context/DataContext";
 // SVG
 import { ArrowRightIcon } from "@heroicons/react/solid";
 // vars
-let channelNameInput;
+let channelNameInput; // todo this could be a state
 let channelTypeInput;
 
 function NewChannelForm(props) {
@@ -29,7 +29,7 @@ function NewChannelForm(props) {
     function giveError(feedback) {
       setInpErr(true);
       setButtonStatus("error");
-      setFeedback(feedback);
+      setFeedback(feedback); // todo set if !feedback, butStat=ok feed=ok
     }
 
     if (!channelNameInput) {

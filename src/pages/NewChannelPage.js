@@ -32,7 +32,7 @@ function NewChannelPage() {
       .then(() => {
         setSelectedChannel(null);
         setGroupMounted(false);
-        navigate(`/g/${selectedGroup}`);
+        navigate(`/g/${selectedGroup}`); // todo restructure so if err, show message and retry
       });
   }
 

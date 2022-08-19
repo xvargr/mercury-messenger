@@ -25,7 +25,7 @@ function UserPage() {
       })
       .catch((err) => console.log("error:", err))
       .then(() => {
-        navigate("/login");
+        navigate("/login"); // todo restructure so if err, show message and retry
       });
   }
 
