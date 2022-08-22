@@ -104,7 +104,6 @@ function LoginPage() {
         .post(route, formData, axiosConfig)
         .then((res) => {
           console.log("success:", res);
-
           setSelectedGroup(null);
           setSelectedChannel(null);
           setGroupMounted(false);
@@ -114,11 +113,11 @@ function LoginPage() {
           localStorage.setItem("userImage", res.data.userImage);
           localStorage.setItem("userImageSmall", res.data.userImageSmall);
           localStorage.setItem("userImageMedium", res.data.userImageMedium);
-          navigate("/");
+          navigate("/"); // ! still redirects on error, need diff err and suc
         })
         .catch((err) => {
           console.log("error:", err);
-          setFeedback("Something went wrong");
+          setFeedback(err.response.data);
           setButtonStatus("ok");
         }); // ! send feedback on err
       // .then(() => {});

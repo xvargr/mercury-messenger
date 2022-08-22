@@ -8,8 +8,8 @@ const options = {
 // nested schema, needed this to make a virtual .get for cloudinary image resizing
 const ImageSchema = new mongoose.Schema(
   {
-    url: String,
-    filename: String,
+    url: { type: String, required: true },
+    filename: { type: String, required: true },
   },
   options
 );
@@ -17,14 +17,6 @@ const ImageSchema = new mongoose.Schema(
 ImageSchema.virtual("thumbnail").get(function () {
   return this.url.replace("/upload", "/upload/w_100");
 });
-
-// const NestedChannelSchema = new mongoose.Schema(
-//   {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: "Channel",
-//   },
-//   options
-// );
 
 const GroupSchema = new mongoose.Schema(
   {
@@ -49,16 +41,16 @@ const GroupSchema = new mongoose.Schema(
         },
       ],
     },
-
-    // members: [{type: Schema.Users.id}]
-
-    // todo: are channels schema references?
-    // todo: default empty array channels on new groups
-
-    // * image id, channels, members
+    members: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   }
   // options
 );
+
 const Group = mongoose.model("Group", GroupSchema);
 
 export default Group;

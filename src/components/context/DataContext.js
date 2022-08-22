@@ -15,6 +15,7 @@ export function DataStateProvider(props) {
       text: [],
       task: [],
     },
+    members: [],
   });
 
   // * you can also put functions here and export them

@@ -14,7 +14,7 @@ import { DataContext } from "../context/DataContext";
 
 function GroupsBar() {
   const { group, channel } = useParams();
-  const { groupData, groupMounted, setGroupData, setGroupMounted } =
+  const { groupData, groupMounted, setGroupData, setGroupMounted, isLoggedIn } =
     useContext(DataContext);
   const {
     selectedGroup,
@@ -73,7 +73,7 @@ function GroupsBar() {
       .catch((err) => console.log("error:", err));
   }
 
-  if (!groupMounted) {
+  if (!groupMounted && localStorage.username && isLoggedIn) {
     // console.log("unmounted fire");
     fetchGroups();
   }

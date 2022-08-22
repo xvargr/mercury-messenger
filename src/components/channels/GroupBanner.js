@@ -32,6 +32,9 @@ function GroupBanner(props) {
         <div className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-slate-700">
           SETTINGS
         </div>
+        <div className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-slate-700">
+          LEAVE
+        </div>
         <div
           className="w-12 bg-slate-900 rounded-b-lg flex items-center justify-center absolute -bottom-3 cursor-pointer"
           onClick={expandHandler}

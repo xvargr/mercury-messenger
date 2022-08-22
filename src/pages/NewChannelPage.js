@@ -23,7 +23,10 @@ function NewChannelPage() {
     newChannelData.append("name", channelObject.name);
     newChannelData.append("type", channelObject.type);
 
-    const axiosNewChannel = axios.create({ baseURL: "http://localhost:3100" });
+    const axiosNewChannel = axios.create({
+      baseURL: "http://localhost:3100",
+      withCredentials: true,
+    });
 
     axiosNewChannel
       .post("http://localhost:3100/c", newChannelData, axiosConfig)

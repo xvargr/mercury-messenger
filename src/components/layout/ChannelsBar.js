@@ -29,7 +29,6 @@ function ChannelsBar() {
     : null;
 
   function channelChangeHandler(channel) {
-    // console.log("onclick fired");
     setSelectedChannel(channel);
   }
 
