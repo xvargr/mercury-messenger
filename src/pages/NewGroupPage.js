@@ -27,7 +27,10 @@ function NewGroupPage() {
     newGroupData.append("name", groupObject.name);
     newGroupData.append("file", groupObject.image);
 
-    const axiosNewGroup = axios.create({ baseURL: "http://localhost:3100" });
+    const axiosNewGroup = axios.create({
+      baseURL: "http://localhost:3100",
+      withCredentials: true,
+    });
 
     axiosNewGroup
       .post("/g", newGroupData, axiosConfig)

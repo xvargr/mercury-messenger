@@ -19,6 +19,7 @@ const channelSchema = new mongoose.Schema({
   //     timestamp: {},
   //   },
   // ],
+  // ! the message should store the group, channel and sender
 });
 const Channel = mongoose.model("Channel", channelSchema);
 

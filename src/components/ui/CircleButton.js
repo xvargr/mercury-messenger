@@ -1,4 +1,4 @@
-import { CheckIcon, XIcon } from "@heroicons/react/solid";
+import { CheckIcon, XIcon, LogoutIcon } from "@heroicons/react/solid";
 
 function CircleButton(props) {
   let svg;
@@ -40,6 +40,11 @@ function CircleButton(props) {
       );
       break;
 
+    case "logout":
+      disabled = false;
+      svg = <LogoutIcon className="h-6 w-6" />;
+      break;
+
     default:
       svg = "";
       break;
@@ -57,6 +62,7 @@ function CircleButton(props) {
     <button
       className={`${emphasis} bg-gray-700 p-2 rounded-full w-fit transition-colors ease-in duration-75 ${props.className}`}
       disabled={disabled}
+      onClick={props.onClick}
     >
       {svg}
     </button>

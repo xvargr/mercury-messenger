@@ -5,12 +5,13 @@ import { DataContext } from "../components/context/DataContext";
 
 function MainWindow() {
   const navigate = useNavigate();
-  const { isLoggedIn } = useContext(DataContext);
+  const { isLoggedIn, setIsLoggedIn } = useContext(DataContext);
 
   useEffect(() => {
-    if (!isLoggedIn) navigate("/login");
+    if (!isLoggedIn && !localStorage.username) navigate("/login");
+    else setIsLoggedIn(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   return (
     <>

@@ -31,10 +31,6 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   userImage: UserImageSchema,
 });
-// this plugin adds a username,
-// hash and salt field to store the username,
-// the hashed password and the salt value
-// UserSchema.plugin(passportLocalMongoose);
 
 const User = mongoose.model("User", UserSchema);
 

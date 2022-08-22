@@ -162,12 +162,12 @@ app.post(
 app.post("/u/login", upload.none(), function (req, res, next) {
   passport.authenticate("local", (err, user, info) => {
     if (err) throw new ExpressError(err, 500);
-    if (!user) res.send("No User Exists");
+    if (!user) res.status(401).send("Wrong username or password");
     else {
       req.logIn(user, (err) => {
         if (err) throw err;
         console.log("Successfully Authenticated");
-        res.send({
+        res.status(201).send({
           username: user.username,
           userImage: user.userImage.url,
           userImageSmall: user.userImage.thumbnailSmall,
@@ -196,63 +196,90 @@ app.delete("/u", function (req, res) {
 // * need routes for /g /c new, /chats post get??
 
 app.post(
+  // ! associate creator with group
   "/g",
   upload.single("file"),
   validateGroup,
   validateImage,
   asyncErrorWrapper(async function (req, res) {
-    console.log(`  > new group "${req.body.name}" made by user xx"`);
+    console.log("authenticated?", req.isAuthenticated());
+    if (req.isAuthenticated()) {
+      console.log("user is making grop");
 
-    const newGroup = new Group({
-      name: req.body.name.trim(),
-      image: { url: req.file.path, filename: req.file.filename },
-      channels: { text: [], task: [] },
-    });
+      const newGroup = new Group({
+        name: req.body.name.trim(),
+        image: { url: req.file.path, filename: req.file.filename },
+        channels: { text: [], task: [] },
+        members: [],
+      });
 
-    const newChannel = new Channel({
-      name: "General",
-      type: "text",
-    });
+      const user = await User.findById(req.user.id);
+      newGroup.members.push(user);
 
-    newGroup.channels.text.push(newChannel);
+      const newChannel = new Channel({
+        name: "General",
+        type: "text",
+      });
+      newGroup.channels.text.push(newChannel);
 
-    await newChannel.save((e) => {
-      if (e) console.log("SAVE-ERR: ", e);
-    });
+      console.log(newGroup);
 
-    await newGroup.save((e) => {
-      if (e) console.log("SAVE-ERR: ", e);
-    });
+      await newChannel.save();
+      await newGroup.save();
 
-    // console.log(newGroup);
-    res.status(200).send(`successfully created "${req.body.name}"`);
+      // console.log(`  > new group "${req.body.name}" made by user xx"`);
+      res.status(201).send(`successfully created "${req.body.name}"`);
+    } else {
+      console.log("user ded");
+      res.status(401).send("request not authenticated");
+    }
   })
 );
 
+// todo use lean() for better performance
 app.get("/g", async function (req, res) {
-  console.log(req.isAuthenticated()); // ! <= authenticate each request?
+  if (req.isAuthenticated()) {
+    const result = await Group.find({ members: req.user }).populate([
+      {
+        path: "channels",
+        populate: [
+          { path: "text", model: "Channel" },
+          { path: "task", model: "Channel" },
+        ],
+      },
+    ]);
+    // const result = await Group.find({ members: req.user })
+    //   .populate({
+    //     path: "channels",
+    //     populate: [
+    //       { path: "text", model: "Channel" },
+    //       { path: "task", model: "Channel" },
+    //     ],
+    //   })
+    //   .populate({
+    //     // ? selective populate
+    //     path: "members",
+    //     select: ["username", "userImage"],
+    //     populate: { path: "userImage", select: "thumbnailSmall" }, // ! dun work
+    //   });
+    // res.sendStatus(500);
+    // res.json(result);
 
-  const result = await Group.find({}).populate({
-    path: "channels",
-    populate: [
-      { path: "text", model: "Channel" },
-      { path: "task", model: "Channel" },
-    ],
-  });
-  // res.sendStatus(500);
-  // res.json(result);
+    // function delay(time) {
+    //   return new Promise((resolve) => setTimeout(resolve, time));
+    // }
 
-  function delay(time) {
-    return new Promise((resolve) => setTimeout(resolve, time));
+    // await delay(2000).then();
+    console.count("sending get");
+    // console.log(result[0].members);
+    res.json(result);
+  } else {
+    res.status(401).send("request not authenticated");
   }
-
-  await delay(2000).then();
-  console.count("sending get");
-  res.json(result);
-  // res.json([]);
 });
 
 // todo check uniqueness of channel name
+// todo check if authorized
 app.post(
   "/c",
   upload.none(),
@@ -288,7 +315,7 @@ app.post(
     // await newChannel.save((e) => {
     //   if (e) console.log("SAVE-ERR: ", e);
     // });
-    res.status(200).send(`successfully created "${req.body.name}"`);
+    res.status(201).send(`successfully created "${req.body.name}"`);
   })
 );
 

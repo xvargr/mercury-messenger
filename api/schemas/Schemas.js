@@ -7,6 +7,7 @@ const groupSchema = Joi.object({
     text: [String],
     task: [String],
   }),
+  members: Joi.object([String]),
 }).required();
 
 const channelSchema = Joi.object({
