@@ -3,6 +3,22 @@ import { CheckIcon, XIcon, LogoutIcon } from "@heroicons/react/solid";
 function CircleButton(props) {
   let svg;
   let disabled;
+
+  let bgLight;
+  let bgDark;
+
+  switch (props.color) {
+    case "gray-600":
+      bgLight = "bg-gray-500";
+      bgDark = "bg-gray-600";
+      break;
+
+    default:
+      bgLight = "bg-gray-600";
+      bgDark = "bg-gray-700";
+      break;
+  }
+
   switch (props.status) {
     case "ok":
       disabled = false;
@@ -56,11 +72,11 @@ function CircleButton(props) {
   // } else {
   //   emphasis = "hover:bg-slate-600";
   // }
-  let emphasis = disabled ? "text-mexican-red-400" : "hover:bg-slate-600";
+  let emphasis = disabled ? "text-mexican-red-400" : `hover:${bgLight}`;
 
   return (
     <button
-      className={`${emphasis} bg-gray-700 p-2 rounded-full w-fit transition-colors ease-in duration-75 ${props.className}`}
+      className={`${emphasis} ${bgDark} p-2 rounded-full w-fit transition-colors ease-in duration-75 ${props.className}`}
       disabled={disabled}
       onClick={props.onClick}
     >

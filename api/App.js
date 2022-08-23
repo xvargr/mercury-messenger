@@ -27,7 +27,7 @@ import storage from "./utils/cloudinary.js";
 // global vars, env variables
 const app = express();
 const PORT = 3100;
-const DOMAIN = process.env.MERCURY_DOMAIN;
+const DOMAIN = process.env.APP_DOMAIN;
 const upload = multer({ storage }); // multer parses multiform data and set storage to cloudinary
 
 const db = mongoose.connection;
@@ -159,6 +159,13 @@ app.post(
   })
 );
 
+app.patch("/u/:uid", upload.none(), function (req, res) {
+  console.log("userdata");
+  console.log(req.body);
+  // console.log(req.user);
+  res.send("useredit");
+});
+
 app.post("/u/login", upload.none(), function (req, res, next) {
   passport.authenticate("local", (err, user, info) => {
     if (err) throw new ExpressError(err, 500);
@@ -169,6 +176,7 @@ app.post("/u/login", upload.none(), function (req, res, next) {
         console.log("Successfully Authenticated");
         res.status(201).send({
           username: user.username,
+          userId: user._id,
           userImage: user.userImage.url,
           userImageSmall: user.userImage.thumbnailSmall,
           userImageMedium: user.userImage.thumbnailMedium,

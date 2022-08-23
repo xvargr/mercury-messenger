@@ -9,10 +9,6 @@ import { UiContext } from "../components/context/UiContext";
 import CircleButton from "../components/ui/CircleButton";
 // import { ExclamationCircleIcon } from "@heroicons/react/solid";
 
-const axiosConfig = {
-  headers: { "Content-Type": "multipart/form-data" },
-};
-
 let userData = {
   username: "",
   password: "",
@@ -96,6 +92,9 @@ function LoginPage() {
       formData.append("username", userData.username);
       formData.append("password", userData.password);
 
+      const axiosConfig = {
+        headers: { "Content-Type": "multipart/form-data" },
+      };
       const axiosUser = axios.create({
         baseURL: "http://localhost:3100",
         withCredentials: true,
@@ -110,6 +109,7 @@ function LoginPage() {
           setIsLoggedIn(true);
 
           localStorage.setItem("username", res.data.username);
+          localStorage.setItem("userId", res.data.userId);
           localStorage.setItem("userImage", res.data.userImage);
           localStorage.setItem("userImageSmall", res.data.userImageSmall);
           localStorage.setItem("userImageMedium", res.data.userImageMedium);
