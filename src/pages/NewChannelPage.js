@@ -29,7 +29,7 @@ function NewChannelPage() {
     });
 
     axiosNewChannel
-      .post("http://localhost:3100/c", newChannelData, axiosConfig)
+      .post("/c", newChannelData, axiosConfig)
       .then((res) => console.log("success:", res))
       .catch((err) => console.log("error:", err))
       .then(() => {

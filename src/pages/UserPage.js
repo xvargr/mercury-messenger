@@ -1,5 +1,5 @@
-import { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useContext, useRef, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PhotographIcon } from "@heroicons/react/outline";
 
 import axios from "axios";
@@ -7,19 +7,34 @@ import axios from "axios";
 import { DataContext } from "../components/context/DataContext";
 import InputBox from "../components/ui/InputBox";
 import CircleButton from "../components/ui/CircleButton";
+import TextButton from "../components/ui/TextButton";
+
+const userObject = {
+  name: null,
+  image: null,
+};
 
 function UserPage() {
   const navigate = useNavigate();
   const { setIsLoggedIn } = useContext(DataContext);
+  const [inpErr, setInpErr] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const imageRef = useRef();
+  const imageInputRef = useRef();
 
-  function logOutHandler() {
-    const axiosConfig = {
-      headers: { "Content-Type": "multipart/form-data" },
-    };
-    const axiosUser = axios.create({
-      baseURL: "http://localhost:3100",
-      withCredentials: true,
-    });
+  useEffect(() => {
+    imageInputRef.current.value = localStorage.username;
+  }, []);
+
+  const axiosConfig = {
+    headers: { "Content-Type": "multipart/form-data" },
+  };
+  const axiosUser = axios.create({
+    baseURL: "http://localhost:3100",
+    withCredentials: true,
+  });
+
+  function logOutUser() {
     axiosUser
       .delete("/u", axiosConfig)
       .then((res) => {
@@ -30,26 +45,48 @@ function UserPage() {
       .catch((err) => console.log("error:", err));
   }
 
-  // todo file preview
+  function modifyUser(e) {
+    e.preventDefault();
+
+    let userData = new FormData();
+    userData.append("name", userObject.name);
+    userData.append("file", userObject.image);
+
+    axiosUser
+      .patch(`/u/${localStorage.userId}`, userData, axiosConfig)
+      .then((res) => console.log("success: ", res))
+      .catch((err) => console.log("error: ", err));
+  }
+
   function imagePreview(e) {
-    // console.log(e.target.files[0]);
     const selectedImage = e.target.files[0];
     if (selectedImage) {
       const fileReader = new FileReader();
       fileReader.onload = (e) => {
-        console.log("hello"); // * works 😃
+        imageRef.current.attributes.src.value = e.target.result;
       };
       fileReader.readAsDataURL(e.target.files[0]);
+      userObject.image = e.target.files[0];
     }
   }
 
-  function nameOnChange(e) {
-    console.log(e.target);
+  function onUsernameChange(e) {
+    userObject.name = e.target.value;
+    if (e.target.value.length < 3 || e.target.value.length > 20) {
+      setFeedback("username must be 3 to 20 characters");
+      setInpErr(true);
+    } else {
+      setFeedback("");
+      setInpErr(false);
+    }
   }
 
   return (
     <div className="bg-gray-700 h-full w-full flex flex-col items-center justify-evenly">
-      <form className="w-4/5 h-4/5 flex flex-col justify-center items-center">
+      <form
+        className="w-4/5 h-4/5 flex flex-col justify-center items-center"
+        onSubmit={modifyUser}
+      >
         <label htmlFor="userImage" className="group">
           <PhotographIcon className="relative -mt-[6rem] top-[12rem] left-[6rem] text-gray-400 h-[6rem] opacity-0 hover:cursor-pointer group-hover:opacity-100 transition-all duration-100 z-10" />
           <div className="group-hover:brightness-[0.4] group-hover:cursor-pointer transition-all duration-100">
@@ -57,6 +94,7 @@ function UserPage() {
               src={localStorage.userImage}
               alt="profile"
               className="w-72 h-72 rounded-full"
+              ref={imageRef}
             />
           </div>
         </label>
@@ -76,20 +114,22 @@ function UserPage() {
             type="text"
             name="username"
             id="username"
-            value={localStorage.username}
             className="block w-full bg-gray-600 focus:outline-none text-center font-semibold text-gray-300"
-            onChange={nameOnChange}
+            onChange={onUsernameChange}
+            ref={imageInputRef}
           />
         </InputBox>
-        <button className="mt-4 bg-gray-600 text-gray-900 font-semibold py-2 px-4 rounded-full shadow-lg hover:bg-gray-500 transition-colors duration-150">
-          keep changes
-        </button>
+        <TextButton className="mt-4" text="Keep changes" disabled={inpErr} />
+        <div className=" h-4 mt-4 -mb-16 text-mexican-red-500 font-bold">
+          {feedback}
+        </div>
       </form>
 
       <CircleButton
         status="logout"
-        className="bg-gray-600 text-mexican-red-400 hover:bg-gray-500 hover:text-mexican-red-500"
-        onClick={logOutHandler}
+        className="text-mexican-red-400 hover:text-mexican-red-500"
+        color="gray-600"
+        onClick={logOutUser}
       />
       <div className="text-gray-900">delete acc</div>
     </div>
