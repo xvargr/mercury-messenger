@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 // components
@@ -15,6 +15,10 @@ const axiosConfig = {
 function NewChannelPage() {
   const { setGroupMounted } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel } = useContext(UiContext);
+  const [axiosErr, setAxiosErr] = useState({
+    message: null,
+    status: null,
+  });
 
   const navigate = useNavigate();
   function newChannelHandler(channelObject) {
@@ -30,16 +34,20 @@ function NewChannelPage() {
 
     axiosNewChannel
       .post("/c", newChannelData, axiosConfig)
-      .then((res) => console.log("success:", res))
-      .catch((err) => console.log("error:", err))
-      .then(() => {
+      .then((res) => {
         setSelectedChannel(null);
         setGroupMounted(false);
-        navigate(`/g/${selectedGroup}`); // todo restructure so if err, show message and retry
+        navigate(`/g/${selectedGroup}`);
+      })
+      .catch((err) => {
+        setAxiosErr({
+          message: err.response.data.message,
+          status: err.response.status,
+        });
       });
   }
 
-  return <NewChannelForm onNewChannel={newChannelHandler} />;
+  return <NewChannelForm onNewChannel={newChannelHandler} err={axiosErr} />;
 }
 
 export default NewChannelPage;

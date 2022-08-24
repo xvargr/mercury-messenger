@@ -16,6 +16,13 @@ const channelSchema = Joi.object({
   type: Joi.string().valid("text", "task"),
 }).required();
 
-// todo userSchema
+const userSchema = Joi.object({
+  username: Joi.string().min(3).max(20).required(),
+  password: Joi.string().min(8).max(200).required(),
+  userImage: {
+    url: Joi.string(),
+    filename: Joi.string(),
+  },
+});
 
-export { groupSchema, channelSchema };
+export { groupSchema, channelSchema, userSchema };

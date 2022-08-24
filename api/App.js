@@ -20,6 +20,8 @@ import {
   validateGroup,
   validateChannel,
   validateImage,
+  validateUser,
+  validateUserEdit,
 } from "./utils/validation.js";
 import { asyncErrorWrapper } from "./utils/asyncErrorWrapper.js";
 import ExpressError from "./utils/ExpressError.js";
@@ -124,6 +126,7 @@ app.get("/clear", async (req, res) => {
 app.post(
   "/u",
   upload.none(),
+  validateUser,
   asyncErrorWrapper(async function (req, res) {
     const result = await User.findOne({ username: req.body.username });
     if (result) {
@@ -159,12 +162,18 @@ app.post(
   })
 );
 
-app.patch("/u/:uid", upload.none(), function (req, res) {
-  console.log("userdata");
-  console.log(req.body);
-  // console.log(req.user);
-  res.send("useredit");
-});
+app.patch(
+  "/u/:uid",
+  upload.single("file"),
+  validateUserEdit,
+  asyncErrorWrapper(async function (req, res) {
+    // console.log("userdata");
+    // console.log(req.body); // todo wip here
+    // console.log(req.files);
+    // console.log(req.user);
+    res.send("useredit");
+  })
+);
 
 app.post("/u/login", upload.none(), function (req, res, next) {
   passport.authenticate("local", (err, user, info) => {
@@ -212,8 +221,6 @@ app.post(
   asyncErrorWrapper(async function (req, res) {
     console.log("authenticated?", req.isAuthenticated());
     if (req.isAuthenticated()) {
-      console.log("user is making grop");
-
       const newGroup = new Group({
         name: req.body.name.trim(),
         image: { url: req.file.path, filename: req.file.filename },
@@ -230,7 +237,7 @@ app.post(
       });
       newGroup.channels.text.push(newChannel);
 
-      console.log(newGroup);
+      // console.log(newGroup);
 
       await newChannel.save();
       await newGroup.save();
@@ -256,30 +263,7 @@ app.get("/g", async function (req, res) {
         ],
       },
     ]);
-    // const result = await Group.find({ members: req.user })
-    //   .populate({
-    //     path: "channels",
-    //     populate: [
-    //       { path: "text", model: "Channel" },
-    //       { path: "task", model: "Channel" },
-    //     ],
-    //   })
-    //   .populate({
-    //     // ? selective populate
-    //     path: "members",
-    //     select: ["username", "userImage"],
-    //     populate: { path: "userImage", select: "thumbnailSmall" }, // ! dun work
-    //   });
-    // res.sendStatus(500);
-    // res.json(result);
-
-    // function delay(time) {
-    //   return new Promise((resolve) => setTimeout(resolve, time));
-    // }
-
-    // await delay(2000).then();
     console.count("sending get");
-    // console.log(result[0].members);
     res.json(result);
   } else {
     res.status(401).send("request not authenticated");
@@ -293,12 +277,7 @@ app.post(
   upload.none(),
   validateChannel,
   asyncErrorWrapper(async function (req, res) {
-    // ?
-    // ? find associated group and push this group into its channels array
-    console.log(req.body);
     const parentGroup = await Group.findById({ _id: req.body.group });
-    console.log(parentGroup);
-
     const newChannel = new Channel(req.body);
 
     if (req.body.type === "text") {
@@ -338,10 +317,8 @@ app.use(function (err, req, res, next) {
   console.log("!-> handled error");
   const { message = "Something went wrong", status = 500 } = err;
   console.log(status, message);
-  console.log("stack: ", err);
-  res.sendStatus(status);
-  // res.sendStatus(status).send(message);
-  // res.status(400).send({ err });
+  // console.log("stack: ", err);
+  res.status(status).send({ message });
 });
 
 app.listen(PORT, () => {

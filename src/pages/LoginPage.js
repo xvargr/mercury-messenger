@@ -42,7 +42,6 @@ function LoginPage() {
   }
 
   function formValidator() {
-    // ! infinite re-render loop
     if (formState === "register") {
       if (userData.username.length < 3 || userData.username.length > 20) {
         giveError("username must be 3 to 20 characters long");
@@ -174,6 +173,7 @@ function LoginPage() {
                 placeholder="Password"
                 className="block bg-gray-700 w-full focus:outline-none"
                 autoComplete="off"
+                maxLength="200"
                 onChange={onChangeHandler}
               />
             </InputBox>

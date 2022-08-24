@@ -12,6 +12,15 @@ function NewGroupForm(props) {
   const [buttonStatus, setButtonStatus] = useState("error");
 
   useEffect(() => {
+    if (props.err.message && feedback !== props.err.message) {
+      setFeedback(props.err.message);
+      setButtonStatus("error");
+      setInpErr(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.err]);
+
+  useEffect(() => {
     groupNameInput = null;
     groupImageInput = null;
   }, []);
