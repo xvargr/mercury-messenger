@@ -17,7 +17,7 @@ const userObject = {
 function UserPage() {
   const navigate = useNavigate();
   const { setIsLoggedIn } = useContext(DataContext);
-  const [inpErr, setInpErr] = useState(false);
+  const [inpErr, setInpErr] = useState(true);
   const [feedback, setFeedback] = useState("");
   const imageRef = useRef();
   const imageInputRef = useRef();
@@ -50,6 +50,7 @@ function UserPage() {
 
     let userData = new FormData();
     userData.append("name", userObject.name);
+    userData.append("id", localStorage.userId);
     userData.append("file", userObject.image);
 
     axiosUser
@@ -68,6 +69,7 @@ function UserPage() {
       fileReader.readAsDataURL(e.target.files[0]);
       userObject.image = e.target.files[0];
     }
+    setInpErr(false);
   }
 
   function onUsernameChange(e) {

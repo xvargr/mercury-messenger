@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 // import ui
 import CardFloat from "../ui/CardFloat";
 // import InputBox from "../components/ui/InputBox";
@@ -18,6 +18,15 @@ function NewChannelForm(props) {
   const [buttonStatus, setButtonStatus] = useState("error");
   const { selectedGroup } = useContext(UiContext);
   const { groupData } = useContext(DataContext);
+
+  useEffect(() => {
+    if (props.err.message && feedback !== props.err.message) {
+      setFeedback(props.err.message);
+      setButtonStatus("error");
+      setInpErr(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.err]);
 
   function onChangeHandler(e) {
     if (e.target.type === "text") {

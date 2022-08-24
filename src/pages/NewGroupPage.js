@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import axios from "axios";
 // components
 import NewGroupForm from "../components/forms/NewGroupForm";
@@ -20,6 +20,10 @@ const axiosConfig = {
 function NewGroupPage() {
   const { setGroupMounted } = useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
+  const [axiosErr, setAxiosErr] = useState({
+    message: null,
+    status: null,
+  });
   const navigate = useNavigate();
 
   function newGroupHandler(groupObject) {
@@ -34,17 +38,21 @@ function NewGroupPage() {
 
     axiosNewGroup
       .post("/g", newGroupData, axiosConfig)
-      .then((res) => console.log("success:", res))
-      .catch((err) => console.log("error:", err))
-      .then(() => {
+      .then((res) => {
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
-        navigate("/"); // todo restructure so if err, show message and retry
+        navigate("/");
+      })
+      .catch((err) => {
+        setAxiosErr({
+          message: err.response.data.message,
+          status: err.response.status,
+        });
       });
   }
 
-  return <NewGroupForm onNewGroup={newGroupHandler} />;
+  return <NewGroupForm onNewGroup={newGroupHandler} err={axiosErr} />;
 }
 
 export default NewGroupPage;
