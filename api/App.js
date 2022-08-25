@@ -56,9 +56,6 @@ app.use(
   })
 );
 
-// app.use(express.urlencoded({ extended: true })); // ! <-- might not need this? bc multer
-// app.use(express.json());
-
 app.use(
   session({
     secret: process.env.SECRET,
@@ -74,7 +71,6 @@ app.use(
   })
 );
 
-// app.use(cookieParser("testSecret"));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -102,25 +98,12 @@ passport.deserializeUser((id, done) => {
   User.findById(id, (err, user) => done(err, user));
 }); // find cookie's user id and match from db
 
-// ! replaced with cors module ^
-// app.use(function (req, res, next) {
-//   res.header("Access-Control-Allow-Origin", DOMAIN);
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-//   next();
-// });
-
-// app.get("/", (req, res) => {
-//   res.send("polo");
-// });
-
 app.get("/clear", async (req, res) => {
-  const chan = await Channel.deleteMany({});
-  const grp = await Group.deleteMany({});
+  await Channel.deleteMany({});
+  await Group.deleteMany({});
+  await User.deleteMany({});
   console.log("!!! DELETED EVERYTHING");
-  res.send(`${chan}, ${grp}`);
+  res.send("cleared");
 });
 
 app.post(
@@ -128,7 +111,7 @@ app.post(
   upload.none(),
   validateUser,
   asyncErrorWrapper(async function (req, res) {
-    const result = await User.findOne({ username: req.body.username });
+    const result = await User.findOne({ username: req.body.username }).lean();
     if (result) {
       return res.status(400).send("username already exists");
     }
@@ -149,9 +132,10 @@ app.post(
 
     req.logIn(user, (err) => {
       if (err) throw err;
-      console.log("Successfully Authenticated");
+      console.log(`Logged in ${user.username}`);
       res.send({
         username: user.username,
+        userId: user._id,
         userImage: user.userImage.url,
         userImageSmall: user.userImage.thumbnailSmall,
         userImageMedium: user.userImage.thumbnailMedium,
@@ -167,11 +151,30 @@ app.patch(
   upload.single("file"),
   validateUserEdit,
   asyncErrorWrapper(async function (req, res) {
-    // console.log("userdata");
-    // console.log(req.body); // todo wip here
-    // console.log(req.files);
-    // console.log(req.user);
-    res.send("useredit");
+    const { name } = req.body;
+    const { uid } = req.params;
+    const image = req.file;
+    const update = {};
+
+    if (name) update.username = name;
+    if (image) {
+      update.userImage = {
+        url: image.path,
+        filename: image.filename,
+      };
+    }
+
+    const updateQuery = await User.findOneAndUpdate({ _id: uid }, update, {
+      new: true,
+    });
+
+    res.send({
+      username: updateQuery.username,
+      userId: updateQuery._id,
+      userImage: updateQuery.userImage.url,
+      userImageSmall: updateQuery.userImage.thumbnailSmall,
+      userImageMedium: updateQuery.userImage.thumbnailMedium,
+    });
   })
 );
 
@@ -201,19 +204,38 @@ app.delete("/u", function (req, res) {
   res.status(200).send("ok"); // ! Check that api is not sending unnecessary info like user hashed pw
 }); // ? logout
 
-// app.get("/u/:user", function (req, res) {
-//   console.log(req.body);
-//   res.send(req.body);
-// }); // ? get user data
-// app.post("/u/:user", function (req, res) {
-//   console.log(req.body);
-//   res.send(req.body);
-// }); // ? update user data
+app.delete(
+  "/u/:uid",
+  asyncErrorWrapper(async function (req, res) {
+    // ? is sender same as requested delete user?
+    // ? pop user from all groups
+    // ? delete all messages
+    // ? delete group where the only user is deleted user
+    // ? delete profile image
+    // ? delete user from db
 
-// * need routes for /g /c new, /chats post get??
+    console.log(req.user);
+    res.send("ok");
+  })
+);
+
+app.delete(
+  "/g/:gid",
+  asyncErrorWrapper(async function (req, res) {
+    console.log(req.user);
+    res.send("ok");
+  })
+);
+
+app.delete(
+  "/c/:cid",
+  asyncErrorWrapper(async function (req, res) {
+    console.log(req.user);
+    res.send("ok");
+  })
+);
 
 app.post(
-  // ! associate creator with group
   "/g",
   upload.single("file"),
   validateGroup,

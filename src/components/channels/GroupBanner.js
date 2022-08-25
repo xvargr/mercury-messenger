@@ -1,15 +1,24 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+// context
+import { DataContext } from "../context/DataContext";
+import { UiContext } from "../context/UiContext";
+// components
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
 
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { groupData, groupMounted } = useContext(DataContext);
+  const { selectedChannel, selectedGroup } = useContext(UiContext);
+
+  console.log("groupData", groupData);
+  console.log("groupMounted", groupMounted);
+  console.log("selectedChannel", selectedChannel);
+  console.log("selectedGroup", selectedGroup);
+
+  // todo delete channel
 
   function expandHandler() {
-    if (isExpanded) {
-      setIsExpanded(false);
-    } else {
-      setIsExpanded(true);
-    }
+    isExpanded ? setIsExpanded(false) : setIsExpanded(true);
   }
 
   function TrayCollapsed() {
@@ -34,6 +43,9 @@ function GroupBanner(props) {
         </div>
         <div className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-slate-700">
           LEAVE
+        </div>
+        <div className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-slate-700">
+          DELETE GROUP
         </div>
         <div
           className="w-12 bg-slate-900 rounded-b-lg flex items-center justify-center absolute -bottom-3 cursor-pointer"

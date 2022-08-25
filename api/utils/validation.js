@@ -101,23 +101,32 @@ function validateUser(req, res, next) {
 }
 
 async function validateUserEdit(req, res, next) {
-  console.log(req.body);
-  // console.log(req.file);
-  const { id, name } = req.body;
+  const { name } = req.body;
+  const { uid } = req.params;
+  const image = req.file;
 
-  console.log("id", id);
-  console.log("name", name);
+  if (name) {
+    const nameQuery = await User.findOne({ username: name });
 
-  const nameQuery = await User.findOne({ name: "korgs" }); // ! always return admin
-  console.log("nameQuery", nameQuery);
-  if (nameQuery) next(new ExpressError("Username taken", 400));
+    if (nameQuery) {
+      if (nameQuery.id !== uid) {
+        if (image) cloudinary.uploader.destroy(image.filename);
+        return next(new ExpressError("Username taken", 400));
+      }
+    } // else console.log("Username available");
+  } else if (name === "null") {
+    if (image) cloudinary.uploader.destroy(image.filename);
+    return next(new ExpressError("Username cannot be null", 400));
+  }
 
-  // const idQuery = await User.findById(id);
-  // console.log("idQuery", idQuery);
+  const idQuery = await User.findById(uid);
+  if (!idQuery) {
+    if (image) cloudinary.uploader.destroy(image.filename);
+    return next(new ExpressError("Invalid userId", 400));
+  } // console.log("UserId valid");
+  else if (!name && !image) next(new ExpressError("No changes", 400));
 
-  // if (idQuery) next(new ExpressError("", 400));
-
-  cloudinary.uploader.destroy(req.file.filename);
+  if (image) cloudinary.uploader.destroy(req.user.userImage.filename);
 
   next();
 }

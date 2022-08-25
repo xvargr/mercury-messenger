@@ -18,6 +18,7 @@ function UserPage() {
   const navigate = useNavigate();
   const { setIsLoggedIn } = useContext(DataContext);
   const [inpErr, setInpErr] = useState(true);
+  const [buttonText, setButtonText] = useState("Keep changes");
   const [feedback, setFeedback] = useState("");
   const imageRef = useRef();
   const imageInputRef = useRef();
@@ -45,18 +46,42 @@ function UserPage() {
       .catch((err) => console.log("error:", err));
   }
 
+  function deleteUser() {
+    console.log("userdelete");
+    axiosUser
+      .delete(`/u/${localStorage.userId}`, axiosConfig)
+      .then((res) => {
+        console.log(res);
+        // localStorage.clear();
+        // setIsLoggedIn(false);
+        // navigate("/login");
+      })
+      .catch((err) => console.log("error:", err));
+  }
+
   function modifyUser(e) {
     e.preventDefault();
+    setButtonText("Processing...");
+    setInpErr(true);
 
     let userData = new FormData();
-    userData.append("name", userObject.name);
-    userData.append("id", localStorage.userId);
-    userData.append("file", userObject.image);
+    if (userObject.name) userData.append("name", userObject.name);
+    if (userObject.image) userData.append("file", userObject.image);
 
     axiosUser
       .patch(`/u/${localStorage.userId}`, userData, axiosConfig)
-      .then((res) => console.log("success: ", res))
-      .catch((err) => console.log("error: ", err));
+      .then((res) => {
+        localStorage.setItem("username", res.data.username);
+        localStorage.setItem("userImage", res.data.userImage);
+        localStorage.setItem("userImageSmall", res.data.userImageSmall);
+        localStorage.setItem("userImageMedium", res.data.userImageMedium);
+        navigate("/");
+      })
+      .catch((err) => {
+        setButtonText("Keep changes");
+        setInpErr(false);
+        setFeedback(err.response.data.message);
+      });
   }
 
   function imagePreview(e) {
@@ -70,6 +95,7 @@ function UserPage() {
       userObject.image = e.target.files[0];
     }
     setInpErr(false);
+    setButtonText("Keep changes");
   }
 
   function onUsernameChange(e) {
@@ -81,6 +107,7 @@ function UserPage() {
       setFeedback("");
       setInpErr(false);
     }
+    setButtonText("Keep changes");
   }
 
   return (
@@ -119,9 +146,10 @@ function UserPage() {
             className="block w-full bg-gray-600 focus:outline-none text-center font-semibold text-gray-300"
             onChange={onUsernameChange}
             ref={imageInputRef}
+            autoComplete="off"
           />
         </InputBox>
-        <TextButton className="mt-4" text="Keep changes" disabled={inpErr} />
+        <TextButton className="mt-4" text={buttonText} disabled={inpErr} />
         <div className=" h-4 mt-4 -mb-16 text-mexican-red-500 font-bold">
           {feedback}
         </div>
@@ -133,7 +161,9 @@ function UserPage() {
         color="gray-600"
         onClick={logOutUser}
       />
-      <div className="text-gray-900">delete acc</div>
+      <div className="text-gray-900 hover:cursor-pointer" onClick={deleteUser}>
+        delete acc
+      </div>
     </div>
   );
 }

@@ -14,6 +14,9 @@ const HomeWindow = () => {
           <li>channel delete</li>
           <li>messages and websockets</li>
           <li>tasks</li>
+          <li>
+            Check that api is not sending unnecessary info like user hashed pw
+          </li>
         </ul>
       </div>
     </div>
