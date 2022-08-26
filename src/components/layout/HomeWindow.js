@@ -15,8 +15,12 @@ const HomeWindow = () => {
           <li>messages and websockets</li>
           <li>tasks</li>
           <li>
-            Check that api is not sending unnecessary info like user hashed pw
+            Check that api is not sending dangerous/unnecessary info like user
+            hashed pw
           </li>
+          <li>special character ban and injection checks</li>
+          <li>double check privileges and auth for crud</li>
+          <li>move isAuthenticated to middleware</li>
         </ul>
       </div>
     </div>
