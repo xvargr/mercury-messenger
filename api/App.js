@@ -26,6 +26,7 @@ import {
 import { asyncErrorWrapper } from "./utils/asyncErrorWrapper.js";
 import ExpressError from "./utils/ExpressError.js";
 import storage from "./utils/cloudinary.js";
+import isLoggedIn from "./utils/isLoggedIn.js";
 // global vars, env variables
 const app = express();
 const PORT = 3100;
@@ -106,6 +107,7 @@ app.get("/clear", async (req, res) => {
   res.send("cleared");
 });
 
+// register new user
 app.post(
   "/u",
   upload.none(),
@@ -146,6 +148,7 @@ app.post(
   })
 );
 
+// update user
 app.patch(
   "/u/:uid",
   upload.single("file"),
@@ -178,6 +181,7 @@ app.patch(
   })
 );
 
+// login user
 app.post("/u/login", upload.none(), function (req, res, next) {
   passport.authenticate("local", (err, user, info) => {
     if (err) throw new ExpressError(err, 500);
@@ -198,12 +202,14 @@ app.post("/u/login", upload.none(), function (req, res, next) {
   })(req, res, next); // ! <= this for some reason is required, no idea why
 });
 
+// logout user
 app.delete("/u", function (req, res) {
   console.log(`logged out ${req.user.username}`);
   req.logOut((err) => err);
   res.status(200).send("ok"); // ! Check that api is not sending unnecessary info like user hashed pw
 }); // ? logout
 
+// todo delete user
 app.delete(
   "/u/:uid",
   asyncErrorWrapper(async function (req, res) {
@@ -219,21 +225,92 @@ app.delete(
   })
 );
 
-app.delete(
-  "/g/:gid",
+// !
+// todo join with link / code
+app.post(
+  "/g/:gid/join",
+  isLoggedIn,
   asyncErrorWrapper(async function (req, res) {
     console.log(req.user);
+    console.log(`invite for group ${req.params.gid}`);
+    throw new ExpressError("not ok", 400);
+    // res.status(200).send("ok");
+  })
+);
+
+// remove member from group
+app.patch(
+  "/g/:gid",
+  isLoggedIn,
+  asyncErrorWrapper(async function (req, res) {
+    const group = await Group.findById(req.params.gid)
+      .populate({
+        path: "members",
+        select: ["username", "id"],
+      })
+      .populate({
+        path: "channels",
+        populate: ["text", "task"],
+      });
+
+    // is user in group? else abort
+    const member = group.members.find((member) => member.id === req.user.id);
+    if (!member) {
+      throw new ExpressError("Invalid request", 400);
+    }
+
+    // remove user from group
+    group.members.splice(member, 1);
+
+    // delete group if no members left
+    if (group.members.length === 0) {
+      await group.remove();
+    } else {
+      await group.save();
+    }
+
     res.send("ok");
   })
 );
 
-app.delete(
-  "/c/:cid",
-  asyncErrorWrapper(async function (req, res) {
-    console.log(req.user);
-    res.send("ok");
-  })
-);
+// todo delete group
+// app.patch(
+//   "/g/:gid",
+//   isLoggedIn,
+//   asyncErrorWrapper(async function (req, res) {
+//     const group = await Group.findById(req.params.gid).populate({
+//       path: "members",
+//       select: ["username", "id"],
+//     });
+//     // is user in group? else abort
+//     const member = group.members.find((member) => member.id === req.user.id);
+//     if (!member) {
+//       throw new ExpressError("Invalid request", 400);
+//     }
+//     // remove user from group
+//     group.members.splice(member, 1);
+
+//     await group.save();
+
+//     res.send("ok");
+//   })
+// );
+
+// app.delete(
+//   "/g/:gid",
+//   asyncErrorWrapper(async function (req, res) {
+//     console.log(req.user);
+//     res.send("ok");
+//   })
+// );
+
+// app.delete(
+//   "/c/:cid",
+//   asyncErrorWrapper(async function (req, res) {
+//     console.log(req.user);
+//     res.send("ok");
+//   })
+// );
 
 app.post(
   "/g",

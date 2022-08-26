@@ -40,7 +40,7 @@ function UserPage() {
       .delete("/u", axiosConfig)
       .then((res) => {
         localStorage.clear();
-        setIsLoggedIn(false);
+        setIsLoggedIn(false); // ? clear grp mounted?
         navigate("/login"); // todo restructure so if err, show message and retry
       })
       .catch((err) => console.log("error:", err));

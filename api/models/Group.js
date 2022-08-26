@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import { v2 as cloudinary } from "cloudinary";
+import Channel from "./Channel.js";
 
 const options = {
   toObject: { virtuals: true },
@@ -47,9 +49,26 @@ const GroupSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
-  }
-  // options
+  },
+  options
 );
+
+GroupSchema.virtual("inviteLink").get(function () {
+  return `/g/${this._id}/join`;
+});
+
+// pre delete cleanup
+GroupSchema.pre("remove", async function (next) {
+  cloudinary.uploader.destroy(this.image.filename);
+  // delete associated channels
+  const textArr = Array.from(this.channels.text, (channel) => channel.id);
+  const taskArr = Array.from(this.channels.task, (channel) => channel.id);
+  const channelsArr = [...textArr, ...taskArr];
+  await Channel.deleteMany({
+    _id: { $in: channelsArr },
+  });
+  // todo delete messages in channels? pre channel delete middleware?
+});
 
 const Group = mongoose.model("Group", GroupSchema);
 
