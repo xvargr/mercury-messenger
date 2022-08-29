@@ -49,6 +49,12 @@ const GroupSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    administrators: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   options
 );

@@ -10,8 +10,6 @@ import InviteButton from "../ui/InviteButton";
 
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
-  // const [inviteLinkShown, setInviteLinkShown] = useState(false);
-  // const [inviteLink, setInviteLink] = useState("");
   const { groupData, groupMounted, setGroupMounted } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel, setSelectedGroup } =
     useContext(UiContext);
@@ -26,11 +24,14 @@ function GroupBanner(props) {
   });
 
   let inviteLink;
+  let administrators;
   if (groupMounted) {
-    inviteLink = groupData.find(
-      (group) => group.name === selectedGroup
-    ).inviteLink;
+    const thisGroup = groupData.find((group) => group.name === selectedGroup);
+    inviteLink = thisGroup.inviteLink;
+    administrators = Array.from(thisGroup.administrators, (admin) => admin._id);
+    console.log(thisGroup);
   }
+  console.log(administrators);
 
   function expandHandler() {
     isExpanded ? setIsExpanded(false) : setIsExpanded(true);
@@ -62,6 +63,7 @@ function GroupBanner(props) {
       .catch((err) => console.log("error:", err));
   }
 
+  // todo check if admin, show settings and delete option
   function TrayExpanded() {
     return (
       <div className="w-1/4 px-2 py-4 bg-gray-900 text-gray-400 rounded-b-lg fixed top-10 flex flex-col justify-center items-center">
@@ -75,6 +77,7 @@ function GroupBanner(props) {
         >
           LEAVE
         </button>
+
         {/* <button
           className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-slate-700"
           onClick={leaveGroup}
