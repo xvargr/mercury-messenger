@@ -8,8 +8,8 @@ const HomeWindow = () => {
         <ul className="list-disc ml-8">
           <li>error feedback on actions</li>
           <li>user delete self</li>
-          <li>user leave group</li>
-          <li>group invite link/code</li>
+          {/* <li>user leave group</li> */}
+          {/* <li>group invite link/code</li> */}
           <li>group delete</li>
           <li>channel delete</li>
           <li>messages and websockets</li>
@@ -20,7 +20,8 @@ const HomeWindow = () => {
           </li>
           <li>special character ban and injection checks</li>
           <li>double check privileges and auth for crud</li>
-          <li>move isAuthenticated to middleware</li>
+          {/* <li>move isAuthenticated to middleware</li> */}
+          <li>use mongoose lean wherever possible</li>
         </ul>
       </div>
     </div>

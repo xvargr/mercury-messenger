@@ -8,6 +8,7 @@ const groupSchema = Joi.object({
     task: [String],
   }),
   members: Joi.object([String]),
+  administrators: Joi.object([String]),
 }).required();
 
 const channelSchema = Joi.object({
