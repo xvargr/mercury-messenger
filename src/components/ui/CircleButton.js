@@ -70,7 +70,7 @@ function CircleButton(props) {
   // if (props.disabled) {
   //   emphasis = "text-mexican-red-400";
   // } else {
-  //   emphasis = "hover:bg-slate-600";
+  //   emphasis = "hover:bg-gray-600";
   // }
   let emphasis = disabled ? "text-mexican-red-400" : `hover:${bgLight}`;
 

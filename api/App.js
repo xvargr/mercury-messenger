@@ -79,8 +79,6 @@ passport.deserializeUser((id, done) => {
 app.use("/u", userRouter);
 app.use("/g", groupRouter);
 
-// todo check uniqueness of channel name
-// todo check if authorized
 // todo move /c to router and controller file
 app.post(
   "/c",
@@ -102,21 +100,14 @@ app.post(
     await newChannel.save();
     await parentGroup.save();
 
-    // console.log(newChannel);
-    // console.log(parentGroup.channels);
-
     console.log(
       `  > new channel "${req.body.name} made in group ${req.body.group}"`
     );
-    // console.log(req.body);
-    // const newChannel = new Channel(req.body);
-    // await newChannel.save((e) => {
-    //   if (e) console.log("SAVE-ERR: ", e);
-    // });
     res.status(201).send(`successfully created "${req.body.name}"`);
   })
 );
 
+// todo delete channel
 app.delete("/c/:cid");
 
 // 404 catch
