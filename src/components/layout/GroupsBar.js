@@ -12,6 +12,8 @@ import SkeletonGroup from "../ui/SkeletonGroup";
 import { UiContext } from "../context/UiContext";
 import { DataContext } from "../context/DataContext";
 
+// todo set group as group object
+
 function GroupsBar() {
   const { group, channel } = useParams();
   const { groupData, groupMounted, setGroupData, setGroupMounted, isLoggedIn } =
@@ -62,13 +64,14 @@ function GroupsBar() {
     axiosGroupFetch
       .get("/g", { signal: controller.signal })
       .then((res) => {
+        const groupData = res.data;
         // console.log("success:", res);
         // setIsLoading(false);
         // dataMountedRef.current = true;
-        setSelectedGroup(group);
+        setSelectedGroup(groupData.find((grp) => grp.name === group));
         setSelectedChannel(channel);
         setGroupMounted(true);
-        setGroupData(res.data);
+        setGroupData(groupData);
       })
       .catch((err) => console.log("error:", err));
   }
@@ -83,11 +86,11 @@ function GroupsBar() {
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // ? abort axios request on unmount
+  }, []); // abort axios request on unmount
 
   function groupChangeHandler(group) {
     // console.log("CLICKED");
-    setSelectedGroup(group);
+    setSelectedGroup(groupData.find((grp) => grp.name === group));
     setSelectedChannel(null);
     // console.log("params: ", group, channel);
     // console.log("context: ", selectedGroup, selectedChannel);
@@ -122,7 +125,7 @@ function GroupsBar() {
 
         <div className="w-full overflow-y-scroll overflow-x-hidden scrollbar-none">
           {groupData?.map((grp) => {
-            let selected = selectedGroup === grp.name ? true : false;
+            const selected = group === grp.name ? true : false;
 
             return (
               <GroupBadge

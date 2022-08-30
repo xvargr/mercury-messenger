@@ -17,7 +17,7 @@ export default function InviteButton(props) {
 
   return (
     <button
-      className="w-5/6 h-8 mx-4 my-1 px-4 py-1 rounded-lg bg-slate-700 group"
+      className="w-5/6 h-8 mx-4 my-1 px-4 py-1 rounded-lg bg-gray-700 group"
       onClick={copyLink}
       //   onMouseEnter={showLink}
       onMouseLeave={resetDisplay}

@@ -5,7 +5,7 @@ import CircleButton from "../ui/CircleButton";
 
 function NewGroupForm(props) {
   const [inpErr, setInpErr] = useState(true);
-  const [feedback, setFeedback] = useState("Join by invite code");
+  const [feedback, setFeedback] = useState("Enter invite code");
   const [buttonStatus, setButtonStatus] = useState("error");
   const inpRef = useRef();
 
@@ -57,7 +57,7 @@ function NewGroupForm(props) {
           id="link"
           placeholder={feedback}
           autoComplete="off"
-          className="bg-gray-700 p-2 m-1 w-10/12 rounded-md text-sm drop-shadow-md text-grey-500 file:mr-5 file:py-2 file:px-10 file:rounded-md file:border-0 file:text-md file:font-semibold file:text-gray-300 file:bg-slate-500 hover:file:cursor-pointer hover:file:opacity-80 outline-none"
+          className="bg-gray-700 p-2 m-1 w-10/12 rounded-md text-sm drop-shadow-md text-grey-500 file:mr-5 file:py-2 file:px-10 file:rounded-md file:border-0 file:text-md file:font-semibold file:text-gray-300 file:bg-gray-500 hover:file:cursor-pointer hover:file:opacity-80 outline-none"
           onChange={onChangeHandler}
           required
           ref={inpRef}

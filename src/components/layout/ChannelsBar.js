@@ -22,9 +22,16 @@ function ChannelsBar() {
     navigate("/404");
   }
 
+  let isAdmin;
+  if (groupMounted) {
+    isAdmin = selectedGroup.administrators.some(
+      (admin) => admin._id === localStorage.userId
+    );
+  }
+
   const groupIndex = groupMounted
     ? groupData.findIndex((data) => {
-        return data.name === selectedGroup;
+        return data.name === selectedGroup.name;
       })
     : null;
 
@@ -34,7 +41,7 @@ function ChannelsBar() {
 
   if (!groupMounted) {
     return (
-      <section className="bg-gray-700 h-screen w-1/4 shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
+      <section className="bg-gray-700 h-screen w-1/4 lg:w-1/5 shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
         <GroupBanner name={group} />
         {/* <div>hello</div> */}
         <div className="w-full flex-grow overflow-y-scroll scrollbar-none flex flex-col items-center">
@@ -53,7 +60,7 @@ function ChannelsBar() {
     );
   } else {
     return (
-      <section className="bg-gray-700 h-screen w-1/4 shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
+      <section className="bg-gray-700 h-screen w-1/4 lg:w-1/5 shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
         <GroupBanner name={group} />
         <div className="w-full flex-grow overflow-y-scroll scrollbar-none flex flex-col items-center">
           <div className="w-1/3 mb-2 mt-2"></div>
@@ -66,6 +73,7 @@ function ChannelsBar() {
                 selected={selected}
                 key={channel.name}
                 onClick={channelChangeHandler}
+                isAdmin={isAdmin}
               />
             );
           })}

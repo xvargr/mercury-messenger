@@ -24,14 +24,17 @@ function GroupBanner(props) {
   });
 
   let inviteLink;
-  let administrators;
+  let isAdmin;
   if (groupMounted) {
-    const thisGroup = groupData.find((group) => group.name === selectedGroup);
-    inviteLink = thisGroup.inviteLink;
-    administrators = Array.from(thisGroup.administrators, (admin) => admin._id);
-    console.log(thisGroup);
+    // const thisGroup = groupData.find((group) => group.name === selectedGroup);
+
+    inviteLink = selectedGroup.inviteLink;
+
+    isAdmin = selectedGroup.administrators.some(
+      (admin) => admin._id === localStorage.userId
+    );
+    // console.log("isAdmin", isAdmin);
   }
-  console.log(administrators);
 
   function expandHandler() {
     isExpanded ? setIsExpanded(false) : setIsExpanded(true);
@@ -49,10 +52,10 @@ function GroupBanner(props) {
   }
 
   function leaveGroup() {
-    const group = groupData.find((group) => group.name === selectedGroup);
+    // const group = groupData.find((group) => group.name === selectedGroup);
 
     axiosUser
-      .patch(`/g/${group._id}`, axiosConfig)
+      .patch(`/g/${selectedGroup._id}`, axiosConfig)
       .then((res) => {
         console.log("success:", res);
         setSelectedGroup(null);
@@ -63,29 +66,50 @@ function GroupBanner(props) {
       .catch((err) => console.log("error:", err));
   }
 
-  // todo check if admin, show settings and delete option
+  function deleteGroup() {
+    // const group = groupData.find((group) => group.name === selectedGroup);
+
+    axiosUser
+      .delete(`/g/${selectedGroup._id}`, axiosConfig)
+      .then((res) => {
+        console.log("success:", res);
+        setSelectedGroup(null);
+        setSelectedChannel(null);
+        setGroupMounted(false);
+        navigate("/");
+      })
+      .catch((err) => console.log("error:", err));
+  }
+
+  function AdminOptions() {
+    return (
+      <>
+        <button className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-gray-700">
+          SETTINGS
+        </button>
+        <button
+          className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-gray-700"
+          onClick={deleteGroup}
+        >
+          DELETE GROUP
+        </button>
+      </>
+    );
+  }
+
   function TrayExpanded() {
     return (
       <div className="w-1/4 px-2 py-4 bg-gray-900 text-gray-400 rounded-b-lg fixed top-10 flex flex-col justify-center items-center">
         <InviteButton inviteLink={inviteLink} />
-        <div className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-slate-700">
-          SETTINGS
-        </div>
+        {isAdmin ? <AdminOptions /> : null}
         <button
-          className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-slate-700"
+          className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-gray-700"
           onClick={leaveGroup}
         >
           LEAVE
         </button>
-
-        {/* <button
-          className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-slate-700"
-          onClick={leaveGroup}
-        >
-          DELETE GROUP
-        </button> */}
         <div
-          className="w-12 bg-slate-900 rounded-b-lg flex items-center justify-center absolute -bottom-3 cursor-pointer"
+          className="w-12 bg-gray-900 rounded-b-lg flex items-center justify-center absolute -bottom-3 cursor-pointer"
           onClick={expandHandler}
         >
           <ChevronUpIcon className="h-3 w-3" />
