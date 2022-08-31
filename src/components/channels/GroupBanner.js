@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 // context
@@ -10,7 +10,7 @@ import InviteButton from "../ui/InviteButton";
 
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { groupData, groupMounted, setGroupMounted } = useContext(DataContext);
+  const { groupMounted, setGroupMounted } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel, setSelectedGroup } =
     useContext(UiContext);
   const navigate = useNavigate();
@@ -26,15 +26,19 @@ function GroupBanner(props) {
   let inviteLink;
   let isAdmin;
   if (groupMounted) {
-    // const thisGroup = groupData.find((group) => group.name === selectedGroup);
-
     inviteLink = selectedGroup.inviteLink;
 
     isAdmin = selectedGroup.administrators.some(
       (admin) => admin._id === localStorage.userId
     );
-    // console.log("isAdmin", isAdmin);
   }
+
+  // close dropdown on group change
+  useEffect(() => {
+    return () => {
+      setIsExpanded(false);
+    };
+  }, [selectedGroup]);
 
   function expandHandler() {
     isExpanded ? setIsExpanded(false) : setIsExpanded(true);
@@ -52,8 +56,6 @@ function GroupBanner(props) {
   }
 
   function leaveGroup() {
-    // const group = groupData.find((group) => group.name === selectedGroup);
-
     axiosUser
       .patch(`/g/${selectedGroup._id}`, axiosConfig)
       .then((res) => {
@@ -67,8 +69,6 @@ function GroupBanner(props) {
   }
 
   function deleteGroup() {
-    // const group = groupData.find((group) => group.name === selectedGroup);
-
     axiosUser
       .delete(`/g/${selectedGroup._id}`, axiosConfig)
       .then((res) => {

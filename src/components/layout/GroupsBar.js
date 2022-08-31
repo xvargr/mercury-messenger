@@ -18,31 +18,11 @@ function GroupsBar() {
   const { group, channel } = useParams();
   const { groupData, groupMounted, setGroupData, setGroupMounted, isLoggedIn } =
     useContext(DataContext);
-  const {
-    selectedGroup,
-    // selectedChannel,
-    setSelectedGroup,
-    setSelectedChannel,
-  } = useContext(UiContext);
-  // const { userData, setUserData } = useContext(DataContext);
+  const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
+
   const controller = new AbortController(); // axios abort controller
-  // const dataMountedRef = useRef(false);
-  // console.log("selectedGrselectedGroup in bar ", selectedGroup);
-
-  // console.count("GROUP RERENDER");
-  // console.log("DATA MOUNTED? ", groupMounted);
-
-  // console.log("sessionStorage", sessionStorage);
-  // console.log("localStorage", localStorage);
-  // console.log("localStorage", localStorage.username);
-  // console.log("localStorage", localStorage.userImage);
-  // console.log("localStorage", localStorage.userImageSmall);
-  // console.log("localStorage", localStorage.userImageMedium);
-  // console.log("userData", userData);
 
   function fetchGroups() {
-    // console.log("refetch");
-
     const axiosGroupFetch = axios.create({
       baseURL: "http://localhost:3100",
       withCredentials: true,
@@ -132,7 +112,7 @@ function GroupsBar() {
                 name={grp.name}
                 img={grp.image.thumbnail}
                 selected={selected}
-                key={grp.name}
+                key={grp._id}
                 onClick={groupChangeHandler}
               />
             );

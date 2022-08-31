@@ -71,7 +71,8 @@ function ChannelsBar() {
               <ChannelBadge
                 name={channel.name}
                 selected={selected}
-                key={channel.name}
+                key={channel._id}
+                id={channel._id}
                 onClick={channelChangeHandler}
                 isAdmin={isAdmin}
               />

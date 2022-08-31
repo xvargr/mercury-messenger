@@ -37,7 +37,7 @@ function NewChannelPage() {
       .then((res) => {
         setSelectedChannel(null);
         setGroupMounted(false);
-        navigate(`/g/${selectedGroup}`);
+        navigate(`/g/${selectedGroup.name}`);
       })
       .catch((err) => {
         setAxiosErr({

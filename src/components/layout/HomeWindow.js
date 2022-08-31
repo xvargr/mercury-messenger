@@ -22,6 +22,11 @@ const HomeWindow = () => {
           <li>double check privileges and auth for crud</li>
           {/* <li>move isAuthenticated to middleware</li> */}
           <li>use mongoose lean wherever possible</li>
+          {/* <li>set group dropdown to close on group change</li> */}
+          <li>set appropriate axios retries</li>
+          <li>
+            use partial fetches and updates when possible like in delete channel
+          </li>
         </ul>
       </div>
     </div>
