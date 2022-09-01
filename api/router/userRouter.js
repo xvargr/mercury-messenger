@@ -33,6 +33,6 @@ router
     validateUserEdit,
     asyncErrorWrapper(editUser)
   )
-  .delete(asyncErrorWrapper(deleteUser));
+  .delete(isLoggedIn, asyncErrorWrapper(deleteUser));
 
 export default router;

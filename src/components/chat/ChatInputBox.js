@@ -13,6 +13,7 @@ function ChatInputBox() {
         <AtSymbolIcon className="h-6 w-6 mr-2 text-gray-800 hover:text-gray-700 cursor-pointer" />
         <input
           type="text"
+          placeholder="Say something..."
           className="bg-inherit focus:outline-none flex-grow font-nunito self-center"
         />
         <CameraIcon className="h-6 w-6 mr-1 text-gray-800 hover:text-gray-700 cursor-pointer" />

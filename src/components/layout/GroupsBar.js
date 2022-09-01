@@ -37,6 +37,8 @@ function GroupsBar() {
       retryCondition: (error) => {
         // if retry condition is not specified, by default idempotent requests are retried
         // return error.response.status === 503; // retry only if err 503
+        // todo retry conditions
+        // todo don't retry 401 unauthorized, reroute to login
         return true; // retry every time
       },
     });
@@ -56,10 +58,7 @@ function GroupsBar() {
       .catch((err) => console.log("error:", err));
   }
 
-  if (!groupMounted && localStorage.username && isLoggedIn) {
-    // console.log("unmounted fire");
-    fetchGroups();
-  }
+  if (!groupMounted && localStorage.username && isLoggedIn) fetchGroups();
 
   useEffect(() => {
     return () => {

@@ -15,14 +15,6 @@ function GroupBanner(props) {
     useContext(UiContext);
   const navigate = useNavigate();
 
-  const axiosConfig = {
-    headers: { "Content-Type": "multipart/form-data" },
-  };
-  const axiosUser = axios.create({
-    baseURL: "http://localhost:3100",
-    withCredentials: true,
-  });
-
   let inviteLink;
   let isAdmin;
   if (groupMounted) {
@@ -56,10 +48,15 @@ function GroupBanner(props) {
   }
 
   function leaveGroup() {
-    axiosUser
-      .patch(`/g/${selectedGroup._id}`, axiosConfig)
+    const axiosUserLeave = axios.create({
+      baseURL: "http://localhost:3100",
+      withCredentials: true,
+    });
+
+    axiosUserLeave
+      .patch(`/g/${selectedGroup._id}`)
       .then((res) => {
-        console.log("success:", res);
+        // console.log("success:", res);
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
@@ -69,8 +66,13 @@ function GroupBanner(props) {
   }
 
   function deleteGroup() {
-    axiosUser
-      .delete(`/g/${selectedGroup._id}`, axiosConfig)
+    const axiosUserDelete = axios.create({
+      baseURL: "http://localhost:3100",
+      withCredentials: true,
+    });
+
+    axiosUserDelete
+      .delete(`/g/${selectedGroup._id}`)
       .then((res) => {
         console.log("success:", res);
         setSelectedGroup(null);

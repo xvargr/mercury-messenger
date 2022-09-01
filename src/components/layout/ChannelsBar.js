@@ -69,10 +69,10 @@ function ChannelsBar() {
 
             return (
               <ChannelBadge
-                name={channel.name}
+                data={channel}
+                groupIndex={groupIndex}
                 selected={selected}
                 key={channel._id}
-                id={channel._id}
                 onClick={channelChangeHandler}
                 isAdmin={isAdmin}
               />

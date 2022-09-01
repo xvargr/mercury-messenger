@@ -42,12 +42,12 @@ export async function newGroup(req, res) {
   });
   newGroup.channels.text.push(newChannel);
 
-  console.log(newGroup);
+  // console.log(newGroup);
 
   await newChannel.save();
   await newGroup.save();
 
-  res.status(201).send(`successfully created "${req.body.name}"`);
+  res.status(201).json(newGroup);
 }
 
 export async function deleteGroup(req, res) {
@@ -68,7 +68,7 @@ export async function joinWithCode(req, res) {
     path: "members",
     select: "username",
   });
-  if (!group) throw new ExpressError("Invalid invite code", 400);
+  if (!group) throw new ExpressError("Cannot find group", 400);
 
   const user = await User.findById(req.user._id).lean();
   if (!user) throw new ExpressError("User account error", 400);
@@ -80,7 +80,7 @@ export async function joinWithCode(req, res) {
   group.members.push(user);
   await group.save();
 
-  res.status(200).send("ok");
+  res.status(200).json(group.name);
 }
 
 export async function groupRemoveUser(req, res) {
@@ -119,12 +119,14 @@ export async function groupRemoveUser(req, res) {
   // remove user from members arr
   group.members.splice(memberIndex, 1);
 
+  // ? move this to pre save?
   // delete group if no members left
-  if (group.members.length === 0) {
-    await group.remove();
-  } else {
-    await group.save();
-  }
+  // if (group.members.length === 0) {
+  //   await group.remove();
+  // } else {
+  //   await group.save();
+  // }
 
+  await group.save();
   res.send("ok");
 }

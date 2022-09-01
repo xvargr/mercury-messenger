@@ -40,12 +40,13 @@ function UserPage() {
       .delete("/u", axiosConfig)
       .then((res) => {
         localStorage.clear();
-        setIsLoggedIn(false); // ? clear grp mounted?
+        setIsLoggedIn(false);
         navigate("/login"); // todo restructure so if err, show message and retry
       })
       .catch((err) => console.log("error:", err));
   }
 
+  // todo delete user
   function deleteUser() {
     console.log("userdelete");
     axiosUser

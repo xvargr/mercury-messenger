@@ -6,13 +6,13 @@ export default function InviteButton(props) {
 
   function copyLink() {
     setDisplay("COPIED!");
+    navigator.clipboard.writeText(link);
   }
 
   function resetDisplay() {
     setTimeout(function () {
       setDisplay(link);
     }, 200);
-    navigator.clipboard.writeText(link);
   }
 
   return (
