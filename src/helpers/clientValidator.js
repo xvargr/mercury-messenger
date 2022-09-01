@@ -3,7 +3,7 @@ export function clientValidator(value, type) {
   let inpErr = true;
 
   if (type === "text") {
-    console.log(value.length);
+    // console.log(value.length);
     // console.log(type);
     if (!value) {
       inpErr = true;

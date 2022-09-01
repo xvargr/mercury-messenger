@@ -53,7 +53,7 @@ export function logInUser(req, res, next) {
     else {
       req.logIn(user, (err) => {
         if (err) throw err;
-        console.log("Successfully Authenticated");
+        // console.log("Successfully Authenticated");
         res.status(201).send({
           username: user.username,
           userId: user._id,
@@ -95,12 +95,12 @@ export async function editUser(req, res) {
 
 export async function deleteUser(req, res) {
   // ? is sender same as requested delete user?
-  // ? pop user from all groups
-  // ? delete all messages
-  // ? delete group where the only user is deleted user
-  // ? delete profile image
-  // ? delete user from db
+  if (req.user.id !== req.params.uid)
+    throw new ExpressError("Unauthorized", 401);
 
-  console.log(req.user);
+  const user = await User.findById(req.user.id);
+
+  await user.remove();
+
   res.send("ok");
 }

@@ -21,15 +21,15 @@ function NewGroupPage() {
   });
   const navigate = useNavigate();
 
-  const axiosConfig = {
-    headers: { "Content-Type": "multipart/form-data" },
-  };
-  const axiosNewGroup = axios.create({
-    baseURL: "http://localhost:3100",
-    withCredentials: true,
-  });
-
   function newGroupHandler(groupObject) {
+    const axiosConfig = {
+      headers: { "Content-Type": "multipart/form-data" },
+    };
+    const axiosNewGroup = axios.create({
+      baseURL: "http://localhost:3100",
+      withCredentials: true,
+    });
+
     let newGroupData = new FormData();
     newGroupData.append("name", groupObject.name);
     newGroupData.append("file", groupObject.image);
@@ -40,7 +40,7 @@ function NewGroupPage() {
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
-        navigate("/");
+        navigate(`/g/${res.data.name}`);
       })
       .catch((err) => {
         setAxiosCreateErr({
@@ -51,14 +51,18 @@ function NewGroupPage() {
   }
 
   function joinGroupHandler(link) {
-    console.log(link);
+    const axiosNewGroup = axios.create({
+      baseURL: "http://localhost:3100",
+      withCredentials: true,
+    });
+
     axiosNewGroup
-      .post(link, axiosConfig)
+      .post(link)
       .then((res) => {
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
-        navigate("/"); // todo nav to joined group res.link?
+        navigate(`/g/${res.data}`);
       })
       .catch((err) => {
         setAxiosJoinErr({

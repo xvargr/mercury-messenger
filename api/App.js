@@ -144,35 +144,11 @@ app.patch(
   isLoggedIn,
   upload.none(),
   asyncErrorWrapper(async function (req, res) {
-    // const channel = await Channel.findById(req.params.cid);
-    // const parentGroup = await Group.findOne({
-    //   "channels.text": channel,
-    // }).populate({
-    //   path: "channels",
-    //   populate: [
-    //     { path: "text", model: "Channel" },
-    //     { path: "task", model: "Channel" },
-    //   ],
-    // });
-    // // check if channel exist in group, and group found
-    // if (!channel) throw new ExpressError("Channel not found", 500);
-    // if (!parentGroup) throw new ExpressError("Group not found", 500);
+    const channel = await Channel.findById(req.params.cid);
+    channel.name = req.body.name.substring(0, 20); // limit20char
+    await channel.save();
 
-    // // remove channel from parent
-    // const chIndex = parentGroup.channels.text.findIndex(
-    //   (channel) => channel.id === req.params.cid
-    // );
-    // if (chIndex < 0) throw new ExpressError("channel not found in group", 500);
-    // parentGroup.channels.text.splice(chIndex, 1);
-
-    // await parentGroup.save();
-    // channel.remove();
-
-    console.log("patched");
-    console.log(req.body); // ! undefined
-
-    res.send("ok");
-    // res.json(parentGroup);
+    res.json(channel);
   })
 );
 
@@ -187,7 +163,7 @@ app.use(function (err, req, res, next) {
   console.log("!-> handled error");
   const { message = "Something went wrong", status = 500 } = err;
   console.log(status, message);
-  console.log("stack: ", err);
+  // console.log("stack: ", err);
   res.status(status).send({ message });
 });
 

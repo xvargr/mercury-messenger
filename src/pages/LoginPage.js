@@ -101,7 +101,7 @@ function LoginPage() {
       axiosUser
         .post(route, formData, axiosConfig)
         .then((res) => {
-          console.log("success:", res);
+          // console.log("success:", res);
           setSelectedGroup(null);
           setSelectedChannel(null);
           setGroupMounted(false);

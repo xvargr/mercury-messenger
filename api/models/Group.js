@@ -73,7 +73,15 @@ GroupSchema.pre("remove", async function (next) {
   await Channel.deleteMany({
     _id: { $in: channelsArr },
   });
+  next();
   // todo delete messages in channels? pre channel delete middleware?
+});
+// post save check if empty
+GroupSchema.post("save", async function () {
+  if (this.members.length === 0) {
+    await this.remove();
+  }
+  // next(); // dunno why next is sometimes needed, and sometimes not
 });
 
 const Group = mongoose.model("Group", GroupSchema);
