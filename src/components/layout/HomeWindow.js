@@ -46,6 +46,7 @@ const HomeWindow = () => {
           <li>
             check all user input, validate every input clientSide and on backend
           </li>
+          <li>check that only admins can crud modify and channels</li>
         </ul>
       </div>
     </div>

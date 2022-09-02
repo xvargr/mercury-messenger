@@ -41,6 +41,7 @@ UserSchema.pre("remove", async function (next) {
   console.log("user", this);
 
   const groups = await Group.find({ members: this }).populate([
+    { path: "channels", populate: ["text", "task"] },
     { path: "administrators", select: ["_id", "username"] },
     {
       path: "members",
@@ -71,14 +72,11 @@ UserSchema.pre("remove", async function (next) {
   if (this.userImage.filename !== "PIA18107_q1t2oc.jpg")
     cloudinary.uploader.destroy(this.image.filename);
 
-  // ! CAST ERROR even before saving?
   groups.forEach(async (group) => {
-    console.log("saving"); // ? doesn't make it here before error
     await group.save();
-  }); // ! CAST ERROR user deleted but still in groups
-  // await groups.save(); // ! can't save this because it isn't a document, it's an array of documents
+  });
   // todo delete all messages
-  // next(); // ! is it this next again?
+  next();
 });
 
 const User = mongoose.model("User", UserSchema);

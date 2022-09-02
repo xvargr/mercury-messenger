@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import axiosRetry from "axios-retry";
 // components
@@ -19,6 +19,7 @@ function GroupsBar() {
   const { groupData, groupMounted, setGroupData, setGroupMounted, isLoggedIn } =
     useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
+  const navigate = useNavigate();
 
   const controller = new AbortController(); // axios abort controller
 
@@ -37,9 +38,11 @@ function GroupsBar() {
       retryCondition: (error) => {
         // if retry condition is not specified, by default idempotent requests are retried
         // return error.response.status === 503; // retry only if err 503
+        if (error.response.status === 401) navigate("/login");
+        else return true;
         // todo retry conditions
         // todo don't retry 401 unauthorized, reroute to login
-        return true; // retry every time
+        // return true; // retry every time
       },
     });
 

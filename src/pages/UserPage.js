@@ -1,13 +1,15 @@
 import { useContext, useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PhotographIcon } from "@heroicons/react/outline";
+import { PhotographIcon, XIcon } from "@heroicons/react/outline";
 
 import axios from "axios";
 
 import { DataContext } from "../components/context/DataContext";
+
 import InputBox from "../components/ui/InputBox";
 import CircleButton from "../components/ui/CircleButton";
 import TextButton from "../components/ui/TextButton";
+import { DeleteUserModal } from "../components/ui/Modal";
 
 const userObject = {
   name: null,
@@ -18,8 +20,11 @@ function UserPage() {
   const navigate = useNavigate();
   const { setIsLoggedIn } = useContext(DataContext);
   const [inpErr, setInpErr] = useState(true);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
   const [buttonText, setButtonText] = useState("Keep changes");
   const [feedback, setFeedback] = useState("");
+  const [passwordFeedback, setPasswordFeedback] = useState(null);
+  const [passwordInput, setPasswordInput] = useState("");
   const imageRef = useRef();
   const imageInputRef = useRef();
 
@@ -46,18 +51,25 @@ function UserPage() {
       .catch((err) => console.log("error:", err));
   }
 
-  // todo delete user
-  function deleteUser() {
-    console.log("userdelete");
-    axiosUser
-      .delete(`/u/${localStorage.userId}`, axiosConfig)
-      .then((res) => {
-        console.log(res);
-        // localStorage.clear();
-        // setIsLoggedIn(false);
-        // navigate("/login");
-      })
-      .catch((err) => console.log("error:", err));
+  function deleteUser(e) {
+    e.preventDefault();
+
+    if (passwordInput) {
+      const userData = new FormData();
+      userData.append("password", passwordInput);
+
+      axiosUser
+        .put(`/u/${localStorage.userId}`, userData, axiosConfig)
+        .then((res) => {
+          console.log(res);
+          localStorage.clear();
+          setIsLoggedIn(false);
+          navigate("/login");
+        })
+        .catch((err) => setPasswordFeedback(err.response.data.message));
+    } else {
+      setPasswordFeedback("ENTER YOUR PASSWORD");
+    }
   }
 
   function modifyUser(e) {
@@ -111,61 +123,96 @@ function UserPage() {
     setButtonText("Keep changes");
   }
 
-  return (
-    <div className="bg-gray-700 h-full w-full flex flex-col items-center justify-evenly">
-      <form
-        className="w-4/5 h-4/5 flex flex-col justify-center items-center"
-        onSubmit={modifyUser}
-      >
-        <label htmlFor="userImage" className="group">
-          <PhotographIcon className="relative -mt-[6rem] top-[12rem] left-[6rem] text-gray-400 h-[6rem] opacity-0 hover:cursor-pointer group-hover:opacity-100 transition-all duration-100 z-10" />
-          <div className="group-hover:brightness-[0.4] group-hover:cursor-pointer transition-all duration-100">
-            <img
-              src={localStorage.userImage}
-              alt="profile"
-              className="w-72 h-72 rounded-full"
-              ref={imageRef}
-            />
-          </div>
-        </label>
-        <input
-          type="file"
-          name="userImage"
-          id="userImage"
-          className="sr-only"
-          accept=".jpg, .jpeg, .png, .gif"
-          onChange={imagePreview}
-        />
-        <label htmlFor="username" className="sr-only">
-          username
-        </label>
-        <InputBox className="w-60 mt-4 bg-gray-600">
-          <input
-            type="text"
-            name="username"
-            id="username"
-            className="block w-full bg-gray-600 focus:outline-none text-center font-semibold text-gray-300"
-            onChange={onUsernameChange}
-            ref={imageInputRef}
-            autoComplete="off"
-          />
-        </InputBox>
-        <TextButton className="mt-4" text={buttonText} disabled={inpErr} />
-        <div className=" h-4 mt-4 -mb-16 text-mexican-red-500 font-bold">
-          {feedback}
-        </div>
-      </form>
+  function toggleModal(e) {
+    if (!modalIsOpen) setModalIsOpen(true);
+    else if (
+      e.key === "Escape" ||
+      e.target.id === "modalBackground" ||
+      e.target.id === "modalCloseButton"
+    ) {
+      setModalIsOpen(false);
+      setPasswordFeedback(null);
+    }
+  }
 
-      <CircleButton
-        status="logout"
-        className="text-mexican-red-400 hover:text-mexican-red-500"
-        color="gray-600"
-        onClick={logOutUser}
-      />
-      <div className="text-gray-900 hover:cursor-pointer" onClick={deleteUser}>
-        delete acc
+  function passwordOnChange(input) {
+    setPasswordInput(input);
+  }
+
+  return (
+    <>
+      {modalIsOpen ? (
+        <DeleteUserModal
+          toggle={toggleModal}
+          onSubmit={deleteUser}
+          sendBack={passwordOnChange}
+          feedback={passwordFeedback}
+        />
+      ) : null}
+      {/* <DeleteUserModal
+        isOpen={modalIsOpen}
+        onClick={toggleModal}
+        onSubmit={deleteUser}
+        ref={modalRef}
+      /> */}
+      <div className="bg-gray-700 h-full w-full flex flex-col items-center justify-evenly">
+        <form
+          className="w-4/5 h-4/5 flex flex-col justify-center items-center"
+          onSubmit={modifyUser}
+        >
+          <label htmlFor="userImage" className="group hover:cursor-pointer">
+            <PhotographIcon className="relative -mt-[6rem] top-[12rem] left-[6rem] text-gray-400 h-[6rem] opacity-0 hover:cursor-pointer group-hover:opacity-100 transition-all duration-100 z-10" />
+            <div className="group-hover:brightness-[0.4] group-hover:cursor-pointer transition-all duration-100">
+              <img
+                src={localStorage.userImage}
+                alt="profile"
+                className="w-72 h-72 rounded-full"
+                ref={imageRef}
+              />
+            </div>
+          </label>
+          <input
+            type="file"
+            name="userImage"
+            id="userImage"
+            className="sr-only"
+            accept=".jpg, .jpeg, .png, .gif"
+            onChange={imagePreview}
+          />
+          <label htmlFor="username" className="sr-only">
+            username
+          </label>
+          <InputBox className="w-60 mt-4 bg-gray-600">
+            <input
+              type="text"
+              name="username"
+              id="username"
+              className="block w-full bg-gray-600 focus:outline-none text-center font-semibold text-gray-300"
+              onChange={onUsernameChange}
+              ref={imageInputRef}
+              autoComplete="off"
+            />
+          </InputBox>
+          <TextButton className="mt-4" text={buttonText} disabled={inpErr} />
+          <div className=" h-4 mt-4 -mb-16 text-mexican-red-500 font-bold">
+            {feedback}
+          </div>
+        </form>
+
+        <CircleButton
+          status="logout"
+          className="text-mexican-red-400 hover:text-mexican-red-500"
+          color="gray-600"
+          onClick={logOutUser}
+        />
+        <div
+          className="text-gray-900 hover:cursor-pointer"
+          onClick={toggleModal}
+        >
+          delete acc
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
