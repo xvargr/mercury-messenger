@@ -94,13 +94,17 @@ export async function editUser(req, res) {
 }
 
 export async function deleteUser(req, res) {
-  // ? is sender same as requested delete user?
+  // console.log(req.body);
   if (req.user.id !== req.params.uid)
     throw new ExpressError("Unauthorized", 401);
 
   const user = await User.findById(req.user.id);
 
-  await user.remove();
+  console.log(user);
+  const passwordCheck = await bcrypt.compare(req.body.password, user.password);
+
+  if (!passwordCheck) throw new ExpressError("INCORRECT PASSWORD", 401);
+  else await user.remove();
 
   res.send("ok");
 }
