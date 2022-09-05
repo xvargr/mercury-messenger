@@ -70,7 +70,7 @@ UserSchema.pre("remove", async function (next) {
   // delete profile image if not default
   // might not want to hardcode this
   if (this.userImage.filename !== "PIA18107_q1t2oc.jpg")
-    cloudinary.uploader.destroy(this.image.filename);
+    cloudinary.uploader.destroy(this.userImage.filename);
 
   groups.forEach(async (group) => {
     await group.save();
