@@ -9,45 +9,48 @@ import LoginPage from "./pages/LoginPage";
 // import components
 import ChatWindow from "./components/layout/ChatWindow";
 import ChannelsBar from "./components/layout/ChannelsBar";
+import HomeWindow from "./components/layout/HomeWindow";
 
 // import context
 import { UiStateProvider } from "./components/context/UiContext";
 import { DataStateProvider } from "./components/context/DataContext";
-import HomeWindow from "./components/layout/HomeWindow";
+import { FlashStateProvider } from "./components/context/FlashContext";
 
 function App() {
   return (
     <main className="flex h-screen w-screen">
       <DataStateProvider>
-        <UiStateProvider>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/" element={<MainWindow />}>
-              <Route index element={<HomeWindow />} />
-              <Route path="u" element={<UserPage />} />
-              <Route path="g">
-                <Route path="new" element={<NewGroupPage />} />
-                <Route
-                  path=":group"
-                  element={
-                    <>
-                      <ChannelsBar />
-                      <Outlet />
-                    </>
-                  }
-                >
-                  <Route index element={"Channel index"} />
-                  <Route path="c">
-                    <Route path="new" element={<NewChannelPage />} />
-                    <Route path=":channel" element={<ChatWindow />} />
+        <FlashStateProvider>
+          <UiStateProvider>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/" element={<MainWindow />}>
+                <Route index element={<HomeWindow />} />
+                <Route path="u" element={<UserPage />} />
+                <Route path="g">
+                  <Route path="new" element={<NewGroupPage />} />
+                  <Route
+                    path=":group"
+                    element={
+                      <>
+                        <ChannelsBar />
+                        <Outlet />
+                      </>
+                    }
+                  >
+                    <Route index element={"Channel index"} />
+                    <Route path="c">
+                      <Route path="new" element={<NewChannelPage />} />
+                      <Route path=":channel" element={<ChatWindow />} />
+                    </Route>
                   </Route>
                 </Route>
+                <Route path="404" element={<div>404</div>} />
+                <Route path="*" element={<div>404</div>} />
               </Route>
-              <Route path="404" element={<div>404</div>} />
-              <Route path="*" element={<div>404</div>} />
-            </Route>
-          </Routes>
-        </UiStateProvider>
+            </Routes>
+          </UiStateProvider>
+        </FlashStateProvider>
       </DataStateProvider>
     </main>
   );

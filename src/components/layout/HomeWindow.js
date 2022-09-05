@@ -9,7 +9,7 @@ const HomeWindow = () => {
           <li>error handling for axios errors</li>
           <li>set appropriate axios retries</li>
           <li>flash message system</li>
-          <li>user delete self</li>
+          {/* <li>user delete self</li> */}
           {/* <li>user leave group</li> */}
           {/* <li>group invite link/code</li> */}
           {/* <li>group delete</li> */}

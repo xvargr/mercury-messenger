@@ -1,6 +1,6 @@
 import { useContext, useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PhotographIcon, XIcon } from "@heroicons/react/outline";
+import { PhotographIcon } from "@heroicons/react/outline";
 
 import axios from "axios";
 
