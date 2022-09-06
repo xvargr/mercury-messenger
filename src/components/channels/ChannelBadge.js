@@ -2,15 +2,17 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { useState, useContext } from "react";
 import axios from "axios";
 
-import { DataContext } from "../context/DataContext";
-
 import { DotsVerticalIcon, TrashIcon, XIcon } from "@heroicons/react/solid";
+
+import { DataContext } from "../context/DataContext";
+import { FlashContext } from "../context/FlashContext";
 
 function ChannelBadge(props) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDialogue, setShowDialogue] = useState(false);
   const [nameField, setNameField] = useState(props.data.name);
   const { groupData, setGroupData } = useContext(DataContext);
+  const { setMessages } = useContext(FlashContext);
   const navigate = useNavigate();
   const { channel, group } = useParams();
 
@@ -32,10 +34,11 @@ function ChannelBadge(props) {
         .delete(`/c/${props.data._id}`)
         .then((res) => {
           const tempGroupData = groupData;
-          const updatedGroupData = res.data;
+          const updatedGroupData = res.data.groupData;
 
           tempGroupData[props.groupIndex] = updatedGroupData;
           setGroupData(tempGroupData);
+          setMessages(res.data.messages);
 
           navigate(`/g/${group}`);
         })
@@ -68,7 +71,8 @@ function ChannelBadge(props) {
           props.groupIndex
         ].channels.text.findIndex((ch) => ch._id === res.data._id);
 
-        tempGroupData[props.groupIndex].channels.text[channelIndex] = res.data;
+        tempGroupData[props.groupIndex].channels.text[channelIndex] =
+          res.data.groupData;
 
         setGroupData(tempGroupData);
         setIsEditing(false);
