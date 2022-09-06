@@ -14,6 +14,7 @@ const HomeWindow = () => {
           {/* <li>group invite link/code</li> */}
           {/* <li>group delete</li> */}
           {/* <li>channel delete</li> */}
+          <li>add animation for component mount and unmount</li>
           <li>messages and websockets</li>
           <li>tasks</li>
           <li>

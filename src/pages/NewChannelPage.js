@@ -6,7 +6,7 @@ import NewChannelForm from "../components/forms/NewChannelForm";
 //context
 import { UiContext } from "../components/context/UiContext";
 import { DataContext } from "../components/context/DataContext";
-import React from "react";
+import { FlashContext } from "../components/context/FlashContext";
 
 const axiosConfig = {
   headers: { "Content-Type": "multipart/form-data" },
@@ -15,6 +15,7 @@ const axiosConfig = {
 function NewChannelPage() {
   const { setGroupMounted } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel } = useContext(UiContext);
+  const { setMessages } = useContext(FlashContext);
   const [axiosErr, setAxiosErr] = useState({
     message: null,
     status: null,
@@ -37,9 +38,13 @@ function NewChannelPage() {
       .then((res) => {
         setSelectedChannel(null);
         setGroupMounted(false);
+        console.log(res);
+        setMessages(res.data.messages);
         navigate(`/g/${selectedGroup.name}`);
       })
       .catch((err) => {
+        console.log(err);
+
         setAxiosErr({
           message: err.response.data.message,
           status: err.response.status,

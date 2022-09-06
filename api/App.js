@@ -103,7 +103,9 @@ app.post(
     console.log(
       `  > new channel "${req.body.name} made in group ${req.body.group}"`
     );
-    res.status(201).send(`successfully created "${req.body.name}"`);
+    res.status(201).json({
+      messages: [{ message: "successfully created channel", type: "success" }],
+    });
   })
 );
 
@@ -135,7 +137,21 @@ app.delete(
     await parentGroup.save();
     channel.remove();
 
-    res.json(parentGroup);
+    res.json({
+      groupData: parentGroup,
+      messages: [
+        { message: "successfully deleted channel", type: "success" },
+        { message: "successfully deleted channel", type: "success" },
+        { message: "successfully deleted channel", type: "success" },
+        { message: "successfully deleted channel", type: "success" },
+        { message: "successfully deleted channel", type: "success" },
+        { message: "successfully deleted channel", type: "success" },
+        { message: "successfully deleted channel", type: "success" },
+        { message: "successfully deleted channel", type: "success" },
+      ],
+    });
+
+    // res.json(parentGroup);
   })
 );
 
