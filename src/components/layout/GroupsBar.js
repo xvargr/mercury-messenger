@@ -30,10 +30,10 @@ function GroupsBar() {
     });
 
     axiosRetry(axiosGroupFetch, {
-      retries: 3, // number of retries
+      retries: 5, // number of retries
       retryDelay: (retryCount) => {
         console.log(`retry attempt: ${retryCount}`);
-        return retryCount * 2000; // time interval between retries
+        return retryCount * 10000; // time interval between retries
       },
       retryCondition: (error) => {
         // if retry condition is not specified, by default idempotent requests are retried
@@ -46,19 +46,19 @@ function GroupsBar() {
       },
     });
 
-    axiosGroupFetch
-      .get("/g", { signal: controller.signal })
-      .then((res) => {
-        const groupData = res.data;
-        // console.log("success:", res);
-        // setIsLoading(false);
-        // dataMountedRef.current = true;
-        setSelectedGroup(groupData.find((grp) => grp.name === group));
-        setSelectedChannel(channel);
-        setGroupMounted(true);
-        setGroupData(groupData);
-      })
-      .catch((err) => console.log("error:", err));
+    axiosGroupFetch.get("/g", { signal: controller.signal }).then((res) => {
+      const groupData = res.data;
+      // console.log("success:", res);
+      // setIsLoading(false);
+      // dataMountedRef.current = true;
+      setSelectedGroup(groupData.find((grp) => grp.name === group));
+      setSelectedChannel(channel);
+      setGroupMounted(true);
+      setGroupData(groupData);
+    });
+    // .catch((err) => {
+    //   // nothing really
+    // });
   }
 
   if (!groupMounted && localStorage.username && isLoggedIn) fetchGroups();

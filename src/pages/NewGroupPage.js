@@ -7,10 +7,12 @@ import JoinByInvite from "../components/forms/JoinByInvite";
 // context
 import { UiContext } from "../components/context/UiContext";
 import { DataContext } from "../components/context/DataContext";
+import { FlashContext } from "../components/context/FlashContext";
 
 function NewGroupPage() {
   const { setGroupMounted } = useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
+  const { setMessages } = useContext(FlashContext);
   const [axiosCreateErr, setAxiosCreateErr] = useState({
     message: null,
     status: null,
@@ -40,12 +42,13 @@ function NewGroupPage() {
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
-        navigate(`/g/${res.data.name}`);
+        setMessages(res.data.messages);
+
+        navigate(`/g/${res.data.groupData.name}`);
       })
       .catch((err) => {
         setAxiosCreateErr({
-          message: err.response.data.message,
-          status: err.response.status,
+          message: err.response.data.messages[0].message, // ! fis to json response format
         });
       });
   }
@@ -62,12 +65,14 @@ function NewGroupPage() {
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
-        navigate(`/g/${res.data}`);
+        setMessages(res.data.messages);
+
+        navigate(`/g/${res.data.groupData.name}`);
       })
       .catch((err) => {
+        console.log(err);
         setAxiosJoinErr({
-          message: err.response.data.message,
-          status: err.response.status,
+          message: err.response.data.messages[0].message,
         });
       });
   }

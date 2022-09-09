@@ -42,7 +42,9 @@ function ChannelBadge(props) {
 
           navigate(`/g/${group}`);
         })
-        .catch((err) => console.log("error:", err));
+        .catch((err) => {
+          setMessages(err.response.data.messages);
+        });
     }
   }
 
@@ -63,24 +65,27 @@ function ChannelBadge(props) {
     axiosEditChannel
       .patch(`/c/${props.data._id}`, channelData, axiosConfig)
       .then((res) => {
-        // console.log(res.data._id);
         const tempGroupData = groupData;
-
-        // find this channel's index in groupData
         const channelIndex = tempGroupData[
           props.groupIndex
-        ].channels.text.findIndex((ch) => ch._id === res.data._id);
+        ].channels.text.findIndex((ch) => ch._id === res.data.channelData._id);
 
         tempGroupData[props.groupIndex].channels.text[channelIndex] =
-          res.data.groupData;
+          res.data.channelData;
 
         setGroupData(tempGroupData);
         setIsEditing(false);
         setShowDialogue(false);
+        setMessages(res.data.messages);
 
         navigate(`/g/${group}`);
       })
-      .catch((err) => console.log("error:", err));
+      .catch((err) => {
+        console.log(err);
+        setIsEditing(false);
+        setShowDialogue(false);
+        setMessages(err.response.data.messages);
+      });
   }
 
   function toggleEditForm() {

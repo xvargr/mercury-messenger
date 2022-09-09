@@ -69,7 +69,10 @@ GroupSchema.pre("remove", async function (next) {
   // delete associated channels
   const textArr = Array.from(this.channels.text, (channel) => channel.id);
   const taskArr = Array.from(this.channels.task, (channel) => channel.id);
+
   const channelsArr = [...textArr, ...taskArr];
+
+  // ? cast error here may be caused by the group not populating necessary fields
   await Channel.deleteMany({
     _id: { $in: channelsArr },
   });

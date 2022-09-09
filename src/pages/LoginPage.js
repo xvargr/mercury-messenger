@@ -107,19 +107,27 @@ function LoginPage() {
           setGroupMounted(false);
           setIsLoggedIn(true);
 
-          localStorage.setItem("username", res.data.username);
-          localStorage.setItem("userId", res.data.userId);
-          localStorage.setItem("userImage", res.data.userImage);
-          localStorage.setItem("userImageSmall", res.data.userImageSmall);
-          localStorage.setItem("userImageMedium", res.data.userImageMedium);
-          navigate("/"); // ! still redirects on error, need diff err and suc
+          localStorage.setItem("username", res.data.userData.username);
+          localStorage.setItem("userId", res.data.userData.userId);
+          localStorage.setItem("userImage", res.data.userData.userImage);
+          localStorage.setItem(
+            "userImageSmall",
+            res.data.userData.userImageSmall
+          );
+          localStorage.setItem(
+            "userImageMedium",
+            res.data.userData.userImageMedium
+          );
+
+          navigate("/");
         })
         .catch((err) => {
-          console.log("error:", err);
-          setFeedback(err.response.data);
+          // ! api crash if user auth failed
+
+          console.log(err);
+          setFeedback(err.response.data.messages[0].message);
           setButtonStatus("ok");
-        }); // ! send feedback on err
-      // .then(() => {});
+        });
     }
   }
 

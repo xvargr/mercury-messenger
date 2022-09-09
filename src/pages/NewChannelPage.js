@@ -38,13 +38,11 @@ function NewChannelPage() {
       .then((res) => {
         setSelectedChannel(null);
         setGroupMounted(false);
-        console.log(res);
+
         setMessages(res.data.messages);
         navigate(`/g/${selectedGroup.name}`);
       })
       .catch((err) => {
-        console.log(err);
-
         setAxiosErr({
           message: err.response.data.message,
           status: err.response.status,

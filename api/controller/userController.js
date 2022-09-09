@@ -49,17 +49,24 @@ export function logOutUser(req, res) {
 export function logInUser(req, res, next) {
   passport.authenticate("local", (err, user, info) => {
     if (err) throw new ExpressError(err, 500);
+    // if (!user) res.send("hi");
     if (!user) res.status(401).send("Wrong username or password");
+    // if (!user) throw new ExpressError("Wrong username or password", 401);
     else {
       req.logIn(user, (err) => {
-        if (err) throw err;
+        if (err) throw new ExpressError(err, 500);
         // console.log("Successfully Authenticated");
-        res.status(201).send({
-          username: user.username,
-          userId: user._id,
-          userImage: user.userImage.url,
-          userImageSmall: user.userImage.thumbnailSmall,
-          userImageMedium: user.userImage.thumbnailMedium,
+        res.status(201).json({
+          userData: {
+            username: user.username,
+            userId: user._id,
+            userImage: user.userImage.url,
+            userImageSmall: user.userImage.thumbnailSmall,
+            userImageMedium: user.userImage.thumbnailMedium,
+          },
+          messages: [
+            { message: "successfully deleted channel", type: "success" },
+          ],
         });
       });
     }
@@ -84,12 +91,15 @@ export async function editUser(req, res) {
     new: true,
   });
 
-  res.send({
-    username: updateQuery.username,
-    userId: updateQuery._id,
-    userImage: updateQuery.userImage.url,
-    userImageSmall: updateQuery.userImage.thumbnailSmall,
-    userImageMedium: updateQuery.userImage.thumbnailMedium,
+  res.json({
+    userData: {
+      username: updateQuery.username,
+      userId: updateQuery._id,
+      userImage: updateQuery.userImage.url,
+      userImageSmall: updateQuery.userImage.thumbnailSmall,
+      userImageMedium: updateQuery.userImage.thumbnailMedium,
+    },
+    messages: [{ message: "successfully edited user", type: "success" }],
   });
 }
 
@@ -106,5 +116,5 @@ export async function deleteUser(req, res) {
   if (!passwordCheck) throw new ExpressError("INCORRECT PASSWORD", 401);
   else await user.remove();
 
-  res.send("ok");
+  res.status(200);
 }

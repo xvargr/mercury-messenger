@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-// import axios from "axios";
 // components
 import ChannelBadge from "../channels/ChannelBadge";
 import NewChannelButton from "../channels/NewChannelButton";

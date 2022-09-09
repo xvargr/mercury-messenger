@@ -5,6 +5,7 @@ import { PhotographIcon } from "@heroicons/react/outline";
 import axios from "axios";
 
 import { DataContext } from "../components/context/DataContext";
+import { FlashContext } from "../components/context/FlashContext";
 
 import InputBox from "../components/ui/InputBox";
 import CircleButton from "../components/ui/CircleButton";
@@ -19,6 +20,7 @@ const userObject = {
 function UserPage() {
   const navigate = useNavigate();
   const { setIsLoggedIn } = useContext(DataContext);
+  const { setMessages } = useContext(FlashContext);
   const [inpErr, setInpErr] = useState(true);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [buttonText, setButtonText] = useState("Keep changes");
@@ -48,7 +50,9 @@ function UserPage() {
         setIsLoggedIn(false);
         navigate("/login"); // todo restructure so if err, show message and retry
       })
-      .catch((err) => console.log("error:", err));
+      .catch((err) => {
+        setMessages(err.response.data.messages);
+      });
   }
 
   function deleteUser(e) {
@@ -61,12 +65,14 @@ function UserPage() {
       axiosUser
         .put(`/u/${localStorage.userId}`, userData, axiosConfig)
         .then((res) => {
-          console.log(res);
           localStorage.clear();
           setIsLoggedIn(false);
+
           navigate("/login");
         })
-        .catch((err) => setPasswordFeedback(err.response.data.message));
+        .catch((err) =>
+          setPasswordFeedback(err.response.data.messages[0].message)
+        );
     } else {
       setPasswordFeedback("ENTER YOUR PASSWORD");
     }
@@ -84,16 +90,24 @@ function UserPage() {
     axiosUser
       .patch(`/u/${localStorage.userId}`, userData, axiosConfig)
       .then((res) => {
-        localStorage.setItem("username", res.data.username);
-        localStorage.setItem("userImage", res.data.userImage);
-        localStorage.setItem("userImageSmall", res.data.userImageSmall);
-        localStorage.setItem("userImageMedium", res.data.userImageMedium);
+        localStorage.setItem("username", res.data.userData.username);
+        localStorage.setItem("userImage", res.data.userData.userImage);
+        localStorage.setItem(
+          "userImageSmall",
+          res.data.userData.userImageSmall
+        );
+        localStorage.setItem(
+          "userImageMedium",
+          res.data.userData.userImageMedium
+        );
+
         navigate("/");
       })
       .catch((err) => {
         setButtonText("Keep changes");
         setInpErr(false);
-        setFeedback(err.response.data.message);
+        // setFeedback(err.response.data.messages[0].message);
+        setMessages(err.response.data.messages);
       });
   }
 

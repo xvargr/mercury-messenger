@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   InformationCircleIcon,
   ExclamationCircleIcon,
@@ -15,83 +15,31 @@ export function FlashMessageWrapper(props) {
 }
 
 export function FlashMessage(props) {
-  // // console.log(new Date().getTime());
-  // todo animations
-  // //   const thisRef = useRef();
   const [fadeClass, setFadeClass] = useState("");
-  // // const [fadeClass, setFadeClass] = useState("");
-  // const timerRef = useRef(null);
-  // // const thisMessageRef = useRef();
 
-  // function delay(delay, v) {
-  //   return new Promise(function (resolve) {
-  //     setTimeout(resolve.bind(null, v), delay);
-  //   });
-  // }
-
-  // // // function fadeOutInOrder() {
-  // // if (props.position === 0) {
-  // //   // delay(6000).then(() => {
-  // //   //   console.log(`opacity set for ${props.type}`);
-  // //   //   setFadeClass(`opacity-0 transition-opacity duration-1000`);
-  // //   //   delay(1000).then(() => props.unmount(props.position));
-  // //   // });
-  // //   // delay(2000).then(() => props.unmount(props.position));
-  // //   // }
-  // //   // fadeOutInOrder();
-
-  // //   timerRef.current = setTimeout(() => {
-  // //     setFadeClass("-translate-y-14 transition-transform duration-1000");
-  // //     console.log(props.type, "disappearing");
-  // //     delay(1200).then(() => {
-  // //       console.log(props.type, "unmounted");
-  // //       props.unmount(props.position);
-  // //     });
-  // //   }, 6000 + 700 * props.position);
-  // // }
-
-  // // function fadeOut() {
-  // //   // delay(2000).then(() => {
-  // //   //   setFadeClass(`opacity-0 transition-opacity duration-1000`);
-  // //   //   delay(1000).then(() => props.unmount(props.position));
-  // //   // });
-
-  // //   // delay(2000).then(() => props.unmount(props.position));
-
-  // //   timerRef.current = setTimeout(() => {
-  // //     setFadeClass("-translate-y-14 transition-transform duration-1000");
-  // //     // delay(1000).then(props.unmount(props.position));
-  // //   }, 2000);
-  // // }
-
-  // // function resetFadeout() {
-  // //   setFadeClass("");
-  // //   if (timerRef.current) clearTimeout(timerRef.current);
-  // //   // clearTimeout(timer);
-  // //   fadeOut();
-  // // }
-
-  // //   fadeOut();
-
-  // todo anims
-  // const fadeClass =
-  // props.fadeThis
-  // ? // ? "opacity-0 transition-opacity duration-1000"
-  //   ""
-  // : "";
-
-  // let fadeClass;
+  useEffect(() => {
+    if (props.position === 0 && fadeClass.length === 0) {
+      let selfUnmountTimer = setTimeout(() => {
+        setFadeClass("opacity-0 transition-opacity duration-700");
+        setTimeout(() => {
+          props.unmount(props.position);
+          setFadeClass(""); // for some reason the component next in the list will have its fadeClass set if it is not set back to ""
+        }, 700);
+      }, 4000);
+      // clear timeout on umount to prevent duplicate unmount calls, without this component will try to unmount multiple times
+      return () => clearTimeout(selfUnmountTimer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
 
   function unmountThis() {
-    if (setFadeClass !== "") {
-      setFadeClass("translate-x-[26rem] transition-transform duration-1000");
-    }
-    // delay(1000).then(props.unmount(props.position));
-    setTimeout(() => {
-      // console.log("unmounting");
+    setFadeClass("opacity-0 transition-opacity duration-700");
+    const requestedUnmountTimer = setTimeout(() => {
       props.unmount(props.position);
-    }, 1000);
-    // delay(1000).then(console.log("unmounting"));
+      setFadeClass(""); // for some reason the component next in the list will have its fadeClass set if it is not set back to ""
+    }, 700);
+    // clear timeout on umount to prevent duplicate unmount calls, without this component will try to unmount multiple times
+    return () => clearTimeout(requestedUnmountTimer);
   }
 
   let charm;
@@ -99,7 +47,7 @@ export function FlashMessage(props) {
   switch (props.type) {
     case "alert":
       charm = (
-        <div className="h-[3rem] bg-amber-500 rounded-l-xl flex justify-center">
+        <div className="bg-amber-500 rounded-l-xl flex justify-center">
           <InformationCircleIcon className="w-6 m-1 text-gray-600 shrink-0" />
         </div>
       );
@@ -107,7 +55,7 @@ export function FlashMessage(props) {
       break;
     case "success":
       charm = (
-        <div className="h-[3rem] bg-green-600 rounded-l-xl flex justify-center">
+        <div className="bg-green-600 rounded-l-xl flex justify-center">
           <CheckCircleIcon className="w-6 m-1 text-gray-600 shrink-0" />
         </div>
       );
@@ -115,7 +63,7 @@ export function FlashMessage(props) {
       break;
     case "error":
       charm = (
-        <div className="h-[3rem] bg-red-500 rounded-l-xl flex justify-center">
+        <div className="bg-red-500 rounded-l-xl flex justify-center">
           <ExclamationCircleIcon className="w-6 m-1 text-gray-600 shrink-0" />
         </div>
       );
@@ -128,19 +76,15 @@ export function FlashMessage(props) {
 
   return (
     <div
-      className={`relative m-2 pr-6 w-96 min-h-[3rem] h-fit rounded-xl backdrop-blur-sm flex items-center shadow-md z-50 ${fadeClass}`}
-      //   ref={thisRef}
-      // onMouseMove={resetFadeout}
-      //   ref={fadeOut}
-      // ref={thisMessageRef}
+      className={`relative m-2 pr-6 w-96 min-h-[3rem] h-fit rounded-xl backdrop-blur-sm flex shadow-md z-50 ${fadeClass}`}
     >
       <div className="w-full h-full absolute -z-10 rounded-xl bg-gray-500 opacity-70"></div>
       <XIcon
-        className="w-6 absolute top-0 right-0 p-1 text-gray-800 bg-mexican-red-500 rounded-tr-xl rounded-bl-md"
+        className="w-6 absolute top-0 right-0 p-1 text-gray-800 bg-mexican-red-500 hover:bg-mexican-red-400 hover:cursor-pointer rounded-tr-xl rounded-bl-md"
         onClick={unmountThis}
       />
       {charm}
-      <p className="text-gray-900 ml-2">{message}</p>
+      <p className="text-gray-900 ml-2 self-center">{message}</p>
     </div>
   );
 }
