@@ -104,7 +104,9 @@ app.post(
       `  > new channel "${req.body.name} made in group ${req.body.group}"`
     );
     res.status(201).json({
-      messages: [{ message: "successfully created channel", type: "success" }],
+      messages: [
+        { message: "Successfully created new channel", type: "success" },
+      ],
     });
   })
 );
@@ -131,7 +133,7 @@ app.delete(
     const chIndex = parentGroup.channels.text.findIndex(
       (channel) => channel.id === req.params.cid
     );
-    if (chIndex < 0) throw new ExpressError("channel not found in group", 500);
+    if (chIndex < 0) throw new ExpressError("Channel not found in group", 500);
     parentGroup.channels.text.splice(chIndex, 1);
 
     await parentGroup.save();
@@ -139,19 +141,8 @@ app.delete(
 
     res.json({
       groupData: parentGroup,
-      messages: [
-        { message: "successfully deleted channel", type: "success" },
-        { message: "successfully deleted channel", type: "success" },
-        { message: "successfully deleted channel", type: "success" },
-        { message: "successfully deleted channel", type: "success" },
-        { message: "successfully deleted channel", type: "success" },
-        { message: "successfully deleted channel", type: "success" },
-        { message: "successfully deleted channel", type: "success" },
-        { message: "successfully deleted channel", type: "success" },
-      ],
+      messages: [{ message: "Successfully deleted channel", type: "success" }],
     });
-
-    // res.json(parentGroup);
   })
 );
 
@@ -161,10 +152,17 @@ app.patch(
   upload.none(),
   asyncErrorWrapper(async function (req, res) {
     const channel = await Channel.findById(req.params.cid);
+    if (req.body.name.length < 3) {
+      throw new ExpressError("Channel name must be 3 characters or more", 400);
+    }
     channel.name = req.body.name.substring(0, 20); // limit20char
     await channel.save();
 
-    res.json(channel);
+    // res.json(channel);
+    res.json({
+      channelData: channel,
+      messages: [{ message: "Successfully edited channel", type: "success" }],
+    });
   })
 );
 
@@ -180,7 +178,9 @@ app.use(function (err, req, res, next) {
   const { message = "Something went wrong", status = 500 } = err;
   console.log(status, message);
   // console.log("stack: ", err);
-  res.status(status).send({ message });
+  res.status(status).json({
+    messages: [{ message, type: "error" }],
+  });
 });
 
 app.listen(PORT, () => {

@@ -4,12 +4,14 @@ import axios from "axios";
 // context
 import { DataContext } from "../context/DataContext";
 import { UiContext } from "../context/UiContext";
+import { FlashContext } from "../context/FlashContext";
 // components
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
 import InviteButton from "../ui/InviteButton";
 
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { setMessages } = useContext(FlashContext);
   const { groupMounted, setGroupMounted } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel, setSelectedGroup } =
     useContext(UiContext);
@@ -56,31 +58,37 @@ function GroupBanner(props) {
     axiosUserLeave
       .patch(`/g/${selectedGroup._id}`)
       .then((res) => {
-        // console.log("success:", res);
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
+        setMessages(res.data.messages);
+
         navigate("/");
       })
-      .catch((err) => console.log("error:", err));
+      .catch((err) => {
+        setMessages(err.response.data.messages);
+      });
   }
 
   function deleteGroup() {
-    const axiosUserDelete = axios.create({
+    const axiosDeleteGroup = axios.create({
       baseURL: "http://localhost:3100",
       withCredentials: true,
     });
 
-    axiosUserDelete
+    axiosDeleteGroup
       .delete(`/g/${selectedGroup._id}`)
       .then((res) => {
-        console.log("success:", res);
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
+        setMessages(res.data.messages);
+
         navigate("/");
       })
-      .catch((err) => console.log("error:", err));
+      .catch((err) => {
+        setMessages(err.response.data.messages);
+      });
   }
 
   function AdminOptions() {

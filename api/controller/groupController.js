@@ -47,20 +47,31 @@ export async function newGroup(req, res) {
   await newChannel.save();
   await newGroup.save();
 
-  res.status(201).json(newGroup);
+  res.status(201).json({
+    groupData: newGroup,
+    messages: [{ message: "Successfully created new group", type: "success" }],
+  });
 }
 
 export async function deleteGroup(req, res) {
   const id = req.params.gid;
-  const group = await Group.findById(id);
+  const group = await Group.findById(id).populate({
+    path: "channels",
+    populate: [
+      { path: "text", model: "Channel" },
+      { path: "task", model: "Channel" },
+    ],
+  });
 
-  if (!group.administrators.some((admin) => admin._id.equals(req.user._id)))
+  if (!group.administrators.some((admin) => admin._id.equals(req.user._id))) {
     throw new ExpressError("Not authorized", 401);
+  }
 
   await group.remove();
 
-  console.log(`i-> ${group.name} group deleted`);
-  res.send("ok");
+  res.json({
+    messages: [{ message: "successfully deleted group", type: "success" }],
+  });
 }
 
 export async function joinWithCode(req, res) {
@@ -80,7 +91,10 @@ export async function joinWithCode(req, res) {
   group.members.push(user);
   await group.save();
 
-  res.status(200).json(group.name);
+  res.status(200).json({
+    groupData: group,
+    messages: [{ message: "successfully joined channel", type: "success" }],
+  });
 }
 
 export async function groupRemoveUser(req, res) {
@@ -128,5 +142,7 @@ export async function groupRemoveUser(req, res) {
   // }
 
   await group.save();
-  res.send("ok");
+  res.json({
+    messages: [{ message: "successfully left group", type: "success" }],
+  });
 }
