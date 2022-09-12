@@ -48,7 +48,7 @@ function UserPage() {
       .then((res) => {
         localStorage.clear();
         setIsLoggedIn(false);
-        navigate("/login"); // todo restructure so if err, show message and retry
+        navigate("/login");
       })
       .catch((err) => {
         setMessages(err.response.data.messages);

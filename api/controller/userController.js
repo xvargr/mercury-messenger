@@ -7,9 +7,10 @@ import ExpressError from "../utils/ExpressError.js";
 
 export async function newUser(req, res) {
   const result = await User.findOne({ username: req.body.username }).lean();
-  if (result) {
-    return res.status(400).send("username already exists");
-  }
+  if (result)
+    return res.status(401).json({
+      messages: [{ message: "Username taken", type: "error" }],
+    });
 
   const hashedPw = bcrypt.hashSync(req.body.password, 10);
 
@@ -27,21 +28,20 @@ export async function newUser(req, res) {
 
   req.logIn(user, (err) => {
     if (err) throw err;
-    console.log(`Logged in ${user.username}`);
-    res.send({
-      username: user.username,
-      userId: user._id,
-      userImage: user.userImage.url,
-      userImageSmall: user.userImage.thumbnailSmall,
-      userImageMedium: user.userImage.thumbnailMedium,
+    res.status(201).json({
+      userData: {
+        username: user.username,
+        userId: user._id,
+        userImage: user.userImage.url,
+        userImageSmall: user.userImage.thumbnailSmall,
+        userImageMedium: user.userImage.thumbnailMedium,
+      },
     });
   });
-
-  console.log(`  > new user "${req.body.username}" created`);
 }
 
 export function logOutUser(req, res) {
-  console.log(`logged out ${req.user.username}`);
+  // console.log(`logged out ${req.user.username}`);
   req.logOut((err) => err);
   res.status(200).send("ok"); // ! Check that api is not sending unnecessary info like user hashed pw
 }
@@ -49,9 +49,14 @@ export function logOutUser(req, res) {
 export function logInUser(req, res, next) {
   passport.authenticate("local", (err, user, info) => {
     if (err) throw new ExpressError(err, 500);
-    // if (!user) res.send("hi");
-    if (!user) res.status(401).send("Wrong username or password");
+    // if (!user)
+    // res.send("hi"); // ? is passport just not compatible with ExErr specCase
+    if (!user)
+      res.status(401).json({
+        messages: [{ message: "Wrong username or password", type: "error" }],
+      });
     // if (!user) throw new ExpressError("Wrong username or password", 401);
+    // ! 500 Cannot read properties of undefined (reading 'catch')
     else {
       req.logIn(user, (err) => {
         if (err) throw new ExpressError(err, 500);
@@ -110,11 +115,11 @@ export async function deleteUser(req, res) {
 
   const user = await User.findById(req.user.id);
 
-  console.log(user);
+  // console.log(user);
   const passwordCheck = await bcrypt.compare(req.body.password, user.password);
 
   if (!passwordCheck) throw new ExpressError("INCORRECT PASSWORD", 401);
   else await user.remove();
 
-  res.status(200);
+  res.status(200).send("ok");
 }

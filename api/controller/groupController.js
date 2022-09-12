@@ -133,14 +133,6 @@ export async function groupRemoveUser(req, res) {
   // remove user from members arr
   group.members.splice(memberIndex, 1);
 
-  // ? move this to pre save?
-  // delete group if no members left
-  // if (group.members.length === 0) {
-  //   await group.remove();
-  // } else {
-  //   await group.save();
-  // }
-
   await group.save();
   res.json({
     messages: [{ message: "successfully left group", type: "success" }],

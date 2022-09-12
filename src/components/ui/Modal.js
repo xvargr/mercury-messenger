@@ -43,7 +43,7 @@ export const DeleteUserModal = (props) => {
               name="password"
               id="password"
               onChange={sendBack}
-              className="bg-gray-700 font-normal focus:outline-none"
+              className="w-full bg-gray-700 font-normal focus:outline-none"
               placeholder="Enter your password..."
             />
           </InputBox>

@@ -7,7 +7,6 @@ import { DataContext } from "../components/context/DataContext";
 import { UiContext } from "../components/context/UiContext";
 
 import CircleButton from "../components/ui/CircleButton";
-// import { ExclamationCircleIcon } from "@heroicons/react/solid";
 
 let userData = {
   username: "",
@@ -17,9 +16,9 @@ let userData = {
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [inpErr, setInpErr] = useState(true); // todo
-  const [feedback, setFeedback] = useState(""); // todo
-  const [buttonStatus, setButtonStatus] = useState("error"); // todo
+  const [inpErr, setInpErr] = useState(true);
+  const [feedback, setFeedback] = useState("");
+  const [buttonStatus, setButtonStatus] = useState("error");
   const { setGroupMounted, setIsLoggedIn } = useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
   const [formState, setFormState] = useState("login");
@@ -78,7 +77,7 @@ function LoginPage() {
     } else {
       userData.passwordCheck = e.target.value;
     }
-    formValidator(); // ! uses old formState so it lags
+    formValidator();
   }
 
   function submitHandler(e) {
@@ -101,7 +100,6 @@ function LoginPage() {
       axiosUser
         .post(route, formData, axiosConfig)
         .then((res) => {
-          // console.log("success:", res);
           setSelectedGroup(null);
           setSelectedChannel(null);
           setGroupMounted(false);
@@ -122,9 +120,6 @@ function LoginPage() {
           navigate("/");
         })
         .catch((err) => {
-          // ! api crash if user auth failed
-
-          console.log(err);
           setFeedback(err.response.data.messages[0].message);
           setButtonStatus("ok");
         });
@@ -140,7 +135,6 @@ function LoginPage() {
       setButtonStatus("ok");
       setFormState("login");
     }
-    // formValidator(); // ! lags one state change use old val
   }
 
   return (
