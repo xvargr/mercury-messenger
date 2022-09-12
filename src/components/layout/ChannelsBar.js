@@ -42,7 +42,6 @@ function ChannelsBar() {
     return (
       <section className="bg-gray-700 h-screen w-1/4 lg:w-1/5 shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
         <GroupBanner name={group} />
-        {/* <div>hello</div> */}
         <div className="w-full flex-grow overflow-y-scroll scrollbar-none flex flex-col items-center">
           <div className="w-1/3 mb-2 mt-2"></div>
           <SkeletonChannel />
@@ -77,7 +76,7 @@ function ChannelsBar() {
               />
             );
           })}
-          <NewChannelButton />
+          {isAdmin ? <NewChannelButton /> : null}
           <hr className="w-1/3 mb-2 mt-2 border-gray-800" />
           {/* {groupData[groupIndex].channels.text.map((channel) => {
             let selected = selectedChannel === channel.name ? true : false;

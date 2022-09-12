@@ -38,7 +38,7 @@ const UserSchema = new mongoose.Schema({
 // user pre remove cleanup,
 // delete from all groups, and destroy user image
 UserSchema.pre("remove", async function (next) {
-  console.log("user", this);
+  // console.log("user", this);
 
   const groups = await Group.find({ members: this }).populate([
     { path: "channels", populate: ["text", "task"] },
@@ -48,7 +48,7 @@ UserSchema.pre("remove", async function (next) {
       select: ["_id", "username"],
     },
   ]);
-  console.log("groups", groups);
+  // console.log("groups", groups);
 
   groups.forEach((group) => {
     // find and remove user from members
@@ -65,7 +65,7 @@ UserSchema.pre("remove", async function (next) {
     );
     if (adminIndex >= 0) group.administrators.splice(adminIndex, 1);
   });
-  console.log(groups);
+  // console.log(groups);
 
   // delete profile image if not default
   // might not want to hardcode this
