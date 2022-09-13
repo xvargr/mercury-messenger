@@ -1,12 +1,14 @@
 import { React, useContext, useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
+// components
 import GroupsBar from "../components/layout/GroupsBar";
-import { DataContext } from "../components/context/DataContext";
+// ui
 import {
   FlashMessageWrapper,
   FlashMessage,
 } from "../components/ui/FlashMessage";
-
+// context
+import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
 
 function MainWindow() {

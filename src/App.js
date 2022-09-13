@@ -1,4 +1,5 @@
 import { Routes, Route, Outlet } from "react-router-dom"; // the route component define urls we want to listen to
+
 // importing all pages
 import MainWindow from "./pages/MainWindow";
 import NewGroupPage from "./pages/NewGroupPage";

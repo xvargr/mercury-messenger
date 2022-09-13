@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { io } from "socket.io-client";
+
 // import { useParams, useNavigate } from "react-router-dom";
 // import { useContext } from "react";
 // components
@@ -9,15 +12,47 @@ import ChannelBanner from "../chat/ChatBanner";
 // context
 // import { DataContext } from "../context/DataContext";
 
+const socket = io("http://localhost:3100/", { withCredentials: true });
+
 function ChatWindow() {
   const { channel } = useParams();
+  const [chatMessages, setChantMessages] = useState([]);
   // const { groupData, groupMounted } = useContext(DataContext);
   // const navigate = useNavigate();
 
-  // ! waiting for channels remodel
-  // redirect 404 if channel not found
-  // if (groupMounted && !groupData.find((grp) => grp.name === channel)) {
-  //   navigate("/404");
+  // const socket = io("http://localhost:3100/", { withCredentials: true }); // ! if socket is here, every rerender will be a different "session"
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("connection to server socket established");
+      console.log(socket.id);
+    });
+    return () => {
+      socket.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  console.log(socket.id);
+
+  // todo work on name
+  socket.on("message", function (msg) {
+    // console.log(msg);
+    const messagesCopy = [...chatMessages];
+    messagesCopy.push(msg);
+    setChantMessages(messagesCopy);
+  });
+
+  // todo work on name
+  function emit(formData) {
+    socket.emit("message", formData);
+  }
+
+  // function MessagesView(props) {
+  //   return (
+  //     <>
+  //       <div>hello</div>
+  //       <div>hello</div>
+  //     </>
+  //   );
   // }
 
   return (
@@ -25,7 +60,20 @@ function ChatWindow() {
       <ChannelBanner name={channel} />
 
       <div className="w-full flex-grow overflow-y-scroll scrollbar-dark">
-        <Sender
+        {chatMessages?.map((message) => {
+          return (
+            <Sender
+              user={message.user}
+              img={message.userImage}
+              timestamp={message.timestamp}
+              key={message.timestamp}
+            >
+              <Message>{message.text}</Message>
+            </Sender>
+          );
+        })}
+        {/* {MessagesView()} */}
+        {/* <Sender
           user="Libre"
           img="https://picsum.photos/100/100"
           timestamp="1.12pm"
@@ -80,9 +128,9 @@ function ChatWindow() {
             praesentium placeat, ipsum assumenda aperiam nulla? Beatae corrupti,
             reiciendis non quibusdam voluptas animi repudiandae.
           </Message>
-        </Sender>
+        </Sender> */}
         <div className="w-full h-24"></div>
-        <ChatInputBox />
+        <ChatInputBox return={emit} />
       </div>
     </section>
   );
