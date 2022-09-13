@@ -48,6 +48,7 @@ const HomeWindow = () => {
             check all user input, validate every input clientSide and on backend
           </li>
           <li>check that only admins can crud modify and channels</li>
+          <li>serve react client from the same domain as react</li>
         </ul>
       </div>
     </div>

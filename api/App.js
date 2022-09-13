@@ -6,6 +6,8 @@ import cors from "cors";
 import passport from "./utils/passportDefine.js";
 import MongoStore from "connect-mongo";
 import session from "express-session";
+import { createServer } from "http";
+import { Server } from "socket.io";
 // models
 import User from "./models/User.js";
 // middleware
@@ -15,11 +17,21 @@ import userRouter from "./router/userRouter.js";
 import groupRouter from "./router/groupRouter.js";
 import channelRouter from "./router/channelRouter.js";
 
-// global vars, env variables
+// global vars reassignments, env variables
 const app = express();
-const PORT = 3100;
+const API_PORT = 3100;
+// const SIO_PORT = 3200;
 const DOMAIN = process.env.APP_DOMAIN;
+const httpServer = createServer(app); // create a server for express, need this to reuse server instance for socket.io
+const io = new Server(httpServer, {
+  cors: {
+    origin: DOMAIN,
+    credentials: true,
+  },
+  serveClient: false,
+}); // pass the created server to socket
 
+// mongoDB connection
 const db = mongoose.connection;
 const mongoClient = mongoose
   .connect(process.env.ATLAS_URL, {
@@ -72,6 +84,24 @@ app.use("/u", userRouter);
 app.use("/g", groupRouter);
 app.use("/c", channelRouter);
 
+// socket.io events
+io.on("connection", (socket) => {
+  console.log("user connected, ID:", socket.id);
+
+  socket.on("message", function (message) {
+    console.log(`${socket.id} said ${message.text}`);
+    // console.log("MESSAGE RECEIVED");
+    // console.log(message);
+    // console.log(message.timestamp.getFullYear());
+    // ? emit sends to all, broadcast sends to everyone except sender
+    io.emit("message", message);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+});
+
 // 404 catch
 app.all("*", function (req, res, next) {
   console.log("!-> 404 triggered");
@@ -89,6 +119,9 @@ app.use(function (err, req, res, next) {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`--> Mercury api listening on port ${PORT}`);
-});
+// app.listen(API_PORT, () => {
+//   console.log(`--> Mercury api listening on port ${API_PORT}`);
+// }); // this is express' server, below we created our own with both express and socket on it
+httpServer.listen(API_PORT, () =>
+  console.log(`--> Mercury api listening on port ${API_PORT}`)
+);

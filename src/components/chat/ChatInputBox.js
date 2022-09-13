@@ -1,25 +1,63 @@
+import { useRef } from "react";
+
 import {
   AtSymbolIcon,
   CameraIcon,
   PaperClipIcon,
 } from "@heroicons/react/outline";
 
-function ChatInputBox() {
+function ChatInputBox(props) {
+  const textRef = useRef();
+  // const filesRef = useRef();
+  // const mentionsRef = useRef();
+
+  // console.log(filesRef.current);
+
+  function returnFormData(e) {
+    e.preventDefault();
+
+    const formData = {
+      user: localStorage.username,
+      userId: localStorage.userId,
+      userImage: localStorage.userImageSmall,
+      timestamp: Date.now(),
+      mention: null,
+      text: null,
+      file: null,
+    };
+    formData.text = textRef.current.value;
+
+    textRef.current.value = null;
+
+    props.return(formData);
+  }
+
   return (
-    <div className="flex justify-center">
+    <form className="flex justify-center" onSubmit={returnFormData}>
       <div className="w-full ml-2 h-1/6 backdrop-blur-sm bottom-0 absolute blurMask45"></div>
       <div className="w-full ml-2 h-1/6 bg-gray-600 bottom-0 absolute blurMask70"></div>
       <div className="w-4/5 m-4 p-2 bg-gray-500 rounded-lg flex justify-around shadow-lg absolute bottom-1">
-        <AtSymbolIcon className="h-6 w-6 mr-2 text-gray-800 hover:text-gray-700 cursor-pointer" />
+        <AtSymbolIcon
+          className="h-6 w-6 mr-2 text-gray-800 hover:text-gray-700 cursor-pointer"
+          // ref={mentionsRef}
+        />
         <input
           type="text"
+          id="text"
+          ref={textRef}
           placeholder="Say something..."
           className="bg-inherit focus:outline-none flex-grow font-nunito self-center"
         />
-        <CameraIcon className="h-6 w-6 mr-1 text-gray-800 hover:text-gray-700 cursor-pointer" />
-        <PaperClipIcon className="h-6 w-6 text-gray-800 hover:text-gray-700 cursor-pointer" />
+        <CameraIcon
+          className="h-6 w-6 mr-1 text-gray-800 hover:text-gray-700 cursor-pointer"
+          // ref={filesRef}
+        />
+        <PaperClipIcon
+          className="h-6 w-6 text-gray-800 hover:text-gray-700 cursor-pointer"
+          // ref={filesRef}
+        />
       </div>
-    </div>
+    </form>
   );
 }
 
