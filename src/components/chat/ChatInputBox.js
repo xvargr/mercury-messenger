@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import moment from "moment/moment";
 
 import {
   AtSymbolIcon,
@@ -13,27 +14,25 @@ function ChatInputBox(props) {
 
   // console.log(filesRef.current);
 
-  function returnFormData(e) {
+  function returnMessageData(e) {
     e.preventDefault();
 
-    const formData = {
-      user: localStorage.username,
-      userId: localStorage.userId,
-      userImage: localStorage.userImageSmall,
-      timestamp: Date.now(),
-      mention: null,
+    const messageData = {
+      mentions: null,
       text: null,
       file: null,
+      dateString: moment().format(),
+      timestamp: Date.now(),
     };
-    formData.text = textRef.current.value;
 
+    messageData.text = textRef.current.value;
     textRef.current.value = null;
 
-    props.return(formData);
+    props.return(messageData);
   }
 
   return (
-    <form className="flex justify-center" onSubmit={returnFormData}>
+    <form className="flex justify-center" onSubmit={returnMessageData}>
       <div className="w-full ml-2 h-1/6 backdrop-blur-sm bottom-0 absolute blurMask45"></div>
       <div className="w-full ml-2 h-1/6 bg-gray-600 bottom-0 absolute blurMask70"></div>
       <div className="w-4/5 m-4 p-2 bg-gray-500 rounded-lg flex justify-around shadow-lg absolute bottom-1">
@@ -46,6 +45,7 @@ function ChatInputBox(props) {
           id="text"
           ref={textRef}
           placeholder="Say something..."
+          autoComplete="off"
           className="bg-inherit focus:outline-none flex-grow font-nunito self-center"
         />
         <CameraIcon

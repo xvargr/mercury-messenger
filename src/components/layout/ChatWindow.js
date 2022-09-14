@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { io } from "socket.io-client";
 
@@ -12,125 +12,136 @@ import ChannelBanner from "../chat/ChatBanner";
 // context
 // import { DataContext } from "../context/DataContext";
 
-const socket = io("http://localhost:3100/", { withCredentials: true });
+const socket = io("http://localhost:3100/", { withCredentials: true }); // todo use hook to preserve
 
 function ChatWindow() {
   const { channel } = useParams();
-  const [chatMessages, setChantMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
+  const endStopRef = useRef();
   // const { groupData, groupMounted } = useContext(DataContext);
   // const navigate = useNavigate();
 
   // const socket = io("http://localhost:3100/", { withCredentials: true }); // ! if socket is here, every rerender will be a different "session"
   useEffect(() => {
     socket.on("connect", () => {
-      console.log("connection to server socket established");
-      console.log(socket.id);
+      console.log(`connected to server as ${socket.id}`);
     });
     return () => {
       socket.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  console.log(socket.id);
 
-  // todo work on name
+  useEffect(() => {
+    // scroll to bottom on every new message
+    endStopRef.current.scrollIntoView();
+  }, [chatMessages]);
+
+  // todo dynamic send new message or update if less than 1 min
   socket.on("message", function (msg) {
     // console.log(msg);
+
     const messagesCopy = [...chatMessages];
     messagesCopy.push(msg);
-    setChantMessages(messagesCopy);
+    setChatMessages(messagesCopy);
   });
+  // ? socket.on.appendMessage
 
-  // todo work on name
-  function emit(formData) {
-    socket.emit("message", formData);
+  // const formData = {
+  //   user: {
+  //     name: localStorage.username,
+  //     id: localStorage.userId,
+  //     image: localStorage.userImageSmall,
+  //   },
+  //   content: {
+  //     mentions: null,
+  //     text: null,
+  //     file: null,
+  //   },
+  //   dateString: moment().format(),
+  //   timestamp: Date.now(),
+  // };
+
+  function sendOut(messageData) {
+    // const messageData = {
+    //   mentions: null,
+    //   text: null,
+    //   file: null,
+    //   dateString: moment().format(),
+    //   timestamp: Date.now(),
+    // };
+    console.log(messageData);
+    // console.log(Date.now() - chatMessages[chatMessages.length - 1]?.timestamp);
+    // console.log(chatMessages[chatMessages.length - 1]?.timestamp);
+
+    // ? checks: under a minute, no other users sent a message
+
+    const elapsed =
+      chatMessages.length > 0
+        ? Date.now() - chatMessages[chatMessages.length - 1].timestamp
+        : 0;
+
+    const lastSender =
+      chatMessages.length > 0
+        ? chatMessages[chatMessages.length - 1].user.name
+        : null;
+
+    // console.log(chatMessages);
+    console.log(elapsed);
+    console.log(lastSender);
+
+    if (elapsed < 60000 && lastSender !== localStorage.username) {
+      // construct new message
+      const messageCluster = {
+        user: {
+          name: localStorage.username,
+          id: localStorage.userId,
+          image: localStorage.userImageSmall,
+        },
+        content: [],
+        // dateString: moment().format(),
+        // timestamp: Date.now(),
+      };
+      messageCluster.content.push(messageData);
+
+      console.log(messageCluster);
+      socket.emit("newMessageCluster", messageCluster);
+    } else {
+      const messageCluster = chatMessages[chatMessages.length - 1];
+      console.log(messageCluster);
+      messageCluster.content.push(messageData);
+
+      // console.log(messageCluster);
+      socket.emit("pushMessageCluster", messageData);
+    }
+    //   socket.emit("appendMessageCluster", formData);
   }
 
-  // function MessagesView(props) {
-  //   return (
-  //     <>
-  //       <div>hello</div>
-  //       <div>hello</div>
-  //     </>
-  //   );
-  // }
+  function MessagesWindow(messages) {
+    // expect messages to me array of objects
+    // [{msg}{msg}...]
+  }
 
   return (
     <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">
       <ChannelBanner name={channel} />
 
-      <div className="w-full flex-grow overflow-y-scroll scrollbar-dark">
+      <div className="w-full flex-grow overflow-y-scroll scrollbar-dark scroll-smooth">
         {chatMessages?.map((message) => {
-          return (
-            <Sender
-              user={message.user}
-              img={message.userImage}
-              timestamp={message.timestamp}
-              key={message.timestamp}
-            >
-              <Message>{message.text}</Message>
-            </Sender>
-          );
+          // return (
+          //   <Sender
+          //     user={message.user}
+          //     // img={message.userImage}
+          //     timestamp={message.timestamp}
+          //     key={message.timestamp}
+          //   >
+          //     <Message>{message.content.text}</Message>
+          //     {/*append to this for consecutive messages by the same sender under 1 min*/}
+          //   </Sender>
+          // );
         })}
-        {/* {MessagesView()} */}
-        {/* <Sender
-          user="Libre"
-          img="https://picsum.photos/100/100"
-          timestamp="1.12pm"
-        >
-          <Message>What was I</Message>
-          <Message>If not a speck of dust</Message>
-          <Message>In the wind</Message>
-        </Sender>
-
-        <Sender
-          user="Haust"
-          img="https://picsum.photos/100/100"
-          timestamp="1.23pm"
-        >
-          <Message>Feelings of pain</Message>
-          <Message>An ache in heart</Message>
-          <Message>Of bygone memories</Message>
-        </Sender>
-
-        <Sender
-          user="Lorem"
-          img="https://picsum.photos/100/100"
-          timestamp="1.30pm"
-          type="mention"
-        >
-          <Message>
-            Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quibusdam
-            autem ex repellat, neque ullam deserunt pariatur accusantium
-            cupiditate enim est voluptas sequi eaque excepturi illum voluptate
-            consequuntur at quisquam eveniet!
-          </Message>
-        </Sender>
-
-        <Sender
-          user="Arurile"
-          img="https://picsum.photos/100/100"
-          timestamp="3 minutes ago"
-        >
-          <Message>Has the wind stop</Message>
-          <Message>I would go no further</Message>
-          <Message>I may rest</Message>
-        </Sender>
-
-        <Sender
-          user="Lorem"
-          img="https://picsum.photos/100/100"
-          timestamp="moments ago"
-        >
-          <Message>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Possimus
-            sit repellendus accusamus, repudiandae quod distinctio cum,
-            praesentium placeat, ipsum assumenda aperiam nulla? Beatae corrupti,
-            reiciendis non quibusdam voluptas animi repudiandae.
-          </Message>
-        </Sender> */}
-        <div className="w-full h-24"></div>
-        <ChatInputBox return={emit} />
+        <div className="w-full h-24" ref={endStopRef}></div>
+        <ChatInputBox return={sendOut} />
       </div>
     </section>
   );
