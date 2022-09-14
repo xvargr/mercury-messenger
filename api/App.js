@@ -8,6 +8,8 @@ import MongoStore from "connect-mongo";
 import session from "express-session";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import moment from "moment";
+
 // models
 import User from "./models/User.js";
 // middleware
@@ -88,14 +90,32 @@ app.use("/c", channelRouter);
 io.on("connection", (socket) => {
   console.log("user connected, ID:", socket.id);
 
-  socket.on("message", function (message) {
+  socket.on("newMessageCluster", function (message) {
     console.log(`${socket.id} said ${message.text}`);
+
+    console.log(message);
+
+    // console.log(moment(message.timestamp).add(3, "days").fromNow());
     // console.log("MESSAGE RECEIVED");
     // console.log(message);
     // console.log(message.timestamp.getFullYear());
     // ? emit sends to all, broadcast sends to everyone except sender
     io.emit("message", message);
   });
+
+  socket.on("pushMessageCluster", function (message) {
+    // console.log(`${socket.id} push ${message.text}`);
+    console.log("push");
+    console.log(message);
+
+    io.emit("message", message);
+  });
+
+  // todo socket on append
+
+  // todo save to db
+
+  // ? fetch from to db (on connection?)
 
   socket.on("disconnect", () => {
     console.log("user disconnected");
