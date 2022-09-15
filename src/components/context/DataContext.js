@@ -8,15 +8,7 @@ export function DataStateProvider(props) {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const [groupData, setGroupData] = useState({
-    name: "",
-    image: { url: "", filename: "", thumbnail: "" },
-    channels: {
-      text: [],
-      task: [],
-    },
-    members: [],
-  });
+  const [groupData, setGroupData] = useState(null);
 
   // * you can also put functions here and export them
   // * push this this to array etc

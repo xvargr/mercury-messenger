@@ -1,5 +1,4 @@
-import { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState, useRef, useContext } from "react";
 import { io } from "socket.io-client";
 
 // import { useParams, useNavigate } from "react-router-dom";
@@ -10,18 +9,18 @@ import Message from "../chat/Message";
 import ChatInputBox from "../chat/ChatInputBox";
 import ChannelBanner from "../chat/ChatBanner";
 // context
-// import { DataContext } from "../context/DataContext";
+import { DataContext } from "../context/DataContext";
+import { UiContext } from "../context/UiContext";
 
-const socket = io("http://localhost:3100/", { withCredentials: true }); // todo use hook to preserve
+const socket = io("http://localhost:3100/", { withCredentials: true }); // moved out of rfc to preserve
 
 function ChatWindow() {
-  const { channel } = useParams();
+  // const { channel, group } = useParams();
+  const { groupMounted } = useContext(DataContext);
+  const { selectedGroup, selectedChannel } = useContext(UiContext);
   const [chatMessages, setChatMessages] = useState([]);
   const endStopRef = useRef();
-  // const { groupData, groupMounted } = useContext(DataContext);
-  // const navigate = useNavigate();
 
-  // const socket = io("http://localhost:3100/", { withCredentials: true }); // ! if socket is here, every rerender will be a different "session"
   useEffect(() => {
     socket.on("connect", () => {
       console.log(`connected to server as ${socket.id}`);
@@ -38,6 +37,8 @@ function ChatWindow() {
   }, [chatMessages]);
 
   // todo dynamic send new message or update if less than 1 min
+
+  // * on receive message
   socket.on("message", function (msg) {
     // console.log(msg);
 
@@ -47,35 +48,15 @@ function ChatWindow() {
   });
   // ? socket.on.appendMessage
 
-  // const formData = {
-  //   user: {
-  //     name: localStorage.username,
-  //     id: localStorage.userId,
-  //     image: localStorage.userImageSmall,
-  //   },
-  //   content: {
-  //     mentions: null,
-  //     text: null,
-  //     file: null,
-  //   },
-  //   dateString: moment().format(),
-  //   timestamp: Date.now(),
-  // };
+  socket.on("connect_error", function (err) {
+    console.log("connection refused");
+    console.dir(err.message);
+  });
 
   function sendOut(messageData) {
-    // const messageData = {
-    //   mentions: null,
-    //   text: null,
-    //   file: null,
-    //   dateString: moment().format(),
-    //   timestamp: Date.now(),
-    // };
     console.log(messageData);
-    // console.log(Date.now() - chatMessages[chatMessages.length - 1]?.timestamp);
-    // console.log(chatMessages[chatMessages.length - 1]?.timestamp);
 
     // ? checks: under a minute, no other users sent a message
-
     const elapsed =
       chatMessages.length > 0
         ? Date.now() - chatMessages[chatMessages.length - 1].timestamp
@@ -83,30 +64,25 @@ function ChatWindow() {
 
     const lastSender =
       chatMessages.length > 0
-        ? chatMessages[chatMessages.length - 1].user.name
+        ? chatMessages[chatMessages.length - 1].senderId
         : null;
 
     // console.log(chatMessages);
-    console.log(elapsed);
-    console.log(lastSender);
+    // console.log(elapsed);
+    // console.log(lastSender);
 
     if (elapsed < 60000 && lastSender !== localStorage.username) {
       // construct new message
       const messageCluster = {
-        user: {
-          name: localStorage.username,
-          id: localStorage.userId,
-          image: localStorage.userImageSmall,
-        },
-        content: [],
-        // dateString: moment().format(),
-        // timestamp: Date.now(),
+        senderId: localStorage.userId,
+        target: { group: selectedGroup._id, channel: selectedChannel._id },
+        content: messageData,
       };
-      messageCluster.content.push(messageData);
 
       console.log(messageCluster);
       socket.emit("newMessageCluster", messageCluster);
     } else {
+      // just push to cluster
       const messageCluster = chatMessages[chatMessages.length - 1];
       console.log(messageCluster);
       messageCluster.content.push(messageData);
@@ -114,7 +90,6 @@ function ChatWindow() {
       // console.log(messageCluster);
       socket.emit("pushMessageCluster", messageData);
     }
-    //   socket.emit("appendMessageCluster", formData);
   }
 
   function MessagesWindow(messages) {
@@ -122,9 +97,11 @@ function ChatWindow() {
     // [{msg}{msg}...]
   }
 
+  // ! todo skeleton loader while group is not loaded yet, right now will result in crash
+
   return (
     <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">
-      <ChannelBanner name={channel} />
+      <ChannelBanner name={selectedChannel.name} />
 
       <div className="w-full flex-grow overflow-y-scroll scrollbar-dark scroll-smooth">
         {chatMessages?.map((message) => {
