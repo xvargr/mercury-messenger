@@ -58,23 +58,22 @@ app.use(
   })
 );
 
-app.use(
-  session({
-    secret: process.env.SECRET,
-    resave: false, // force resave if not changed
-    maxAge: 2.592e8, // 3 days
-    saveUninitialized: false, // save new but unmodified
-    store: MongoStore.create({
-      // mongoUrl: process.env.ATLAS_URL,
-      clientPromise: mongoClient,
-      touchAfter: 24 * 3600,
-      crypto: { secret: process.env.SECRET },
-    }), // todo store in database
-  })
-);
+const sessionSettings = session({
+  secret: process.env.SECRET,
+  resave: false, // force resave if not changed
+  maxAge: 2.592e8, // 3 days
+  saveUninitialized: false, // save new but unmodified
+  store: MongoStore.create({
+    // mongoUrl: process.env.ATLAS_URL,
+    clientPromise: mongoClient,
+    touchAfter: 24 * 3600,
+    crypto: { secret: process.env.SECRET },
+  }),
+});
 
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(sessionSettings);
+app.use(passport.initialize()); // set up the functions to serialize/deserialize the user data from the request
+app.use(passport.session()); // change the 'user' value that is currently the session id (from the client cookie) into the true deserialized user object.
 
 passport.serializeUser((user, done) => done(null, user.id)); // stores a cookie with the user's id
 passport.deserializeUser((id, done) => {
@@ -86,21 +85,72 @@ app.use("/u", userRouter);
 app.use("/g", groupRouter);
 app.use("/c", channelRouter);
 
+// socket.io middleware
+const wrap = (middleware) => (socket, next) => {
+  middleware(socket.request, {}, next);
+}; // wrapper function for socket.io, to enable the use of express middleware
+
+io.use(wrap(sessionSettings));
+io.use(wrap(passport.initialize()));
+io.use(wrap(passport.session()));
+
+// socket auth middleware
+io.use(async function (socket, next) {
+  if (socket.request.isAuthenticated()) {
+    console.log("Authenticated!");
+    next();
+  } else {
+    const err = new ExpressError("Unauthorized", 401);
+    console.log("Reject");
+    next(err); // refuse connection
+  }
+});
+
+// ? notify last message, use latest timestamp compare on user model?
+
 // socket.io events
-io.on("connection", (socket) => {
+io.on("connection", async function (socket) {
   console.log("user connected, ID:", socket.id);
+  console.log("user connected, username:", socket.request.user.username);
 
-  socket.on("newMessageCluster", function (message) {
-    console.log(`${socket.id} said ${message.text}`);
+  // ! only select necessary fields, not sensitive ones
+  const sender = await User.findById(socket.request.user.id).lean();
+  console.log(sender);
 
-    console.log(message);
+  socket.on("newMessageCluster", async function (messageData) {
+    console.log("newCluster");
+    console.log(messageData);
+    // console.log(`${socket.id} said ${message.text}`);
+
+    // const channel = await Channel.find() // todo waiting for context restructure
+
+    const messageCluster = {
+      sender,
+      channel: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Channel",
+      },
+      content: [
+        {
+          mentions: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+          text: { type: String, trim: true },
+          file: { type: String },
+          dateString: { type: String, required: true },
+          timestamp: { type: Number, required: true },
+        },
+        {
+          toObject: { virtuals: true },
+          toJSON: { virtuals: true },
+        },
+      ],
+    };
 
     // console.log(moment(message.timestamp).add(3, "days").fromNow());
     // console.log("MESSAGE RECEIVED");
     // console.log(message);
     // console.log(message.timestamp.getFullYear());
     // ? emit sends to all, broadcast sends to everyone except sender
-    io.emit("message", message);
+    io.emit("message", messageData);
   });
 
   socket.on("pushMessageCluster", function (message) {
@@ -117,7 +167,7 @@ io.on("connection", (socket) => {
 
   // ? fetch from to db (on connection?)
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", function () {
     console.log("user disconnected");
   });
 });

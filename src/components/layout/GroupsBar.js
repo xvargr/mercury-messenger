@@ -7,7 +7,7 @@ import GroupBadge from "../groups/GroupBadge";
 import NewGroupButton from "../groups/NewGroupButton";
 import Logo from "../groups/Logo";
 import UserBadge from "../groups/UserBadge";
-import SkeletonGroup from "../ui/SkeletonGroup";
+import { SkeletonGroup } from "../ui/SkeletonLoaders";
 // context
 import { UiContext } from "../context/UiContext";
 import { DataContext } from "../context/DataContext";
@@ -18,7 +18,8 @@ function GroupsBar() {
   const { group, channel } = useParams();
   const { groupData, groupMounted, setGroupData, setGroupMounted, isLoggedIn } =
     useContext(DataContext);
-  const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
+  const { setSelectedGroup, setSelectedChannel, selectedChannel } =
+    useContext(UiContext);
   const navigate = useNavigate();
 
   const controller = new AbortController(); // axios abort controller
@@ -48,11 +49,18 @@ function GroupsBar() {
 
     axiosGroupFetch.get("/g", { signal: controller.signal }).then((res) => {
       const groupData = res.data;
-      // console.log("success:", res);
-      // setIsLoading(false);
-      // dataMountedRef.current = true;
-      setSelectedGroup(groupData.find((grp) => grp.name === group));
-      setSelectedChannel(channel);
+
+      if (group) {
+        const currentGroup = groupData.find((grp) => grp.name === group);
+        setSelectedGroup(currentGroup);
+        if (channel) {
+          const currentChannel = currentGroup.channels.text.find(
+            (chn) => chn.name === channel
+          );
+          setSelectedChannel(currentChannel);
+        } else setSelectedChannel(null);
+      } else setSelectedGroup(null);
+
       setGroupMounted(true);
       setGroupData(groupData);
     });

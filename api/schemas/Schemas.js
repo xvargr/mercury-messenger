@@ -12,7 +12,6 @@ const groupSchema = Joi.object({
 }).required();
 
 const channelSchema = Joi.object({
-  // group: Joi.string().required(),
   name: Joi.string().min(3).max(20).required(),
   type: Joi.string().valid("text", "task"),
 }).required();
@@ -24,6 +23,20 @@ const userSchema = Joi.object({
     url: Joi.string(),
     filename: Joi.string(),
   },
+}).required();
+
+const messageSchema = Joi.object({
+  sender: Joi.string().required(),
+  channel: Joi.string().required(),
+  content: [
+    {
+      mentions: Joi.string(),
+      text: Joi.string().min(1).max(256),
+      file: Joi.string(),
+      dateString: Joi.string(),
+      timestamp: Joi.number(),
+    },
+  ],
 });
 
-export { groupSchema, channelSchema, userSchema };
+export { groupSchema, channelSchema, userSchema, messageSchema };

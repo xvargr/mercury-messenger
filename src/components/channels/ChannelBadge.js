@@ -1,4 +1,4 @@
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useContext } from "react";
 import axios from "axios";
 
@@ -6,21 +6,22 @@ import { DotsVerticalIcon, TrashIcon, XIcon } from "@heroicons/react/solid";
 
 import { DataContext } from "../context/DataContext";
 import { FlashContext } from "../context/FlashContext";
+import { UiContext } from "../context/UiContext";
 
 function ChannelBadge(props) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDialogue, setShowDialogue] = useState(false);
   const [nameField, setNameField] = useState(props.data.name);
   const { groupData, setGroupData } = useContext(DataContext);
+  const { selectedGroup, selectedChannel } = useContext(UiContext);
   const { setMessages } = useContext(FlashContext);
   const navigate = useNavigate();
-  const { channel, group } = useParams();
 
   const emphasis = props.selected ? "bg-gray-600" : "hover:bg-gray-600";
 
   // pass name to parent on click
   function passOnClick() {
-    props.onClick(props.data.name);
+    props.onClick(props.data);
   }
 
   function deleteChannel() {
@@ -40,7 +41,7 @@ function ChannelBadge(props) {
           setGroupData(tempGroupData);
           setMessages(res.data.messages);
 
-          navigate(`/g/${group}`);
+          navigate(`/g/${selectedGroup.name}`);
         })
         .catch((err) => {
           setMessages(err.response.data.messages);
@@ -78,7 +79,7 @@ function ChannelBadge(props) {
         setShowDialogue(false);
         setMessages(res.data.messages);
 
-        navigate(`/g/${group}`);
+        navigate(`/g/${selectedGroup.name}`);
       })
       .catch((err) => {
         console.log(err);
@@ -94,7 +95,8 @@ function ChannelBadge(props) {
       setShowDialogue(false);
     } else setIsEditing(true);
   }
-  if (isEditing && channel !== props.data.name) toggleEditForm(false); // useEffect cleanup could do the job as well, or props.selected
+  if (isEditing && selectedChannel.name !== props.data.name)
+    toggleEditForm(false); // useEffect cleanup could do the job as well, or props.selected
 
   if (isEditing) {
     return (
