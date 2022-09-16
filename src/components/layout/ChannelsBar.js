@@ -10,7 +10,7 @@ import { DataContext } from "../context/DataContext";
 import { SkeletonChannel } from "../ui/SkeletonLoaders";
 
 function ChannelsBar() {
-  const { group, channel } = useParams();
+  const { group } = useParams();
   const { groupData, groupMounted } = useContext(DataContext);
   const { selectedChannel, selectedGroup, setSelectedChannel } =
     useContext(UiContext);
@@ -41,7 +41,7 @@ function ChannelsBar() {
   if (!groupMounted) {
     return (
       <section className="bg-gray-700 h-screen w-1/4 lg:w-1/5 shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
-        <GroupBanner name={channel} />
+        <GroupBanner name={group} />
         <div className="w-full flex-grow overflow-y-scroll scrollbar-none flex flex-col items-center">
           <div className="w-1/3 mb-2 mt-2"></div>
           <SkeletonChannel />

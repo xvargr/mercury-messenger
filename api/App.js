@@ -12,6 +12,8 @@ import moment from "moment";
 
 // models
 import User from "./models/User.js";
+import Group from "./models/Group.js";
+import Channel from "./models/Channel.js";
 // middleware
 import ExpressError from "./utils/ExpressError.js";
 // routers
@@ -110,8 +112,12 @@ io.use(async function (socket, next) {
 
 // socket.io events
 io.on("connection", async function (socket) {
-  console.log("user connected, ID:", socket.id);
-  console.log("user connected, username:", socket.request.user.username);
+  console.log(
+    "user connected, ID:",
+    socket.id,
+    " username: ",
+    socket.request.user.username
+  );
 
   // ! only select necessary fields, not sensitive ones
   const sender = await User.findById(socket.request.user.id).lean();
@@ -122,7 +128,31 @@ io.on("connection", async function (socket) {
     console.log(messageData);
     // console.log(`${socket.id} said ${message.text}`);
 
-    // const channel = await Channel.find() // todo waiting for context restructure
+    // {
+    //   senderId: '63159a6ba9e06553f3cfbe68',
+    //   target: {
+    //     group: '631b1dd6064661b6261e19c5',
+    //     channel: '631f36cf41f56c86a61c23b6'
+    //   },
+    //   content: {
+    //     mentions: null,
+    //     text: 'aaa',
+    //     file: null,
+    //     dateString: '2022-09-16T20:47:26+08:00',
+    //     timestamp: 1663332446016
+    //   }
+    // }
+
+    const channel = await Channel.findById(messageData.target.channel);
+    const group = await Group.findById(messageData.target.group);
+    console.log(group);
+    console.log(channel);
+
+    console.log(
+      `${sender.username} said ${messageData.content.text} in channel ${channel.name} in group ${group.name}`
+    );
+
+    // TODO validate, save to db, add unread to users?? or g or c ??
 
     const messageCluster = {
       sender,
@@ -150,7 +180,7 @@ io.on("connection", async function (socket) {
     // console.log(message);
     // console.log(message.timestamp.getFullYear());
     // ? emit sends to all, broadcast sends to everyone except sender
-    io.emit("message", messageData);
+    // io.emit("message", messageData);
   });
 
   socket.on("pushMessageCluster", function (message) {

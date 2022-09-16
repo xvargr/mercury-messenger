@@ -18,8 +18,7 @@ function GroupsBar() {
   const { group, channel } = useParams();
   const { groupData, groupMounted, setGroupData, setGroupMounted, isLoggedIn } =
     useContext(DataContext);
-  const { setSelectedGroup, setSelectedChannel, selectedChannel } =
-    useContext(UiContext);
+  const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
   const navigate = useNavigate();
 
   const controller = new AbortController(); // axios abort controller
