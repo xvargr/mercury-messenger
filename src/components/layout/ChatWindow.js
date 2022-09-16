@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useContext } from "react";
+import { useParams } from "react-router-dom";
 import { io } from "socket.io-client";
 
 // import { useParams, useNavigate } from "react-router-dom";
@@ -11,11 +12,12 @@ import ChannelBanner from "../chat/ChatBanner";
 // context
 import { DataContext } from "../context/DataContext";
 import { UiContext } from "../context/UiContext";
+import { ChatSkeletonLoader } from "../ui/SkeletonLoaders";
 
 const socket = io("http://localhost:3100/", { withCredentials: true }); // moved out of rfc to preserve
 
 function ChatWindow() {
-  // const { channel, group } = useParams();
+  const { channel } = useParams();
   const { groupMounted } = useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
   const [chatMessages, setChatMessages] = useState([]);
@@ -33,7 +35,7 @@ function ChatWindow() {
 
   useEffect(() => {
     // scroll to bottom on every new message
-    endStopRef.current.scrollIntoView();
+    if (endStopRef.current) endStopRef.current.scrollIntoView();
   }, [chatMessages]);
 
   // todo dynamic send new message or update if less than 1 min
@@ -92,36 +94,48 @@ function ChatWindow() {
     }
   }
 
-  function MessagesWindow(messages) {
-    // expect messages to me array of objects
-    // [{msg}{msg}...]
+  // function MessagesWindow(messages) {
+  //   // expect messages to me array of objects
+  //   // [{msg}{msg}...]
+  // }
+
+  if (!groupMounted) {
+    return (
+      <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">
+        <ChannelBanner name={channel} />
+
+        <div className="w-full flex-grow overflow-y-hidden">
+          <ChatSkeletonLoader count={15} />
+
+          <ChatInputBox return={sendOut} />
+        </div>
+      </section>
+    );
+  } else {
+    return (
+      <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">
+        <ChannelBanner name={selectedChannel.name} />
+
+        <div className="w-full flex-grow overflow-y-scroll scrollbar-dark scroll-smooth">
+          {chatMessages?.map((message) => {
+            return (
+              <Sender
+                user={message.user}
+                // img={message.userImage}
+                timestamp={message.timestamp}
+                key={message.timestamp}
+              >
+                <Message>{message.content.text}</Message>
+                {/*append to this for consecutive messages by the same sender under 1 min*/}
+              </Sender>
+            );
+          })}
+          <div className="w-full h-24" ref={endStopRef}></div>
+          <ChatInputBox return={sendOut} />
+        </div>
+      </section>
+    );
   }
-
-  // ! todo skeleton loader while group is not loaded yet, right now will result in crash
-
-  return (
-    <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">
-      <ChannelBanner name={selectedChannel.name} />
-
-      <div className="w-full flex-grow overflow-y-scroll scrollbar-dark scroll-smooth">
-        {chatMessages?.map((message) => {
-          // return (
-          //   <Sender
-          //     user={message.user}
-          //     // img={message.userImage}
-          //     timestamp={message.timestamp}
-          //     key={message.timestamp}
-          //   >
-          //     <Message>{message.content.text}</Message>
-          //     {/*append to this for consecutive messages by the same sender under 1 min*/}
-          //   </Sender>
-          // );
-        })}
-        <div className="w-full h-24" ref={endStopRef}></div>
-        <ChatInputBox return={sendOut} />
-      </div>
-    </section>
-  );
 }
 
 export default ChatWindow;

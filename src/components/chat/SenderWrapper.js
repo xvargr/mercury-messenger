@@ -15,7 +15,7 @@ function Sender(props) {
         <img
           src={props.user.image}
           alt="profile"
-          className="w-12 h-12 mr-3 rounded-full self-start"
+          className="w-12 h-12 mr-3 rounded-full self-start shrink-0"
         />
         <span className="flex flex-col w-full">
           <div className="flex justify-between items-center">
