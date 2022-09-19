@@ -98,8 +98,9 @@ io.use(wrap(passport.session()));
 
 // socket auth middleware
 io.use(async function (socket, next) {
+  // console.log("connection request");
   if (socket.request.isAuthenticated()) {
-    console.log("Authenticated!");
+    // console.log("Authenticated!");
     next();
   } else {
     const err = new ExpressError("Unauthorized", 401);
@@ -118,16 +119,38 @@ io.on("connection", async function (socket) {
     " username: ",
     socket.request.user.username
   );
+  // todo reject if user already has a connection
 
-  // ! only select necessary fields, not sensitive ones
+  // find sender and their groups in database
   const sender = await User.findById(socket.request.user.id).lean();
-  console.log(sender);
+  const userGroups = await Group.find({ members: sender }).populate({
+    path: "channels.text",
+  });
 
-  socket.on("newMessageCluster", async function (messageData) {
-    console.log("newCluster");
-    console.log(messageData);
-    // console.log(`${socket.id} said ${message.text}`);
+  // assign them to all rooms based on groups and channels
+  for (const group of userGroups) {
+    socket.join(`g:${group.id}`);
+    group.channels.text.forEach((channel) => socket.join(`c:${channel.id}`));
+    // for (const channel of group.channels.text) {
+    //   socket.join(`c:${channel.id}`);
+    // }
+  }
 
+  // socket.on("test", function (testData) {
+  //   console.log(`${sender.username} said ${testData.content.text}`);
+  //   const { group, channel } = testData.target;
+  //   socket.to(`c:${channel}`).emit("message", testData); // send to everyone except sender
+  //   socket.emit("sent", "message sent"); // send only to sender
+  //   // socket.nsp.to(socket.id).emit("message", testData); // nsp namespace? emits to all in room
+  //   // socket.to(socket.id).emit("message", testData); // emit to everyone else in room
+  //   // socket.emit("message", testData); // emit to all?
+  //   // socket.to("bruh").emit("message", testData);
+  // });
+
+  socket.on("newCluster", async function (clusterData) {
+    // console.log("newCluster");
+
+    // console.log(clusterData);
     // {
     //   senderId: '63159a6ba9e06553f3cfbe68',
     //   target: {
@@ -143,52 +166,60 @@ io.on("connection", async function (socket) {
     //   }
     // }
 
-    const channel = await Channel.findById(messageData.target.channel);
-    const group = await Group.findById(messageData.target.group);
-    console.log(group);
-    console.log(channel);
+    const channel = await Channel.findById(clusterData.target.channel);
+    const group = await Group.findById(clusterData.target.group);
 
     console.log(
-      `${sender.username} said ${messageData.content.text} in channel ${channel.name} in group ${group.name}`
+      `NEW: ${sender.username} said ${clusterData.content.text} in channel ${channel.name} in group ${group.name}`
     );
 
     // TODO validate, save to db, add unread to users?? or g or c ??
 
-    const messageCluster = {
-      sender,
-      channel: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Channel",
-      },
-      content: [
-        {
-          mentions: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-          text: { type: String, trim: true },
-          file: { type: String },
-          dateString: { type: String, required: true },
-          timestamp: { type: Number, required: true },
-        },
-        {
-          toObject: { virtuals: true },
-          toJSON: { virtuals: true },
-        },
-      ],
-    };
+    // const newMessageCluster = {
+    //   sender,
+    //   channel,
+    //   content: [
+    //     clusterData.content,
 
-    // console.log(moment(message.timestamp).add(3, "days").fromNow());
-    // console.log("MESSAGE RECEIVED");
-    // console.log(message);
-    // console.log(message.timestamp.getFullYear());
-    // ? emit sends to all, broadcast sends to everyone except sender
-    // io.emit("message", messageData);
+    //     {
+    //       mentions: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    //       text: { type: String, trim: true },
+    //       file: { type: String },
+    //       dateString: { type: String, required: true },
+    //       timestamp: { type: Number, required: true },
+    //       // seen: [
+    //       //   {
+    //       //     type: mongoose.Schema.Types.ObjectId,
+    //       //     ref: "User",
+    //       //   },
+    //       // ],
+    //     },
+    //   ],
+    // };
+
+    // newMessageCluster.content[0].seen = [sender];
+
+    // // console.log(newMessageCluster);
+    // console.log("newMessageCluster");
+
+    // // console.log(moment(message.timestamp).add(3, "days").fromNow());
+    // // console.log("MESSAGE RECEIVED");
+    // // console.log(message);
+    // // console.log(message.timestamp.getFullYear());
+    // // ? emit sends to all, broadcast sends to everyone except sender
+    // io.emit("message", newMessageCluster);
   });
 
-  socket.on("pushMessageCluster", function (message) {
-    // console.log(`${socket.id} push ${message.text}`);
-    console.log("push");
-    console.log(message);
+  socket.on("appendCluster", async function (clusterData) {
+    console.log("appendCluster");
+    console.log(clusterData);
 
-    io.emit("message", message);
+    const channel = await Channel.findById(clusterData.target.channel);
+    const group = await Group.findById(clusterData.target.group);
+
+    console.log(
+      `APPEND: ${sender.username} appended ${clusterData.content.text} in channel ${channel.name} in group ${group.name}`
+    );
   });
 
   // todo socket on append

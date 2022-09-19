@@ -1,12 +1,12 @@
 import { useContext, useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PhotographIcon } from "@heroicons/react/outline";
-
 import axios from "axios";
-
+// context
 import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
-
+import { SocketContext } from "../components/context/SocketContext";
+// components
 import InputBox from "../components/ui/InputBox";
 import CircleButton from "../components/ui/CircleButton";
 import TextButton from "../components/ui/TextButton";
@@ -19,8 +19,10 @@ const userObject = {
 
 function UserPage() {
   const navigate = useNavigate();
-  const { setIsLoggedIn } = useContext(DataContext);
-  const { setMessages } = useContext(FlashContext);
+  const { setIsLoggedIn, setGroupData, setGroupMounted } =
+    useContext(DataContext);
+  const { setFlashMessages } = useContext(FlashContext);
+  const { socket, setSocket } = useContext(SocketContext);
   const [inpErr, setInpErr] = useState(true);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [buttonText, setButtonText] = useState("Keep changes");
@@ -47,11 +49,15 @@ function UserPage() {
       .delete("/u", axiosConfig)
       .then((res) => {
         localStorage.clear();
+        if (socket !== null) socket.disconnect();
+        setSocket(null);
         setIsLoggedIn(false);
+        setGroupData(null);
+        setGroupMounted(false);
         navigate("/login");
       })
       .catch((err) => {
-        setMessages(err.response.data.messages);
+        setFlashMessages(err.response.data.messages);
       });
   }
 
@@ -66,8 +72,11 @@ function UserPage() {
         .put(`/u/${localStorage.userId}`, userData, axiosConfig)
         .then((res) => {
           localStorage.clear();
+          if (socket !== null) socket.disconnect();
+          setSocket(null);
           setIsLoggedIn(false);
-
+          setGroupData(null);
+          setGroupMounted(false);
           navigate("/login");
         })
         .catch((err) =>
@@ -107,7 +116,7 @@ function UserPage() {
         setButtonText("Keep changes");
         setInpErr(false);
         // setFeedback(err.response.data.messages[0].message);
-        setMessages(err.response.data.messages);
+        setFlashMessages(err.response.data.messages);
       });
   }
 

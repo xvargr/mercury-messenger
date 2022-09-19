@@ -2,6 +2,7 @@ import { useContext, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import axiosRetry from "axios-retry";
+import { io } from "socket.io-client";
 // components
 import GroupBadge from "../groups/GroupBadge";
 import NewGroupButton from "../groups/NewGroupButton";
@@ -11,14 +12,14 @@ import { SkeletonGroup } from "../ui/SkeletonLoaders";
 // context
 import { UiContext } from "../context/UiContext";
 import { DataContext } from "../context/DataContext";
-
-// todo set group as group object
+import { SocketContext } from "../context/SocketContext";
 
 function GroupsBar() {
   const { group, channel } = useParams();
   const { groupData, groupMounted, setGroupData, setGroupMounted, isLoggedIn } =
     useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
+  const { socket, setSocket } = useContext(SocketContext);
   const navigate = useNavigate();
 
   const controller = new AbortController(); // axios abort controller
@@ -63,12 +64,15 @@ function GroupsBar() {
       setGroupMounted(true);
       setGroupData(groupData);
     });
-    // .catch((err) => {
-    //   // nothing really
-    // });
   }
 
   if (!groupMounted && localStorage.username && isLoggedIn) fetchGroups();
+
+  useEffect(() => {
+    if (groupMounted && isLoggedIn && socket === null) {
+      setSocket(io("http://localhost:3100/", { withCredentials: true }));
+    }
+  });
 
   useEffect(() => {
     return () => {
@@ -78,11 +82,8 @@ function GroupsBar() {
   }, []); // abort axios request on unmount
 
   function groupChangeHandler(group) {
-    // console.log("CLICKED");
     setSelectedGroup(groupData.find((grp) => grp.name === group));
     setSelectedChannel(null);
-    // console.log("params: ", group, channel);
-    // console.log("context: ", selectedGroup, selectedChannel);
   }
 
   if (!groupMounted) {

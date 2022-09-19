@@ -7,6 +7,12 @@ const messageSchema = new mongoose.Schema(
     file: { type: String },
     dateString: { type: String, required: true },
     timestamp: { type: Number, required: true },
+    seen: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     toObject: { virtuals: true },

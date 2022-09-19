@@ -11,7 +11,7 @@ import InviteButton from "../ui/InviteButton";
 
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { setMessages } = useContext(FlashContext);
+  const { setFlashMessages } = useContext(FlashContext);
   const { groupMounted, setGroupMounted } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel, setSelectedGroup } =
     useContext(UiContext);
@@ -61,12 +61,12 @@ function GroupBanner(props) {
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
-        setMessages(res.data.messages);
+        setFlashMessages(res.data.messages);
 
         navigate("/");
       })
       .catch((err) => {
-        setMessages(err.response.data.messages);
+        setFlashMessages(err.response.data.messages);
       });
   }
 
@@ -82,12 +82,12 @@ function GroupBanner(props) {
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
-        setMessages(res.data.messages);
+        setFlashMessages(res.data.messages);
 
         navigate("/");
       })
       .catch((err) => {
-        setMessages(err.response.data.messages);
+        setFlashMessages(err.response.data.messages);
       });
   }
 

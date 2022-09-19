@@ -35,8 +35,9 @@ const messageSchema = Joi.object({
       file: Joi.string(),
       dateString: Joi.string(),
       timestamp: Joi.number(),
+      seen: [Joi.string()],
     },
   ],
-});
+}).required();
 
 export { groupSchema, channelSchema, userSchema, messageSchema };

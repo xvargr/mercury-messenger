@@ -15,7 +15,7 @@ const axiosConfig = {
 function NewChannelPage() {
   const { setGroupMounted } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel } = useContext(UiContext);
-  const { setMessages } = useContext(FlashContext);
+  const { setFlashMessages } = useContext(FlashContext);
   const [axiosErr, setAxiosErr] = useState({
     message: null,
     status: null,
@@ -39,7 +39,7 @@ function NewChannelPage() {
         setSelectedChannel(null);
         setGroupMounted(false);
 
-        setMessages(res.data.messages);
+        setFlashMessages(res.data.messages);
         navigate(`/g/${selectedGroup.name}`);
       })
       .catch((err) => {
