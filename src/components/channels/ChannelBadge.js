@@ -14,7 +14,7 @@ function ChannelBadge(props) {
   const [nameField, setNameField] = useState(props.data.name);
   const { groupData, setGroupData } = useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
-  const { setMessages } = useContext(FlashContext);
+  const { setFlashMessages } = useContext(FlashContext);
   const navigate = useNavigate();
 
   const emphasis = props.selected ? "bg-gray-600" : "hover:bg-gray-600";
@@ -39,12 +39,12 @@ function ChannelBadge(props) {
 
           tempGroupData[props.groupIndex] = updatedGroupData;
           setGroupData(tempGroupData);
-          setMessages(res.data.messages);
+          setFlashMessages(res.data.messages);
 
           navigate(`/g/${selectedGroup.name}`);
         })
         .catch((err) => {
-          setMessages(err.response.data.messages);
+          setFlashMessages(err.response.data.messages);
         });
     }
   }
@@ -77,7 +77,7 @@ function ChannelBadge(props) {
         setGroupData(tempGroupData);
         setIsEditing(false);
         setShowDialogue(false);
-        setMessages(res.data.messages);
+        setFlashMessages(res.data.messages);
 
         navigate(`/g/${selectedGroup.name}`);
       })
@@ -85,7 +85,7 @@ function ChannelBadge(props) {
         console.log(err);
         setIsEditing(false);
         setShowDialogue(false);
-        setMessages(err.response.data.messages);
+        setFlashMessages(err.response.data.messages);
       });
   }
 

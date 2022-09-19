@@ -14,7 +14,7 @@ import { FlashContext } from "../components/context/FlashContext";
 function MainWindow() {
   const navigate = useNavigate();
   const { isLoggedIn, setIsLoggedIn } = useContext(DataContext);
-  const { messages, setMessages } = useContext(FlashContext);
+  const { flashMessages, setFlashMessages } = useContext(FlashContext);
   const [messageStack, setMessageStack] = useState([]);
 
   useEffect(() => {
@@ -27,13 +27,13 @@ function MainWindow() {
   useEffect(() => {
     // ? if the local message stack is not the same as in context, copy it
     // todo better comparison conditions
-    if (messages.length > 0) {
+    if (flashMessages.length > 0) {
       if (
-        messages[0] !== messageStack[0] ||
-        messages.length !== messageStack.length
+        flashMessages[0] !== messageStack[0] ||
+        flashMessages.length !== messageStack.length
       ) {
-        setMessageStack([...messages]);
-        setMessages([]);
+        setMessageStack([...flashMessages]);
+        setFlashMessages([]);
       }
     }
   });
@@ -43,7 +43,7 @@ function MainWindow() {
     messagesHelper.splice(position, 1);
 
     setMessageStack(messagesHelper);
-    // setMessages(messagesHelper); // if the content of an array is updated but the pointer stays the same react sees that as not a change thus will not rerender
+    // setFlashMessages(messagesHelper); // if the content of an array is updated but the pointer stays the same react sees that as not a change thus will not rerender
   }
 
   return (

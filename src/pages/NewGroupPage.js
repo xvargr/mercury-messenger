@@ -12,7 +12,7 @@ import { FlashContext } from "../components/context/FlashContext";
 function NewGroupPage() {
   const { setGroupMounted } = useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
-  const { setMessages } = useContext(FlashContext);
+  const { setFlashMessages } = useContext(FlashContext);
   const [axiosCreateErr, setAxiosCreateErr] = useState({
     message: null,
     status: null,
@@ -42,7 +42,7 @@ function NewGroupPage() {
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
-        setMessages(res.data.messages);
+        setFlashMessages(res.data.messages);
 
         navigate(`/g/${res.data.groupData.name}`);
       })
@@ -65,7 +65,7 @@ function NewGroupPage() {
         setSelectedGroup(null);
         setSelectedChannel(null);
         setGroupMounted(false);
-        setMessages(res.data.messages);
+        setFlashMessages(res.data.messages);
 
         navigate(`/g/${res.data.groupData.name}`);
       })
