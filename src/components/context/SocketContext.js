@@ -25,11 +25,11 @@ export function SocketStateProvider(props) {
     // setChatMessages(messagesCopy);
   });
 
-  // sent status handler
-  socket?.on("sent", function (msg) {
-    console.log("sent event");
-    console.log(msg);
-  });
+  // // sent status handler
+  // socket?.on("sent", function (msg) {
+  //   console.log("sent event");
+  //   console.log(msg);
+  // });
 
   return (
     <SocketContext.Provider value={socketInstance}>
