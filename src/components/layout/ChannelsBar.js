@@ -22,7 +22,7 @@ function ChannelsBar() {
   }
 
   let isAdmin;
-  if (groupMounted) {
+  if (groupMounted && selectedGroup) {
     isAdmin = selectedGroup.administrators.some(
       (admin) => admin._id === localStorage.userId
     );

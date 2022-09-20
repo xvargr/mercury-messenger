@@ -147,7 +147,7 @@ io.on("connection", async function (socket) {
   //   // socket.to("bruh").emit("message", testData);
   // });
 
-  socket.on("newCluster", async function (clusterData) {
+  socket.on("newCluster", async function (clusterData, callback) {
     // console.log("newCluster");
 
     // console.log(clusterData);
@@ -174,6 +174,10 @@ io.on("connection", async function (socket) {
     );
 
     // TODO validate, save to db, add unread to users?? or g or c ??
+
+    // setTimeout(() => {
+    //   socket.emit("sent", "message sent"); // send only to sender
+    // }, 5000);
 
     // const newMessageCluster = {
     //   sender,
@@ -207,7 +211,9 @@ io.on("connection", async function (socket) {
     // // console.log(message);
     // // console.log(message.timestamp.getFullYear());
     // // ? emit sends to all, broadcast sends to everyone except sender
-    // io.emit("message", newMessageCluster);
+    io.emit("message", "response");
+    callback({ status: "received" }); // !! callback not defined
+    //? acknowledgement can be used to send finalized message document
   });
 
   socket.on("appendCluster", async function (clusterData) {

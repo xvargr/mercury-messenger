@@ -36,8 +36,8 @@ function ChatWindow() {
     const lastSender =
       ChatStack.length > 0 ? ChatStack[ChatStack.length - 1].senderId : null;
 
-    console.log("elapsed: ", elapsed);
-    console.log("lastSender", lastSender);
+    // console.log("elapsed: ", elapsed);
+    // console.log("lastSender", lastSender);
 
     // create new message cluster or append an the latest one if sent less than a minute
     if (elapsed < 60000 && lastSender !== localStorage.username) {
@@ -50,12 +50,28 @@ function ChatWindow() {
 
       // *
       // todo create new cluster and append to messages when sent verified
+
+      // ? check when verified
       const workingStack = [...ChatStack];
-      workingStack.push(); // ! here
+
+      // todo message temporary position in chat stack
+      // sent status handler
+
+      // workingStack.push(); // ! here
 
       // *
 
-      socket.emit("newCluster", messageCluster);
+      //? acknowledgement callback must be anonymous, cant pass res here
+      // function messageAcknowledged(res) {
+      //   console.log("message received");
+      //   // todo finalize message in chat stack?
+      // }
+
+      // ! socket io acknowledgements here
+      // ? third argument is ran when acknowledgement is reieved from socket
+      // ? acknowledgement works but is not async
+      socket.emit("newCluster", messageCluster, (res) => console.log(res)); // ! needs res/callback? here or server-side crashes?
+      console.log("this should appear after event sent");
       // todo pending messages
     } else {
       // just push to cluster
@@ -69,9 +85,9 @@ function ChatWindow() {
       // *
 
       // console.log(messageCluster);
-      socket.emit("appendCluster", messageCluster);
+      socket.emit("appendCluster", messageCluster /*AppendAcknowledgement*/);
     }
-    console.table(ChatStack);
+    // console.table(ChatStack);
   }
 
   // function MessagesWindow(messages) {
