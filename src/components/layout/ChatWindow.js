@@ -48,10 +48,29 @@ function ChatWindow() {
         content: messageData,
       };
 
+      // const pendingCluster = {
+      //     sender:{},
+      //     channel:{},
+      //     content: [
+      //       {
+      //         mentions: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      //         text: { type: String, trim: true },
+      //         file: { type: String },
+      //         dateString: { type: String, required: true },
+      //         timestamp: { type: Number, required: true },
+      //         seen: [
+      //           {
+      //             type: mongoose.Schema.Types.ObjectId,
+      //             ref: "User",
+      //           },
+      //         ],
+      //       },
+      //     ],
+      // };
+
       // *
       // todo create new cluster and append to messages when sent verified
 
-      // ? check when verified
       const workingStack = [...ChatStack];
 
       // todo message temporary position in chat stack
@@ -61,18 +80,19 @@ function ChatWindow() {
 
       // *
 
-      //? acknowledgement callback must be anonymous, cant pass res here
-      // function messageAcknowledged(res) {
-      //   console.log("message received");
-      //   // todo finalize message in chat stack?
-      // }
+      function clusterAcknowledged(res) {
+        console.log(res);
+        // todo finalize message in chat stack?
+      }
 
       // ! socket io acknowledgements here
       // ? third argument is ran when acknowledgement is reieved from socket
       // ? acknowledgement works but is not async
-      socket.emit("newCluster", messageCluster, (res) => console.log(res)); // ! needs res/callback? here or server-side crashes?
+      socket.emit("newCluster", messageCluster, (res) =>
+        clusterAcknowledged(res)
+      );
+      // socket.emit("newCluster", messageCluster, (res) => console.log(res));
       console.log("this should appear after event sent");
-      // todo pending messages
     } else {
       // just push to cluster
       const messageCluster = ChatStack[ChatStack.length - 1];

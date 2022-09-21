@@ -7,12 +7,12 @@ const messageSchema = new mongoose.Schema(
     file: { type: String },
     dateString: { type: String, required: true },
     timestamp: { type: Number, required: true },
-    seen: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    // seen: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "User",
+    //   },
+    // ],
   },
   {
     toObject: { virtuals: true },
@@ -39,6 +39,6 @@ messageClusterSchema.virtual("lastMessage").get(function () {
   return this.content[this.content.length - 1];
 });
 
-const Message = mongoose.Model("Message", messageClusterSchema);
+const Message = mongoose.model("Message", messageClusterSchema);
 
 export default Message;
