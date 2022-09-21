@@ -14,6 +14,7 @@ import moment from "moment";
 import User from "./models/User.js";
 import Group from "./models/Group.js";
 import Channel from "./models/Channel.js";
+import Message from "./models/Message.js";
 // middleware
 import ExpressError from "./utils/ExpressError.js";
 // routers
@@ -179,27 +180,45 @@ io.on("connection", async function (socket) {
     //   socket.emit("sent", "message sent"); // send only to sender
     // }, 5000);
 
-    // const newMessageCluster = {
-    //   sender,
-    //   channel,
-    //   content: [
-    //     clusterData.content,
+    const newMessageCluster = new Message({
+      sender,
+      channel,
+      content: [
+        clusterData.content,
+        // {
+        //   mentions: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        //   text: { type: String, trim: true },
+        //   file: { type: String },
+        //   dateString: { type: String, required: true },
+        //   timestamp: { type: Number, required: true },
+        //   // seen: [
+        //   //   {
+        //   //     type: mongoose.Schema.Types.ObjectId,
+        //   //     ref: "User",
+        //   //   },
+        //   // ],
+        // },
+      ],
+    });
 
-    //     {
-    //       mentions: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    //       text: { type: String, trim: true },
-    //       file: { type: String },
-    //       dateString: { type: String, required: true },
-    //       timestamp: { type: Number, required: true },
-    //       // seen: [
-    //       //   {
-    //       //     type: mongoose.Schema.Types.ObjectId,
-    //       //     ref: "User",
-    //       //   },
-    //       // ],
-    //     },
-    //   ],
-    // };
+    await newMessageCluster.save();
+
+    const msgClust = {
+      _id: { $oid: "632b320325afd88123a24b39" },
+      sender: { $oid: "630dca30f1a396987de878c9" },
+      channel: { $oid: "6329cdd5e3e4b612ebd2f6ef" },
+      content: [
+        {
+          mentions: null,
+          text: "aaa",
+          file: null,
+          dateString: "2022-09-21T23:47:15+08:00",
+          timestamp: { $numberDouble: "1.6637752356110E+12" },
+          _id: { $oid: "632b320325afd88123a24b3a" },
+        },
+      ],
+      __v: { $numberInt: "0" },
+    };
 
     // newMessageCluster.content[0].seen = [sender];
 
@@ -212,7 +231,7 @@ io.on("connection", async function (socket) {
     // // console.log(message.timestamp.getFullYear());
     // // ? emit sends to all, broadcast sends to everyone except sender
     io.emit("message", "response");
-    callback({ status: "received" }); // !! callback not defined
+    callback({ status: newMessageCluster }); // !! callback not defined
     //? acknowledgement can be used to send finalized message document
   });
 

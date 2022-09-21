@@ -35,7 +35,7 @@ const messageSchema = Joi.object({
       file: Joi.string(),
       dateString: Joi.string(),
       timestamp: Joi.number(),
-      seen: [Joi.string()],
+      // seen: [Joi.string()],
     },
   ],
 }).required();
