@@ -183,42 +183,32 @@ io.on("connection", async function (socket) {
     const newMessageCluster = new Message({
       sender,
       channel,
-      content: [
-        clusterData.content,
-        // {
-        //   mentions: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        //   text: { type: String, trim: true },
-        //   file: { type: String },
-        //   dateString: { type: String, required: true },
-        //   timestamp: { type: Number, required: true },
-        //   // seen: [
-        //   //   {
-        //   //     type: mongoose.Schema.Types.ObjectId,
-        //   //     ref: "User",
-        //   //   },
-        //   // ],
-        // },
-      ],
+      content: [clusterData.content],
     });
 
-    await newMessageCluster.save();
+    // await newMessageCluster.save();
 
-    const msgClust = {
-      _id: { $oid: "632b320325afd88123a24b39" },
-      sender: { $oid: "630dca30f1a396987de878c9" },
-      channel: { $oid: "6329cdd5e3e4b612ebd2f6ef" },
-      content: [
-        {
-          mentions: null,
-          text: "aaa",
-          file: null,
-          dateString: "2022-09-21T23:47:15+08:00",
-          timestamp: { $numberDouble: "1.6637752356110E+12" },
-          _id: { $oid: "632b320325afd88123a24b3a" },
-        },
-      ],
-      __v: { $numberInt: "0" },
-    };
+    const populatedCluster = await newMessageCluster.populate("sender");
+
+    // console.log(lol.sender);
+    // console.log(lol);
+
+    // const msgClust = {
+    //   _id: { $oid: "632b320325afd88123a24b39" },
+    //   sender: { $oid: "630dca30f1a396987de878c9" },
+    //   channel: { $oid: "6329cdd5e3e4b612ebd2f6ef" },
+    //   content: [
+    //     {
+    //       mentions: null,
+    //       text: "aaa",
+    //       file: null,
+    //       dateString: "2022-09-21T23:47:15+08:00",
+    //       timestamp: { $numberDouble: "1.6637752356110E+12" },
+    //       _id: { $oid: "632b320325afd88123a24b3a" },
+    //     },
+    //   ],
+    //   __v: { $numberInt: "0" },
+    // };
 
     // newMessageCluster.content[0].seen = [sender];
 
@@ -231,20 +221,24 @@ io.on("connection", async function (socket) {
     // // console.log(message.timestamp.getFullYear());
     // // ? emit sends to all, broadcast sends to everyone except sender
     io.emit("message", "response");
-    callback({ status: newMessageCluster }); // !! callback not defined
-    //? acknowledgement can be used to send finalized message document
+    setTimeout(() => {
+      callback(populatedCluster);
+    }, 1000);
   });
 
   socket.on("appendCluster", async function (clusterData) {
     console.log("appendCluster");
-    console.log(clusterData);
 
-    const channel = await Channel.findById(clusterData.target.channel);
-    const group = await Group.findById(clusterData.target.group);
+    // todo find the doc and update its contents
 
-    console.log(
-      `APPEND: ${sender.username} appended ${clusterData.content.text} in channel ${channel.name} in group ${group.name}`
-    );
+    // console.log(clusterData);
+
+    // const channel = await Channel.findById(clusterData.target.channel);
+    // const group = await Group.findById(clusterData.target.group);
+
+    // console.log(
+    //   `APPEND: ${sender.username} appended ${clusterData.content.text} in channel ${channel.name} in group ${group.name}`
+    // );
   });
 
   // todo socket on append
