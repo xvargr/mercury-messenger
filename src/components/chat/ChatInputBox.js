@@ -16,19 +16,20 @@ function ChatInputBox(props) {
 
   function returnMessageData(e) {
     e.preventDefault();
+    if (textRef.current.value) {
+      const messageData = {
+        mentions: null,
+        text: null,
+        file: null,
+        dateString: moment().format(),
+        timestamp: Date.now(),
+      };
 
-    const messageData = {
-      mentions: null,
-      text: null,
-      file: null,
-      dateString: moment().format(),
-      timestamp: Date.now(),
-    };
+      messageData.text = textRef.current.value;
+      textRef.current.value = null;
 
-    messageData.text = textRef.current.value;
-    textRef.current.value = null;
-
-    props.return(messageData);
+      props.return(messageData);
+    }
   }
 
   return (

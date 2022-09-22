@@ -3,117 +3,176 @@ import { useParams } from "react-router-dom";
 // components
 import ChatInputBox from "../chat/ChatInputBox";
 import ChannelBanner from "../chat/ChatBanner";
+import { Sender, Pending } from "../chat/SenderWrapper";
+import Message from "../chat/Message";
 // context
 import { DataContext } from "../context/DataContext";
 import { UiContext } from "../context/UiContext";
 import { ChatSkeletonLoader } from "../ui/SkeletonLoaders";
 import { SocketContext } from "../context/SocketContext";
 
-// const socket = io("http://localhost:3100/", { withCredentials: true });
-
 function ChatWindow() {
   const { channel } = useParams();
   const { groupMounted } = useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
   const { socket } = useContext(SocketContext);
-  const [ChatStack, setChatStack] = useState([]);
+  const [chatStack, setChatStack] = useState([]);
   const endStopRef = useRef();
 
   useEffect(() => {
     // scroll to bottom on every new message
     if (endStopRef.current) endStopRef.current.scrollIntoView();
-  }, [ChatStack]);
+  }, [chatStack]);
+
+  console.log("RERENDERED");
+  console.log("chatStack: ", chatStack);
 
   // todo dynamic send new message or update if less than 1 min
 
   function sendOut(messageData) {
     // ? checks: under a minute, no other users sent a message
     const elapsed =
-      ChatStack.length > 0
-        ? Date.now() - ChatStack[ChatStack.length - 1].timestamp
+      chatStack.length > 0
+        ? Date.now() - chatStack[chatStack.length - 1].timestamp
         : 0;
 
     const lastSender =
-      ChatStack.length > 0 ? ChatStack[ChatStack.length - 1].senderId : null;
+      chatStack.length > 0
+        ? chatStack[chatStack.length - 1].sender.username
+        : null;
 
     // console.log("elapsed: ", elapsed);
     // console.log("lastSender", lastSender);
 
-    // create new message cluster or append an the latest one if sent less than a minute
-    if (elapsed < 60000 && lastSender !== localStorage.username) {
-      // construct new message
-      const messageCluster = {
+    // new cluster if last message is more than 1 min ago or someone else messaged since
+    if (true) {
+      // if (elapsed > 60000 || lastSender !== localStorage.username) { // !
+      const genesisCluster = {
         senderId: localStorage.userId,
         target: { group: selectedGroup._id, channel: selectedChannel._id },
         content: messageData,
       };
 
-      // const pendingCluster = {
-      //     sender:{},
-      //     channel:{},
-      //     content: [
-      //       {
-      //         mentions: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      //         text: { type: String, trim: true },
-      //         file: { type: String },
-      //         dateString: { type: String, required: true },
-      //         timestamp: { type: Number, required: true },
-      //         seen: [
-      //           {
-      //             type: mongoose.Schema.Types.ObjectId,
-      //             ref: "User",
-      //           },
-      //         ],
-      //       },
-      //     ],
-      // };
+      // ? no id marks this as a pending mesasge
+      const pendingCluster = {
+        sender: {
+          username: localStorage.username,
+          userImage: {
+            thumbnailMedium: localStorage.userImageMedium,
+          },
+        },
+        channel: {},
+        content: [genesisCluster.content],
+        clusterTimestamp: messageData.timestamp,
+      };
 
-      // *
-      // todo create new cluster and append to messages when sent verified
-
-      const workingStack = [...ChatStack];
-
-      // todo message temporary position in chat stack
-      // sent status handler
-
-      // workingStack.push(); // ! here
-
-      // *
+      // const workingStack = [...chatStack];
+      // workingStack.push(pendingCluster);
+      // console.log(chatStack);
+      // console.log(workingStack);
+      setChatStack((prevStack) => {
+        console.log("prevStack: ", prevStack);
+        const stackCopy = [...prevStack];
+        // prevStack[prevStack.length];
+        stackCopy.push(pendingCluster);
+        // console.log("stackCopy: ", stackCopy);
+        return stackCopy;
+      });
 
       function clusterAcknowledged(res) {
-        console.log(res);
-        // todo finalize message in chat stack?
+        console.log("acknowledgement: ", res);
+        // todo find that pending message and update it with response data
+        // console.log("chatStack in ack: ", chatStack); // ! chatStack is one behind here
+        // console.log("workingStack: ", workingStack);
+        // const currentStack = [...chatStack];
+        // console.log(workingStack);
+        // ! not elegant, overwrites itself on fast messages
+        // const index = workingStack.findIndex(
+        //   (message) => message.clusterTimestamp === res.clusterTimestamp
+        // );
+        // console.log(index);
+        // workingStack[index] = res;
+
+        // setState callback is used to access the latest state, else it will lag behind
+        setChatStack((prevStack) => {
+          // spread so that the values instead of the pointer is referenced by the new variable
+          // else state will see no change since the pointer doesn't change even if the values did
+          const stackCopy = [...prevStack]; // * WORKS! god bless array spread 😀
+          const index = stackCopy.findIndex(
+            (message) => message.clusterTimestamp === res.clusterTimestamp
+          );
+          stackCopy[index] = res;
+          return stackCopy;
+        });
+        // setChatStack([...workingStack]);
       }
 
-      // ! socket io acknowledgements here
-      // ? third argument is ran when acknowledgement is reieved from socket
-      // ? acknowledgement works but is not async
-      socket.emit("newCluster", messageCluster, (res) =>
-        clusterAcknowledged(res)
-      );
+      socket.emit("newCluster", genesisCluster, (res) => {
+        clusterAcknowledged(res);
+      });
       // socket.emit("newCluster", messageCluster, (res) => console.log(res));
-      console.log("this should appear after event sent");
     } else {
       // just push to cluster
-      const messageCluster = ChatStack[ChatStack.length - 1];
+      const messageCluster = chatStack[chatStack.length - 1];
       // console.log(messageCluster);
       messageCluster.content.push(messageData);
 
-      // *
       // todo append the last cluster with this content
-
-      // *
 
       // console.log(messageCluster);
       socket.emit("appendCluster", messageCluster /*AppendAcknowledgement*/);
     }
-    // console.table(ChatStack);
+    // console.log("chatStack: ", chatStack); // empty arr
   }
 
-  // function MessagesWindow(messages) {
-  //   // expect messages to me array of objects
-  //   // [{msg}{msg}...]
-  // }
+  // todo set up intervals to rerender, for updated timestamp display
+
+  function renderMessages(stack) {
+    const renderedStack = [];
+
+    function renderContent(content) {
+      const renderedContent = [];
+
+      // todo support content other than text
+      content.forEach((content) => {
+        renderedContent.push(
+          <Message key={content.timestamp}>{content.text}</Message>
+        );
+      });
+      return renderedContent;
+    }
+
+    stack.forEach((message) => {
+      if (message.id) {
+        // console.log("rendering sent");
+        // console.log("sent key ", message.timestamp);
+        // console.log("message.id: ", message.id);
+        renderedStack.push(
+          <Sender
+            sender={message.sender}
+            timestamp={message.clusterTimestamp}
+            key={message.clusterTimestamp}
+          >
+            {renderContent(message.content)}
+          </Sender>
+        );
+      } else {
+        // console.log("rendering pending");
+        // console.log("pending key ", message.timestamp);
+        // console.log("message.id: ", message.id);
+        renderedStack.push(
+          <Pending
+            sender={message.sender}
+            timestamp={message.clusterTimestamp}
+            key={message.clusterTimestamp}
+          >
+            {renderContent(message.content)}
+          </Pending>
+        );
+      }
+    });
+    return renderedStack;
+  }
 
   if (!groupMounted) {
     return (
@@ -133,20 +192,7 @@ function ChatWindow() {
         <ChannelBanner name={selectedChannel.name} />
 
         <div className="w-full flex-grow overflow-y-scroll scrollbar-dark scroll-smooth">
-          {ChatStack?.map((message) => {
-            // todo waiting for final schema from api
-            // return (
-            //   <Sender
-            //     user={message.user}
-            //     // img={message.userImage}
-            //     timestamp={message.timestamp}
-            //     key={message.timestamp}
-            //   >
-            //     <Message>{message.content.text}</Message>
-            //     {/*append to this for consecutive messages by the same sender under 1 min*/}
-            //   </Sender>
-            // );
-          })}
+          {renderMessages(chatStack)}
           <div className="w-full h-24" ref={endStopRef}></div>
           <ChatInputBox return={sendOut} />
         </div>

@@ -14,8 +14,8 @@ export function SocketStateProvider(props) {
 
   // new message received handler
   socket?.on("message", function (msg) {
-    console.log("message event");
-    console.log(msg);
+    console.log("message event: ", msg);
+    // console.log(msg);
 
     // todo only play when user not focused on window or not if current group/channel
     const notification = new Audio("/beep.mp3");
