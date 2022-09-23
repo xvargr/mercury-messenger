@@ -183,12 +183,23 @@ io.on("connection", async function (socket) {
     const newMessageCluster = new Message({
       sender,
       channel,
+      group,
       content: [clusterData.content],
     });
 
     // await newMessageCluster.save();
 
-    const populatedCluster = await newMessageCluster.populate("sender");
+    const populatedCluster = await newMessageCluster.populate([
+      {
+        path: "sender",
+        select: ["username"],
+        populate: { path: "userImage" },
+      },
+      { path: "group", select: ["name"] },
+    ]);
+    // .populate({ path: "group", select: ["name"] });
+
+    // console.log(populatedCluster.group);
 
     // console.log(lol.sender);
     // console.log(lol);
@@ -220,7 +231,9 @@ io.on("connection", async function (socket) {
     // // console.log(message);
     // // console.log(message.timestamp.getFullYear());
     // // ? emit sends to all, broadcast sends to everyone except sender
-    io.emit("message", "response");
+
+    // io.to(`c:${clusterData.target.channel}`).emit("message", populatedCluster);
+    io.emit("message", populatedCluster);
     setTimeout(() => {
       callback(populatedCluster);
     }, 1000);

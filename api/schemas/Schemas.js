@@ -28,6 +28,7 @@ const userSchema = Joi.object({
 const messageSchema = Joi.object({
   sender: Joi.string().required(),
   channel: Joi.string().required(),
+  group: Joi.string().required(),
   content: [
     {
       mentions: Joi.string(),
