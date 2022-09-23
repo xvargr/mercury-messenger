@@ -16,8 +16,14 @@ import { SocketContext } from "../context/SocketContext";
 
 function GroupsBar() {
   const { group, channel } = useParams();
-  const { groupData, groupMounted, setGroupData, setGroupMounted, isLoggedIn } =
-    useContext(DataContext);
+  const {
+    groupData,
+    groupMounted,
+    setGroupData,
+    setGroupMounted,
+    isLoggedIn,
+    setChatData, // todo set chat data on fetch
+  } = useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
   const { socket, setSocket } = useContext(SocketContext);
   const navigate = useNavigate();
@@ -76,7 +82,7 @@ function GroupsBar() {
 
   useEffect(() => {
     return () => {
-      controller.abort();
+      controller.abort(); // abort fetch on unmount
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // abort axios request on unmount

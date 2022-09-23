@@ -5,13 +5,25 @@ export const DataContext = createContext(); // use this to access the values her
 // use this to wrap around components that needs to access the values here
 export function DataStateProvider(props) {
   const [groupMounted, setGroupMounted] = useState(false);
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   const [groupData, setGroupData] = useState(null);
+  const [chatData, setChatData] = useState(null);
 
   // * you can also put functions here and export them
   // * push this this to array etc
+
+  if (groupData && chatData === null) {
+    const workingChatData = {};
+
+    groupData.forEach((group) => {
+      const chatObject = {};
+      group.channels.text.forEach((channel) => {
+        chatObject[channel._id] = []; // set empty array for each channel
+      });
+      workingChatData[group._id] = chatObject;
+    });
+    setChatData(workingChatData);
+  }
 
   const dataState = {
     groupData,
@@ -20,6 +32,8 @@ export function DataStateProvider(props) {
     setGroupMounted,
     isLoggedIn,
     setIsLoggedIn,
+    chatData,
+    setChatData,
   };
 
   return (

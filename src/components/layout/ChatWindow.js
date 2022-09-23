@@ -13,19 +13,43 @@ import { SocketContext } from "../context/SocketContext";
 
 function ChatWindow() {
   const { channel } = useParams();
-  const { groupMounted } = useContext(DataContext);
+  const { groupMounted, chatData, setChatData } = useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
   const { socket } = useContext(SocketContext);
   const [chatStack, setChatStack] = useState([]);
   const endStopRef = useRef();
+
+  if (selectedChannel)
+    console.log(`CHAT RERENDERED FOR ${selectedChannel.name}`);
+
+  // console.log("selectedGroup", selectedGroup);
+  // console.log("selectedChannel", selectedChannel);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    // update the local chat stack on main chat data update
+    if (groupMounted) {
+      console.log(
+        "chatData",
+        chatData[selectedGroup._id][selectedChannel._id].length
+      );
+      // console.log("localChatData updated");
+      // console.log(
+      //   "THIS CHATDATA: ",
+      //   chatData[selectedGroup._id][selectedChannel._id]
+      // );
+      // debugger;
+      setChatStack(chatData[selectedGroup._id][selectedChannel._id]);
+    }
+  });
 
   useEffect(() => {
     // scroll to bottom on every new message
     if (endStopRef.current) endStopRef.current.scrollIntoView();
   }, [chatStack]);
 
-  console.log("RERENDERED");
-  console.log("chatStack: ", chatStack);
+  // console.log("RERENDERED");
+  // console.log("chatStack: ", chatStack);
 
   // todo dynamic send new message or update if less than 1 min
 
@@ -70,17 +94,35 @@ function ChatWindow() {
       // workingStack.push(pendingCluster);
       // console.log(chatStack);
       // console.log(workingStack);
-      setChatStack((prevStack) => {
-        console.log("prevStack: ", prevStack);
-        const stackCopy = [...prevStack];
-        // prevStack[prevStack.length];
-        stackCopy.push(pendingCluster);
-        // console.log("stackCopy: ", stackCopy);
-        return stackCopy;
+      setChatData((prevStack) => {
+        console.log("chatData pending pushed");
+
+        // // console.log("prevStack: ", prevStack);
+        // const stackCopy = [...prevStack];
+        // // prevStack[prevStack.length];
+        // stackCopy.push(pendingCluster);
+        // // console.log("stackCopy: ", stackCopy);
+        // return stackCopy;
+
+        const dataCopy = { ...prevStack };
+        // const stackCopy = [
+        //   ...prevStack[selectedGroup._id][selectedChannel._id],
+        // ];
+        // const index = stackCopy.findIndex(
+        //   (message) => message.clusterTimestamp === res.clusterTimestamp
+        // );
+        // replace the pending message object with the finalized one
+        // console.log("stackCopy", stackCopy);
+        // console.log("pendingCluster", pendingCluster);
+        dataCopy[selectedGroup._id][selectedChannel._id].push(pendingCluster);
+        // dataCopy[selectedGroup._id][selectedChannel._id] = stackCopy;
+        // console.log("pending data: ", dataCopy);
+        // debugger;
+        return dataCopy;
       });
 
       function clusterAcknowledged(res) {
-        console.log("acknowledgement: ", res);
+        // console.log("acknowledgement: ", res);
         // todo find that pending message and update it with response data
         // console.log("chatStack in ack: ", chatStack); // ! chatStack is one behind here
         // console.log("workingStack: ", workingStack);
@@ -94,15 +136,34 @@ function ChatWindow() {
         // workingStack[index] = res;
 
         // setState callback is used to access the latest state, else it will lag behind
-        setChatStack((prevStack) => {
+        // setChatStack((prevStack) => {
+        //   // spread so that the values instead of the pointer is referenced by the new variable
+        //   // else state will see no change since the pointer doesn't change even if the values did
+        //   const stackCopy = [...prevStack]; // * WORKS! god bless array spread 😀
+        //   const index = stackCopy.findIndex(
+        //     (message) => message.clusterTimestamp === res.clusterTimestamp
+        //   );
+        //   stackCopy[index] = res;
+        //   return stackCopy;
+        // });
+
+        setChatData((prevStack) => {
           // spread so that the values instead of the pointer is referenced by the new variable
           // else state will see no change since the pointer doesn't change even if the values did
-          const stackCopy = [...prevStack]; // * WORKS! god bless array spread 😀
+          // make a copy of the whole chatData and the specific chat being modified
+          const dataCopy = { ...prevStack };
+          const stackCopy = [
+            ...prevStack[selectedGroup._id][selectedChannel._id],
+          ];
           const index = stackCopy.findIndex(
             (message) => message.clusterTimestamp === res.clusterTimestamp
           );
+          // replace the pending message object with the finalized one
           stackCopy[index] = res;
-          return stackCopy;
+          dataCopy[selectedGroup._id][selectedChannel._id] = stackCopy;
+
+          // console.log("finalized data: ", dataCopy);
+          return dataCopy;
         });
         // setChatStack([...workingStack]);
       }
@@ -127,7 +188,10 @@ function ChatWindow() {
 
   // todo set up intervals to rerender, for updated timestamp display
 
+  // console.log(socket);
+
   function renderMessages(stack) {
+    // console.log("stack to render: ", stack);
     const renderedStack = [];
 
     function renderContent(content) {

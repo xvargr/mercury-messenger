@@ -24,6 +24,10 @@ const messageClusterSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Channel",
     },
+    group: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Group",
+    },
     content: [messageSchema],
   },
   {
