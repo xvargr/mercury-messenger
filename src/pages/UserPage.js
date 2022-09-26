@@ -148,10 +148,12 @@ function UserPage() {
 
   function toggleModal(e) {
     if (!modalIsOpen) setModalIsOpen(true);
-    else if (
-      e.key === "Escape" ||
-      e.target.id === "modalBackground" ||
-      e.target.id === "modalCloseButton"
+    if (e.type === "keydown" && e.key === "Escape") {
+      setModalIsOpen(false);
+      setPasswordFeedback(null);
+    } else if (
+      e.type === "click" &&
+      (e.target.id === "modalBackground" || e.target.id === "modalCloseButton")
     ) {
       setModalIsOpen(false);
       setPasswordFeedback(null);

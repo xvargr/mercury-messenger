@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 // components
 import ChatInputBox from "../chat/ChatInputBox";
 import ChannelBanner from "../chat/ChatBanner";
-import { Sender, Pending } from "../chat/SenderWrapper";
+import Sender from "../chat/SenderWrapper";
 import Message from "../chat/Message";
 // context
 import { DataContext } from "../context/DataContext";
@@ -21,9 +21,7 @@ function ChatWindow() {
 
   if (selectedChannel)
     console.log(`CHAT RERENDERED FOR ${selectedChannel.name}`);
-
-  // console.log("selectedGroup", selectedGroup);
-  // console.log("selectedChannel", selectedChannel);
+  console.log(chatStack);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -33,12 +31,6 @@ function ChatWindow() {
         "chatData",
         chatData[selectedGroup._id][selectedChannel._id].length
       );
-      // console.log("localChatData updated");
-      // console.log(
-      //   "THIS CHATDATA: ",
-      //   chatData[selectedGroup._id][selectedChannel._id]
-      // );
-      // debugger;
       setChatStack(chatData[selectedGroup._id][selectedChannel._id]);
     }
   });
@@ -48,16 +40,10 @@ function ChatWindow() {
     if (endStopRef.current) endStopRef.current.scrollIntoView();
   }, [chatStack]);
 
-  // console.log("RERENDERED");
-  // console.log("chatStack: ", chatStack);
-
-  // todo dynamic send new message or update if less than 1 min
-
   function sendOut(messageData) {
-    // ? checks: under a minute, no other users sent a message
     const elapsed =
       chatStack.length > 0
-        ? Date.now() - chatStack[chatStack.length - 1].timestamp
+        ? Date.now() - chatStack[chatStack.length - 1].clusterTimestamp
         : 0;
 
     const lastSender =
@@ -65,12 +51,14 @@ function ChatWindow() {
         ? chatStack[chatStack.length - 1].sender.username
         : null;
 
-    // console.log("elapsed: ", elapsed);
-    // console.log("lastSender", lastSender);
+    const lastCluster =
+      chatStack.length > 0 ? chatStack[chatStack.length - 1] : null;
+
+    console.log("elapsed: ", elapsed);
+    console.log("lastSender", lastSender);
 
     // new cluster if last message is more than 1 min ago or someone else messaged since
-    if (true) {
-      // if (elapsed > 60000 || lastSender !== localStorage.username) { // !
+    if (elapsed > 60000 || lastSender !== localStorage.username) {
       const genesisCluster = {
         senderId: localStorage.userId,
         target: { group: selectedGroup._id, channel: selectedChannel._id },
@@ -90,64 +78,15 @@ function ChatWindow() {
         clusterTimestamp: messageData.timestamp,
       };
 
-      // const workingStack = [...chatStack];
-      // workingStack.push(pendingCluster);
-      // console.log(chatStack);
-      // console.log(workingStack);
       setChatData((prevStack) => {
-        console.log("chatData pending pushed");
-
-        // // console.log("prevStack: ", prevStack);
-        // const stackCopy = [...prevStack];
-        // // prevStack[prevStack.length];
-        // stackCopy.push(pendingCluster);
-        // // console.log("stackCopy: ", stackCopy);
-        // return stackCopy;
-
         const dataCopy = { ...prevStack };
-        // const stackCopy = [
-        //   ...prevStack[selectedGroup._id][selectedChannel._id],
-        // ];
-        // const index = stackCopy.findIndex(
-        //   (message) => message.clusterTimestamp === res.clusterTimestamp
-        // );
-        // replace the pending message object with the finalized one
-        // console.log("stackCopy", stackCopy);
-        // console.log("pendingCluster", pendingCluster);
         dataCopy[selectedGroup._id][selectedChannel._id].push(pendingCluster);
-        // dataCopy[selectedGroup._id][selectedChannel._id] = stackCopy;
-        // console.log("pending data: ", dataCopy);
-        // debugger;
         return dataCopy;
       });
 
       function clusterAcknowledged(res) {
-        // console.log("acknowledgement: ", res);
-        // todo find that pending message and update it with response data
-        // console.log("chatStack in ack: ", chatStack); // ! chatStack is one behind here
-        // console.log("workingStack: ", workingStack);
-        // const currentStack = [...chatStack];
-        // console.log(workingStack);
-        // ! not elegant, overwrites itself on fast messages
-        // const index = workingStack.findIndex(
-        //   (message) => message.clusterTimestamp === res.clusterTimestamp
-        // );
-        // console.log(index);
-        // workingStack[index] = res;
-
-        // setState callback is used to access the latest state, else it will lag behind
-        // setChatStack((prevStack) => {
-        //   // spread so that the values instead of the pointer is referenced by the new variable
-        //   // else state will see no change since the pointer doesn't change even if the values did
-        //   const stackCopy = [...prevStack]; // * WORKS! god bless array spread 😀
-        //   const index = stackCopy.findIndex(
-        //     (message) => message.clusterTimestamp === res.clusterTimestamp
-        //   );
-        //   stackCopy[index] = res;
-        //   return stackCopy;
-        // });
-
         setChatData((prevStack) => {
+          // setState callback is used to access the latest pending state before rerender
           // spread so that the values instead of the pointer is referenced by the new variable
           // else state will see no change since the pointer doesn't change even if the values did
           // make a copy of the whole chatData and the specific chat being modified
@@ -162,28 +101,139 @@ function ChatWindow() {
           stackCopy[index] = res;
           dataCopy[selectedGroup._id][selectedChannel._id] = stackCopy;
 
-          // console.log("finalized data: ", dataCopy);
           return dataCopy;
         });
-        // setChatStack([...workingStack]);
       }
 
       socket.emit("newCluster", genesisCluster, (res) => {
         clusterAcknowledged(res);
       });
-      // socket.emit("newCluster", messageCluster, (res) => console.log(res));
-    } else {
-      // just push to cluster
-      const messageCluster = chatStack[chatStack.length - 1];
-      // console.log(messageCluster);
-      messageCluster.content.push(messageData);
+    } else if (elapsed < 60000 && lastSender === localStorage.username) {
+      // ? wait till parent is confirmed ???
 
-      // todo append the last cluster with this content
+      // ? sorting to clusters should be done clientside only ?
 
-      // console.log(messageCluster);
-      socket.emit("appendCluster", messageCluster /*AppendAcknowledgement*/);
+      const appendObject = {
+        clusterTimestamp: lastCluster.clusterTimestamp
+          ? lastCluster.clusterTimestamp
+          : null,
+        clusterId: lastCluster._id ? lastCluster._id : null,
+        ...messageData,
+      };
+      console.log(appendObject);
+
+      if (appendObject.clusterId) {
+        setChatData((prevStack) => {
+          const dataCopy = { ...prevStack };
+
+          const clusterIndex = dataCopy[selectedGroup._id][
+            selectedChannel._id
+          ].findIndex((cluster) => cluster._id === appendObject.clusterId);
+
+          const updatedCluster =
+            dataCopy[selectedGroup._id][selectedChannel._id][clusterIndex];
+          updatedCluster.content.push(messageData);
+
+          dataCopy[selectedGroup._id][selectedChannel._id][clusterIndex] =
+            updatedCluster;
+
+          // console.log(dataCopy);
+          // // console.log(workingCluster);
+          return dataCopy;
+        });
+      } else {
+        setChatData((prevStack) => {
+          const dataCopy = { ...prevStack };
+
+          const clusterIndex = dataCopy[selectedGroup._id][
+            selectedChannel._id
+          ].findIndex(
+            (cluster) =>
+              cluster.clusterTimestamp === appendObject.clusterTimestamp
+          );
+
+          const updatedCluster =
+            dataCopy[selectedGroup._id][selectedChannel._id][clusterIndex];
+          updatedCluster.content.push(messageData);
+
+          dataCopy[selectedGroup._id][selectedChannel._id][clusterIndex] =
+            updatedCluster;
+
+          // ! not complete here
+
+          // console.log(dataCopy);
+          // // console.log(workingCluster);
+          return dataCopy;
+        });
+      }
+
+      // setChatData((prevStack) => {
+      //   const dataCopy = { ...prevStack };
+
+      //   // last entry in this
+      //   const cluster =
+      //     dataCopy[selectedGroup._id][selectedChannel._id][
+      //       chatData[selectedGroup._id][selectedChannel._id].length - 1
+      //     ];
+
+      //   cluster.content.push(messageData);
+
+      //   dataCopy[selectedGroup._id][selectedChannel._id][
+      //     chatData[selectedGroup._id][selectedChannel._id].length - 1
+      //   ] = cluster;
+
+      //   console.log(dataCopy);
+      //   return dataCopy;
+      // });
+
+      socket.emit("appendCluster", appendObject);
+
+      // setChatData((prevStack) => {
+      //   const dataCopy = { ...prevStack };
+
+      //   if (clusterToAppend._id) {
+      //     console.log("cluster verified");
+      //     console.log(
+      //       "BOROR",
+      //       dataCopy[selectedGroup._id][selectedChannel._id].findIndex(
+      //         (cluster) => cluster._id === clusterToAppend._id
+      //       )
+      //     );
+      //   } else {
+      //     console.log("cluster not verified");
+      //     console.log(
+      //       "BOROR",
+      //       dataCopy[selectedGroup._id][selectedChannel._id].findIndex(
+      //         (cluster) => cluster.timestamp === clusterToAppend.timestamp
+      //       )
+      //     );
+      //   }
+
+      //   // dataCopy[selectedGroup._id][selectedChannel._id].push(pendingCluster);
+      //   // return dataCopy;
+      // });
+
+      function appendAcknowledged(res) {
+        setChatData((prevStack) => {
+          const dataCopy = { ...prevStack };
+          const stackCopy = [
+            ...prevStack[selectedGroup._id][selectedChannel._id],
+          ];
+          const index = stackCopy.findIndex(
+            (message) => message.clusterTimestamp === res.clusterTimestamp
+          );
+          // replace the pending message object with the finalized one
+          stackCopy[index] = res;
+          dataCopy[selectedGroup._id][selectedChannel._id] = stackCopy;
+
+          return dataCopy;
+        });
+      }
+
+      // socket.emit("appendCluster", clusterToAppend, (res) =>
+      //   appendAcknowledged(res)
+      // );
     }
-    // console.log("chatStack: ", chatStack); // empty arr
   }
 
   // todo set up intervals to rerender, for updated timestamp display
@@ -196,44 +246,32 @@ function ChatWindow() {
 
     function renderContent(content) {
       const renderedContent = [];
-
       // todo support content other than text
       content.forEach((content) => {
         renderedContent.push(
-          <Message key={content.timestamp}>{content.text}</Message>
+          <Message
+            key={content.timestamp}
+            timestamp={content.timestamp}
+            pending={content._id ? false : true}
+          >
+            {content.text}
+          </Message>
         );
       });
       return renderedContent;
     }
 
     stack.forEach((message) => {
-      if (message.id) {
-        // console.log("rendering sent");
-        // console.log("sent key ", message.timestamp);
-        // console.log("message.id: ", message.id);
-        renderedStack.push(
-          <Sender
-            sender={message.sender}
-            timestamp={message.clusterTimestamp}
-            key={message.clusterTimestamp}
-          >
-            {renderContent(message.content)}
-          </Sender>
-        );
-      } else {
-        // console.log("rendering pending");
-        // console.log("pending key ", message.timestamp);
-        // console.log("message.id: ", message.id);
-        renderedStack.push(
-          <Pending
-            sender={message.sender}
-            timestamp={message.clusterTimestamp}
-            key={message.clusterTimestamp}
-          >
-            {renderContent(message.content)}
-          </Pending>
-        );
-      }
+      renderedStack.push(
+        <Sender
+          sender={message.sender}
+          timestamp={message.clusterTimestamp}
+          key={message.clusterTimestamp}
+          pending={message._id ? false : true}
+        >
+          {renderContent(message.content)}
+        </Sender>
+      );
     });
     return renderedStack;
   }

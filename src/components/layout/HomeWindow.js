@@ -50,6 +50,7 @@ const HomeWindow = () => {
           <li>check that only admins can crud modify and channels</li>
           <li>serve react client from the same domain as react</li>
           <li>move/break up functions to self module</li>
+          <li>add hash checksum to validate data</li>
         </ul>
       </div>
     </div>
