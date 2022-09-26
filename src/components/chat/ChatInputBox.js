@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import moment from "moment/moment";
 
 import {
@@ -13,6 +13,10 @@ function ChatInputBox(props) {
   // const mentionsRef = useRef();
 
   // console.log(filesRef.current);
+
+  useEffect(() => {
+    textRef.current.focus();
+  }, []);
 
   function returnMessageData(e) {
     e.preventDefault();

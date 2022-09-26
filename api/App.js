@@ -221,26 +221,18 @@ io.on("connection", async function (socket) {
     //   __v: { $numberInt: "0" },
     // };
 
-    // newMessageCluster.content[0].seen = [sender];
-
-    // // console.log(newMessageCluster);
-    // console.log("newMessageCluster");
-
-    // // console.log(moment(message.timestamp).add(3, "days").fromNow());
-    // // console.log("MESSAGE RECEIVED");
-    // // console.log(message);
-    // // console.log(message.timestamp.getFullYear());
-    // // ? emit sends to all, broadcast sends to everyone except sender
-
-    // io.to(`c:${clusterData.target.channel}`).emit("message", populatedCluster);
-    io.emit("message", populatedCluster);
+    socket
+      .to(`c:${clusterData.target.channel}`)
+      .emit("message", populatedCluster); // sender still gets message // solution, use socket, not io to emit
+    // io.emit("message", populatedCluster);
     setTimeout(() => {
       callback(populatedCluster);
-    }, 1000);
+    }, 5000);
   });
 
   socket.on("appendCluster", async function (clusterData) {
     console.log("appendCluster");
+    console.log(clusterData);
 
     // todo find the doc and update its contents
 
