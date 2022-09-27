@@ -42,8 +42,6 @@ export async function newGroup(req, res) {
   });
   newGroup.channels.text.push(newChannel);
 
-  // console.log(newGroup);
-
   await newChannel.save();
   await newGroup.save();
 
@@ -83,7 +81,6 @@ export async function joinWithCode(req, res) {
 
   const user = await User.findById(req.user._id).lean();
   if (!user) throw new ExpressError("User account error", 400);
-  // console.log(user);
 
   if (group.members.some((member) => member._id.equals(user._id)))
     throw new ExpressError("you are already a member", 400);

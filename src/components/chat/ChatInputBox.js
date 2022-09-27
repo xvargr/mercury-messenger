@@ -22,7 +22,7 @@ function ChatInputBox(props) {
     e.preventDefault();
     if (textRef.current.value) {
       const messageData = {
-        mentions: null,
+        mentions: [],
         text: null,
         file: null,
         dateString: moment().format(),

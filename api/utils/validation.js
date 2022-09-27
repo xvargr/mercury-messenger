@@ -1,4 +1,9 @@
-import { groupSchema, channelSchema, userSchema } from "../schemas/Schemas.js";
+import {
+  groupSchema,
+  channelSchema,
+  userSchema,
+  // messageSchema,
+} from "../schemas/Schemas.js";
 import ExpressError from "./ExpressError.js";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -131,10 +136,24 @@ async function validateUserEdit(req, res, next) {
   next();
 }
 
+// async function validateNewCluster(cluster) {
+//   console.log("cluster validating");
+//   console.log(typeof cluster.content);
+//   const validation = messageSchema.validate(cluster);
+//   // console.log(validation);
+//   if (validation.error) {
+//     console.log(validation.error.details[0].message);
+//     console.log(validation.error);
+//   }
+
+//   return;
+// }
+
 export {
   validateGroup,
   validateChannel,
   validateImage,
   validateUser,
   validateUserEdit,
+  // validateNewCluster,
 };
