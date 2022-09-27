@@ -25,20 +25,27 @@ const userSchema = Joi.object({
   },
 }).required();
 
-const messageSchema = Joi.object({
-  sender: Joi.string().required(),
-  channel: Joi.string().required(),
-  group: Joi.string().required(),
-  content: [
-    {
-      mentions: Joi.string(),
-      text: Joi.string().min(1).max(256),
-      file: Joi.string(),
-      dateString: Joi.string(),
-      timestamp: Joi.number(),
-      // seen: [Joi.string()],
-    },
-  ],
-}).required();
+// ? using mongoose validation instead, weird problems with Joi here
+// const messageSchema = Joi.object({
+//   sender: Joi.object().required(),
+//   channel: Joi.object().required(),
+//   group: Joi.object().required(),
+//   content: Joi.array().items(
+//     Joi.object({
+//       mentions: Joi.array().items(Joi.object()),
+//       text: Joi.string().min(1).max(256),
+//       file: Joi.string().allow(null),
+//       dateString: Joi.string(),
+//       timestamp: Joi.number(),
+//       __parentArray: Joi.any(),
+//       __index: Joi.any(),
+//       $__parent: Joi.any(),
+//       $__: Joi.any(),
+//       _doc: Joi.any(),
+//     })
+//   ),
+//   $__: Joi.any(),
+//   _doc: Joi.any(),
+// }).required();
 
-export { groupSchema, channelSchema, userSchema, messageSchema };
+export { groupSchema, channelSchema, userSchema /*messageSchema*/ };

@@ -99,13 +99,10 @@ io.use(wrap(passport.session()));
 
 // socket auth middleware
 io.use(async function (socket, next) {
-  // console.log("connection request");
   if (socket.request.isAuthenticated()) {
-    // console.log("Authenticated!");
     next();
   } else {
     const err = new ExpressError("Unauthorized", 401);
-    console.log("Reject");
     next(err); // refuse connection
   }
 });
@@ -132,53 +129,11 @@ io.on("connection", async function (socket) {
   for (const group of userGroups) {
     socket.join(`g:${group.id}`);
     group.channels.text.forEach((channel) => socket.join(`c:${channel.id}`));
-    // for (const channel of group.channels.text) {
-    //   socket.join(`c:${channel.id}`);
-    // }
   }
 
-  // socket.on("test", function (testData) {
-  //   console.log(`${sender.username} said ${testData.content.text}`);
-  //   const { group, channel } = testData.target;
-  //   socket.to(`c:${channel}`).emit("message", testData); // send to everyone except sender
-  //   socket.emit("sent", "message sent"); // send only to sender
-  //   // socket.nsp.to(socket.id).emit("message", testData); // nsp namespace? emits to all in room
-  //   // socket.to(socket.id).emit("message", testData); // emit to everyone else in room
-  //   // socket.emit("message", testData); // emit to all?
-  //   // socket.to("bruh").emit("message", testData);
-  // });
-
   socket.on("newCluster", async function (clusterData, callback) {
-    // console.log("newCluster");
-
-    // console.log(clusterData);
-    // {
-    //   senderId: '63159a6ba9e06553f3cfbe68',
-    //   target: {
-    //     group: '631b1dd6064661b6261e19c5',
-    //     channel: '631f36cf41f56c86a61c23b6'
-    //   },
-    //   content: {
-    //     mentions: null,
-    //     text: 'aaa',
-    //     file: null,
-    //     dateString: '2022-09-16T20:47:26+08:00',
-    //     timestamp: 1663332446016
-    //   }
-    // }
-
     const channel = await Channel.findById(clusterData.target.channel);
     const group = await Group.findById(clusterData.target.group);
-
-    console.log(
-      `NEW: ${sender.username} said ${clusterData.content.text} in channel ${channel.name} in group ${group.name}`
-    );
-
-    // TODO validate, save to db, add unread to users?? or g or c ??
-
-    // setTimeout(() => {
-    //   socket.emit("sent", "message sent"); // send only to sender
-    // }, 5000);
 
     const newMessageCluster = new Message({
       sender,
@@ -187,7 +142,7 @@ io.on("connection", async function (socket) {
       content: [clusterData.content],
     });
 
-    // await newMessageCluster.save();
+    await newMessageCluster.save();
 
     const populatedCluster = await newMessageCluster.populate([
       {
@@ -196,46 +151,38 @@ io.on("connection", async function (socket) {
         populate: { path: "userImage" },
       },
       { path: "group", select: ["name"] },
+      { path: "content" },
     ]);
-    // .populate({ path: "group", select: ["name"] });
 
-    // console.log(populatedCluster.group);
-
-    // console.log(lol.sender);
-    // console.log(lol);
-
-    // const msgClust = {
-    //   _id: { $oid: "632b320325afd88123a24b39" },
-    //   sender: { $oid: "630dca30f1a396987de878c9" },
-    //   channel: { $oid: "6329cdd5e3e4b612ebd2f6ef" },
-    //   content: [
-    //     {
-    //       mentions: null,
-    //       text: "aaa",
-    //       file: null,
-    //       dateString: "2022-09-21T23:47:15+08:00",
-    //       timestamp: { $numberDouble: "1.6637752356110E+12" },
-    //       _id: { $oid: "632b320325afd88123a24b3a" },
-    //     },
-    //   ],
-    //   __v: { $numberInt: "0" },
-    // };
+    console.log(populatedCluster);
 
     socket
       .to(`c:${clusterData.target.channel}`)
       .emit("message", populatedCluster); // sender still gets message // solution, use socket, not io to emit
-    // io.emit("message", populatedCluster);
     setTimeout(() => {
       callback(populatedCluster);
-    }, 5000);
+    }, 1000);
   });
 
-  socket.on("appendCluster", async function (clusterData) {
+  socket.on("appendCluster", async function (clusterData, callback) {
     console.log("appendCluster");
-    console.log(clusterData);
+    // console.log(clusterData);
+    // console.log(Message.methods);
 
-    // todo find the doc and update its contents
+    // await Message.appendCluster();
 
+    let parentCluster;
+    if (clusterData.clusterId) {
+      console.log("id exists");
+      parentCluster = await Message.findById(clusterData.clusterId);
+    } else {
+      console.log("timestamp fallback");
+      // parentCluster = await Message.find({clusterTimestamp})
+    }
+
+    console.log("parentCluster", parentCluster);
+
+    parentCluster.appendCluster(); // ! method not a function
     // console.log(clusterData);
 
     // const channel = await Channel.findById(clusterData.target.channel);
@@ -244,6 +191,10 @@ io.on("connection", async function (socket) {
     // console.log(
     //   `APPEND: ${sender.username} appended ${clusterData.content.text} in channel ${channel.name} in group ${group.name}`
     // );
+
+    // setTimeout(() => {
+    //   callback();
+    // }, 1000);
   });
 
   // todo socket on append

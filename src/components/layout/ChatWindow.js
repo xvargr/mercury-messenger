@@ -109,10 +109,7 @@ function ChatWindow() {
         clusterAcknowledged(res);
       });
     } else if (elapsed < 60000 && lastSender === localStorage.username) {
-      // ? wait till parent is confirmed ???
-
-      // ? sorting to clusters should be done clientside only ?
-
+      // create an object with necessary info to send to api
       const appendObject = {
         clusterTimestamp: lastCluster.clusterTimestamp
           ? lastCluster.clusterTimestamp
@@ -120,98 +117,36 @@ function ChatWindow() {
         clusterId: lastCluster._id ? lastCluster._id : null,
         ...messageData,
       };
-      console.log(appendObject);
 
+      // find the index of the message to be append,
+      // use id if verified, else use timestamp
+      let clusterIndex;
       if (appendObject.clusterId) {
-        setChatData((prevStack) => {
-          const dataCopy = { ...prevStack };
-
-          const clusterIndex = dataCopy[selectedGroup._id][
-            selectedChannel._id
-          ].findIndex((cluster) => cluster._id === appendObject.clusterId);
-
-          const updatedCluster =
-            dataCopy[selectedGroup._id][selectedChannel._id][clusterIndex];
-          updatedCluster.content.push(messageData);
-
-          dataCopy[selectedGroup._id][selectedChannel._id][clusterIndex] =
-            updatedCluster;
-
-          // console.log(dataCopy);
-          // // console.log(workingCluster);
-          return dataCopy;
-        });
+        clusterIndex = chatData[selectedGroup._id][
+          selectedChannel._id
+        ].findIndex((cluster) => cluster._id === appendObject.clusterId);
       } else {
-        setChatData((prevStack) => {
-          const dataCopy = { ...prevStack };
-
-          const clusterIndex = dataCopy[selectedGroup._id][
-            selectedChannel._id
-          ].findIndex(
-            (cluster) =>
-              cluster.clusterTimestamp === appendObject.clusterTimestamp
-          );
-
-          const updatedCluster =
-            dataCopy[selectedGroup._id][selectedChannel._id][clusterIndex];
-          updatedCluster.content.push(messageData);
-
-          dataCopy[selectedGroup._id][selectedChannel._id][clusterIndex] =
-            updatedCluster;
-
-          // ! not complete here
-
-          // console.log(dataCopy);
-          // // console.log(workingCluster);
-          return dataCopy;
-        });
+        clusterIndex = chatData[selectedGroup._id][
+          selectedChannel._id
+        ].findIndex(
+          (cluster) =>
+            cluster.clusterTimestamp === appendObject.clusterTimestamp
+        );
       }
 
-      // setChatData((prevStack) => {
-      //   const dataCopy = { ...prevStack };
+      // update local data
+      setChatData((prevStack) => {
+        const dataCopy = { ...prevStack };
 
-      //   // last entry in this
-      //   const cluster =
-      //     dataCopy[selectedGroup._id][selectedChannel._id][
-      //       chatData[selectedGroup._id][selectedChannel._id].length - 1
-      //     ];
+        const updatedCluster =
+          dataCopy[selectedGroup._id][selectedChannel._id][clusterIndex];
+        updatedCluster.content.push(messageData);
 
-      //   cluster.content.push(messageData);
+        dataCopy[selectedGroup._id][selectedChannel._id][clusterIndex] =
+          updatedCluster;
 
-      //   dataCopy[selectedGroup._id][selectedChannel._id][
-      //     chatData[selectedGroup._id][selectedChannel._id].length - 1
-      //   ] = cluster;
-
-      //   console.log(dataCopy);
-      //   return dataCopy;
-      // });
-
-      socket.emit("appendCluster", appendObject);
-
-      // setChatData((prevStack) => {
-      //   const dataCopy = { ...prevStack };
-
-      //   if (clusterToAppend._id) {
-      //     console.log("cluster verified");
-      //     console.log(
-      //       "BOROR",
-      //       dataCopy[selectedGroup._id][selectedChannel._id].findIndex(
-      //         (cluster) => cluster._id === clusterToAppend._id
-      //       )
-      //     );
-      //   } else {
-      //     console.log("cluster not verified");
-      //     console.log(
-      //       "BOROR",
-      //       dataCopy[selectedGroup._id][selectedChannel._id].findIndex(
-      //         (cluster) => cluster.timestamp === clusterToAppend.timestamp
-      //       )
-      //     );
-      //   }
-
-      //   // dataCopy[selectedGroup._id][selectedChannel._id].push(pendingCluster);
-      //   // return dataCopy;
-      // });
+        return dataCopy;
+      });
 
       function appendAcknowledged(res) {
         setChatData((prevStack) => {
@@ -230,9 +165,10 @@ function ChatWindow() {
         });
       }
 
-      // socket.emit("appendCluster", clusterToAppend, (res) =>
-      //   appendAcknowledged(res)
-      // );
+      // send append info to api
+      socket.emit("appendCluster", appendObject, (res) =>
+        appendAcknowledged(res)
+      );
     }
   }
 
