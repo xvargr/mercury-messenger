@@ -19,18 +19,18 @@ function ChatWindow() {
   const [chatStack, setChatStack] = useState([]);
   const endStopRef = useRef();
 
-  if (selectedChannel)
-    console.log(`CHAT RERENDERED FOR ${selectedChannel.name}`);
-  console.log(chatStack);
+  // if (selectedChannel)
+  //   console.log(`CHAT RERENDERED FOR ${selectedChannel.name}`);
+  // console.log(chatStack);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // update the local chat stack on main chat data update
     if (groupMounted) {
-      console.log(
-        "chatData",
-        chatData[selectedGroup._id][selectedChannel._id].length
-      );
+      // console.log(
+      //   "chatData",
+      //   chatData[selectedGroup._id][selectedChannel._id].length
+      // );
       setChatStack(chatData[selectedGroup._id][selectedChannel._id]);
     }
   });
@@ -54,8 +54,8 @@ function ChatWindow() {
     const lastCluster =
       chatStack.length > 0 ? chatStack[chatStack.length - 1] : null;
 
-    console.log("elapsed: ", elapsed);
-    console.log("lastSender", lastSender);
+    // console.log("elapsed: ", elapsed);
+    // console.log("lastSender", lastSender);
 
     // new cluster if last message is more than 1 min ago or someone else messaged since
     if (elapsed > 60000 || lastSender !== localStorage.username) {
@@ -85,6 +85,7 @@ function ChatWindow() {
       });
 
       function clusterAcknowledged(res) {
+        console.log(res);
         setChatData((prevStack) => {
           // setState callback is used to access the latest pending state before rerender
           // spread so that the values instead of the pointer is referenced by the new variable
@@ -149,20 +150,21 @@ function ChatWindow() {
       });
 
       function appendAcknowledged(res) {
-        setChatData((prevStack) => {
-          const dataCopy = { ...prevStack };
-          const stackCopy = [
-            ...prevStack[selectedGroup._id][selectedChannel._id],
-          ];
-          const index = stackCopy.findIndex(
-            (message) => message.clusterTimestamp === res.clusterTimestamp
-          );
-          // replace the pending message object with the finalized one
-          stackCopy[index] = res;
-          dataCopy[selectedGroup._id][selectedChannel._id] = stackCopy;
+        console.log(res); // ! here
+        // setChatData((prevStack) => {
+        //   const dataCopy = { ...prevStack };
+        //   const stackCopy = [
+        //     ...prevStack[selectedGroup._id][selectedChannel._id],
+        //   ];
+        //   const index = stackCopy.findIndex(
+        //     (message) => message.clusterTimestamp === res.clusterTimestamp
+        //   );
+        //   // replace the pending message object with the finalized one
+        //   stackCopy[index] = res;
+        //   dataCopy[selectedGroup._id][selectedChannel._id] = stackCopy;
 
-          return dataCopy;
-        });
+        //   return dataCopy;
+        // });
       }
 
       // send append info to api
