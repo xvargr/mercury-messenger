@@ -154,47 +154,51 @@ io.on("connection", async function (socket) {
       { path: "content" },
     ]);
 
-    console.log(populatedCluster);
-
     socket
       .to(`c:${clusterData.target.channel}`)
       .emit("message", populatedCluster); // sender still gets message // solution, use socket, not io to emit
-    setTimeout(() => {
-      callback(populatedCluster);
-    }, 1000);
+    callback(populatedCluster);
+    // setTimeout(async () => {
+    //   // await newMessageCluster.save();
+    //   callback(populatedCluster);
+    // }, 5000);
   });
 
   socket.on("appendCluster", async function (clusterData, callback) {
-    console.log("appendCluster");
-    // console.log(clusterData);
-    // console.log(Message.methods);
+    const { clusterId, clusterTimestamp } = clusterData;
 
-    // await Message.appendCluster();
-
-    let parentCluster;
-    if (clusterData.clusterId) {
-      console.log("id exists");
-      parentCluster = await Message.findById(clusterData.clusterId);
-    } else {
-      console.log("timestamp fallback");
-      // parentCluster = await Message.find({clusterTimestamp})
+    function findParent(arg) {
+      let result;
+      if (arg.clusterId) {
+        result = Message.findById(clusterId);
+      } else if (arg.clusterTimestamp) {
+        result = Message.findOne({ clusterTimestamp });
+      } else {
+        throw new Error("an id or timestamp is required");
+      }
+      return result;
     }
 
-    console.log("parentCluster", parentCluster);
+    let parentCluster = await findParent(clusterData);
 
-    parentCluster.appendCluster(); // ! method not a function
-    // console.log(clusterData);
+    // async wait for parentCluster to save
+    if (!parentCluster) {
+      let retries = 0;
+      const waitForParent = setInterval(async () => {
+        parentCluster = await findParent(clusterData);
+        if (parentCluster) {
+          parentCluster.append(clusterData);
+          clearInterval(waitForParent);
+        }
+        retries++;
+        if (retries >= 3) {
+          clearInterval(waitForParent);
+          callback({ err: { message: "hi" } });
+        }
+      }, 2000);
+    } else parentCluster.append(clusterData);
 
-    // const channel = await Channel.findById(clusterData.target.channel);
-    // const group = await Group.findById(clusterData.target.group);
-
-    // console.log(
-    //   `APPEND: ${sender.username} appended ${clusterData.content.text} in channel ${channel.name} in group ${group.name}`
-    // );
-
-    // setTimeout(() => {
-    //   callback();
-    // }, 1000);
+    callback(parentCluster); // ! here
   });
 
   // todo socket on append

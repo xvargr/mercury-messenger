@@ -34,12 +34,17 @@ const messageClusterSchema = new mongoose.Schema(
   {
     toObject: { virtuals: true },
     toJSON: { virtuals: true },
+    methods: {
+      append(contentData) {
+        delete contentData.clusterTimestamp;
+        delete contentData.clusterId;
+        this.content.push(contentData);
+        this.save();
+      },
+    },
   }
 );
 
-// messageClusterSchema.virtual("clusterTimestamp").get(function () {
-//   return this.content[this.content.length - 1].timestamp;
-// });
 messageClusterSchema.virtual("lastMessage").get(function () {
   return this.content[this.content.length - 1];
 });
@@ -48,17 +53,6 @@ messageClusterSchema.pre("validate", function () {
   console.log("pre validate ran");
   this.clusterTimestamp = this.content[this.content.length - 1].timestamp;
 });
-
-messageSchema.methods.appendCluster = async function () {
-  console.log("append lol");
-  // return;
-};
-messageSchema.method("appendCluster", function () {
-  console.log("append lol");
-  // return;
-});
-
-console.log(messageSchema);
 
 const Message = mongoose.model("Message", messageClusterSchema);
 
