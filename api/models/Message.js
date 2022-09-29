@@ -35,11 +35,12 @@ const messageClusterSchema = new mongoose.Schema(
     toObject: { virtuals: true },
     toJSON: { virtuals: true },
     methods: {
-      append(contentData) {
+      async append(contentData) {
         delete contentData.clusterTimestamp;
         delete contentData.clusterId;
         this.content.push(contentData);
-        this.save();
+        console.log(this);
+        await this.save(); // ! subdocs validation failed on update? and can't populate
       },
     },
   }
@@ -50,8 +51,10 @@ messageClusterSchema.virtual("lastMessage").get(function () {
 });
 
 messageClusterSchema.pre("validate", function () {
-  console.log("pre validate ran");
-  this.clusterTimestamp = this.content[this.content.length - 1].timestamp;
+  // console.log("pre validate ran");
+  if (!this.clusterTimestamp) {
+    this.clusterTimestamp = this.content[0].timestamp;
+  }
 });
 
 const Message = mongoose.model("Message", messageClusterSchema);

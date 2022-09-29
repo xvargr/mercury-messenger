@@ -6,7 +6,7 @@ export const SocketContext = createContext();
 
 export function SocketStateProvider(props) {
   const [socket, setSocket] = useState(null);
-  const { chatData, setChatData, groupMounted } = useContext(DataContext);
+  const { chatData, setChatData } = useContext(DataContext);
 
   // this should only run once to avoid multiple instances of socket event listeners
   // this check avoids duplicate listeners
@@ -17,7 +17,7 @@ export function SocketStateProvider(props) {
     });
 
     // new message received handler
-    socket.on("message", function (res) {
+    socket.on("newMessage", function (res) {
       console.log("message event: ", res);
 
       // todo only play when user not focused on window or not if current group/channel
@@ -28,6 +28,34 @@ export function SocketStateProvider(props) {
       workingChatData[res.group._id][res.channel._id].push(res);
       setChatData(workingChatData);
     });
+
+    socket.on("appendMessage", function (res) {
+      console.log("APPENDING");
+      console.log("RES: ", res);
+      const workingChatData = { ...chatData };
+      console.log("here 1");
+      debugger;
+      const workingStack = workingChatData[res.group][res.channel]; // ! wont pass here, creates new socket connection for some reason
+      console.log("here 2");
+
+      let index;
+      if (res._id) {
+        console.log("here 3");
+        index = workingStack.findIndex((message) => message._id === res._id);
+      } else if (res.clusterTimestamp) {
+        console.log("here 4");
+        index = workingStack.findIndex(
+          (message) => message.clusterTimestamp === res.clusterTimestamp
+        );
+      }
+
+      workingChatData[res.group._id][res.channel._id][index].content =
+        res.content;
+      setChatData(workingChatData);
+      console.log("APPEND END");
+    });
+
+    console.log(socket._callbacks);
   }
 
   // if (socket?._callbacks && !("$connect" in socket._callbacks)) {

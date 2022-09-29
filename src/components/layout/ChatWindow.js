@@ -78,6 +78,7 @@ function ChatWindow() {
         clusterTimestamp: messageData.timestamp,
       };
 
+      // ! don't use elected context
       setChatData((prevStack) => {
         const dataCopy = { ...prevStack };
         dataCopy[selectedGroup._id][selectedChannel._id].push(pendingCluster);
@@ -112,30 +113,40 @@ function ChatWindow() {
     } else if (elapsed < 60000 && lastSender === localStorage.username) {
       // create an object with necessary info to send to api
       const appendObject = {
-        clusterTimestamp: lastCluster.clusterTimestamp
-          ? lastCluster.clusterTimestamp
-          : null,
-        clusterId: lastCluster._id ? lastCluster._id : null,
-        ...messageData,
+        target: {
+          cluster: {
+            timestamp: lastCluster.clusterTimestamp
+              ? lastCluster.clusterTimestamp
+              : null,
+            id: lastCluster._id ? lastCluster._id : null,
+          },
+          group: selectedGroup._id,
+          channel: selectedChannel._id,
+        },
+        content: { ...messageData },
       };
 
-      // find the index of the message to be append,
+      // console.log(appendObject);
+
+      // find the index of the message to be append locally,
       // use id if verified, else use timestamp
       let clusterIndex;
-      if (appendObject.clusterId) {
+      if (appendObject.target.cluster.id) {
         clusterIndex = chatData[selectedGroup._id][
           selectedChannel._id
-        ].findIndex((cluster) => cluster._id === appendObject.clusterId);
+        ].findIndex(
+          (cluster) => cluster._id === appendObject.target.cluster.id
+        );
       } else {
         clusterIndex = chatData[selectedGroup._id][
           selectedChannel._id
         ].findIndex(
           (cluster) =>
-            cluster.clusterTimestamp === appendObject.clusterTimestamp
+            cluster.clusterTimestamp === appendObject.target.cluster.timestamp
         );
       }
 
-      // update local data
+      // update local data with temporary data
       setChatData((prevStack) => {
         const dataCopy = { ...prevStack };
 
@@ -150,21 +161,39 @@ function ChatWindow() {
       });
 
       function appendAcknowledged(res) {
-        console.log(res); // ! here
-        // setChatData((prevStack) => {
-        //   const dataCopy = { ...prevStack };
-        //   const stackCopy = [
-        //     ...prevStack[selectedGroup._id][selectedChannel._id],
-        //   ];
-        //   const index = stackCopy.findIndex(
-        //     (message) => message.clusterTimestamp === res.clusterTimestamp
-        //   );
-        //   // replace the pending message object with the finalized one
-        //   stackCopy[index] = res;
-        //   dataCopy[selectedGroup._id][selectedChannel._id] = stackCopy;
+        setChatData((prevStack) => {
+          const dataCopy = { ...prevStack };
+          const stackCopy = [
+            ...prevStack[res.target.group][res.target.channel],
+          ]; // ! is selected x a good way to do this? what if channel changes, use id? given by res
 
-        //   return dataCopy;
-        // });
+          // dynamic search index term assignment based on what's available in the response
+          let term;
+          if (res.err) {
+            if (res.target.cluster.id) term = "id";
+            else if (res.target.cluster.timestamp) term = "timestamp";
+          } else if (res.content) {
+            if (res.content._id) term = "_id";
+            else if (res.content.clusterTimestamp) term = "clusterTimestamp";
+          }
+
+          console.log(term);
+
+          const index = stackCopy.findIndex((message) =>
+            message[term] === res.err ? res.err[term] : res[term]
+          );
+
+          console.assert(index === -1, "message not found");
+
+          console.log(index);
+          console.log(res);
+
+          // // update local parent cluster to res data
+          dataCopy[selectedGroup._id][selectedChannel._id][index].content =
+            res.content;
+
+          return dataCopy;
+        });
       }
 
       // send append info to api
