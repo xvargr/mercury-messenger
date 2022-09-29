@@ -51,6 +51,8 @@ const HomeWindow = () => {
           <li>serve react client from the same domain as react</li>
           <li>move/break up functions to self module</li>
           <li>add hash checksum to validate data</li>
+          <li>move functions to own file</li>
+          <li></li>
         </ul>
       </div>
     </div>
