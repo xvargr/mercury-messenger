@@ -34,7 +34,7 @@ export function SocketStateProvider(props) {
       console.log("RES: ", res);
       const workingChatData = { ...chatData };
       console.log("here 1");
-      debugger;
+      // debugger;
       const workingStack = workingChatData[res.group][res.channel]; // ! wont pass here, creates new socket connection for some reason
       console.log("here 2");
 
@@ -54,8 +54,6 @@ export function SocketStateProvider(props) {
       setChatData(workingChatData);
       console.log("APPEND END");
     });
-
-    console.log(socket._callbacks);
   }
 
   // if (socket?._callbacks && !("$connect" in socket._callbacks)) {

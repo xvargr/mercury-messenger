@@ -166,27 +166,22 @@ io.on("connection", async function (socket) {
   });
 
   socket.on("appendCluster", async function (clusterData, callback) {
-    // const { clusterId, clusterTimestamp } = clusterData;
-
-    // console.log(clusterData);
-
     function findParent(arg) {
       let result;
       if (arg.target.cluster.id) {
-        result = Message.findById(arg.target.cluster.id).populate({
-          path: "content",
-        });
+        result = Message.findById(arg.target.cluster.id);
       } else if (arg.target.cluster.timestamp) {
         result = Message.findOne({
           clusterTimestamp: arg.target.cluster.timestamp,
-        }).populate({ path: "content" });
+        });
       } else {
         throw new Error("an id or timestamp is required");
       }
       return result;
     }
 
-    let parentCluster = await findParent(clusterData).populate("content"); // ! cant populate
+    let parentCluster = await findParent(clusterData);
+    // console.log(parentCluster.channel.toString());
 
     // async wait for parentCluster to save
     if (!parentCluster) {
@@ -197,7 +192,7 @@ io.on("connection", async function (socket) {
           clearInterval(waitForParent);
           parentCluster.append(clusterData);
           socket
-            .to(`c:${parentCluster.channel._id}`)
+            .to(`c:${parentCluster.channel}`)
             .emit("appendMessage", parentCluster); // sender still gets message // solution, use socket, not io to emit
           callback({
             target: clusterData.target,
@@ -209,12 +204,23 @@ io.on("connection", async function (socket) {
         if (retries >= 3) {
           clearInterval(waitForParent);
           callback({
-            err: true,
-            target: clusterData.target,
+            failed: clusterData.content.timestamp,
+            target: {
+              ...clusterData.target,
+            },
           });
         }
       }, 2000);
-    } else parentCluster.append(clusterData);
+    } else {
+      parentCluster.append(clusterData);
+      socket
+        .to(`c:${parentCluster.channel}`)
+        .emit("appendMessage", parentCluster); // sender still gets message // solution, use socket, not io to emit
+      callback({
+        target: clusterData.target,
+        content: parentCluster.content[parentCluster.content.length - 1],
+      });
+    }
   });
 
   socket.on("disconnect", function () {
