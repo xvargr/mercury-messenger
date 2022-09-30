@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    const array = [{
+        string: "zero"
+      },
+      {
+        string: "one"
+      },
+      {
+        string: "two"
+      },
+    ];
+
+    let condition = true;
+    const isTrue = condition ? true : false;
+    console.log("condition is true: ", isTrue); // logs true as expected
+
+    let index = array.findIndex((element) =>
+      element.string === condition ? "one" : "two"
+    );
+    console.log("index when condition is true", index); // logs 0, expected 1
+
+    condition = false;
+    const isFalse = condition ? false : true;
+    console.log("condition is false: ", isFalse); // logs true as expected
+
+    index = array.findIndex((element) =>
+      element.string === condition ? "one" : "two"
+    );
+    console.log("index when condition is false", index); // logs 0, expected 2
+
+    index = array.findIndex((element) =>
+      (element.string === undefined) ? "one" : "two"
+    );
+    console.log("index when condition is undefined", index); // logs 0, expected 2
+
+    // This is because 
+    console.log("a" === "a" ? true : false)
+    // is evaluated as 
+    console.log(("a" === "a") ? true : false)
+    // instead of 
+    console.log("a" === ("a" ? true : false))
+  </script>
+</body>
+
+</html>

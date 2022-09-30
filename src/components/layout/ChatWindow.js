@@ -32,8 +32,15 @@ function ChatWindow() {
       //   chatData[selectedGroup._id][selectedChannel._id].length
       // );
       setChatStack(chatData[selectedGroup._id][selectedChannel._id]);
+      console.log("chatdata in main");
+      console.table(
+        chatData[selectedGroup._id][selectedChannel._id][0]?.content
+      ); // ! already 2 items
     }
   });
+
+  // console.log(chatStack);
+  // chatStack.forEach((message) => console.log("message: ", message.text));
 
   useEffect(() => {
     // scroll to bottom on every new message
@@ -86,7 +93,6 @@ function ChatWindow() {
       });
 
       function clusterAcknowledged(res) {
-        console.log(res);
         setChatData((prevStack) => {
           // setState callback is used to access the latest pending state before rerender
           // spread so that the values instead of the pointer is referenced by the new variable
@@ -101,7 +107,7 @@ function ChatWindow() {
           );
           // replace the pending message object with the finalized one
           stackCopy[index] = res;
-          dataCopy[selectedGroup._id][selectedChannel._id] = stackCopy;
+          dataCopy[selectedGroup._id][selectedChannel._id] = stackCopy; // todo all in one go
 
           return dataCopy;
         });
@@ -125,8 +131,6 @@ function ChatWindow() {
         },
         content: { ...messageData },
       };
-
-      // console.log(appendObject);
 
       // find the index of the message to be append locally,
       // use id if verified, else use timestamp
@@ -161,6 +165,13 @@ function ChatWindow() {
       });
 
       function appendAcknowledged(res) {
+        console.log("appending..");
+        console.log("chatData before append"); // ! already 2 items
+        console.table(
+          chatData[selectedGroup._id][selectedChannel._id][0]?.content
+        ); // ! already 2 items
+
+        // ! the fist item is already overwritten by the pending item, but has id?
         setChatData((prevStack) => {
           const dataCopy = { ...prevStack };
           const stackCopy = [
@@ -168,29 +179,129 @@ function ChatWindow() {
           ]; // ! is selected x a good way to do this? what if channel changes, use id? given by res
 
           // dynamic search index term assignment based on what's available in the response
-          let term;
-          if (res.err) {
-            if (res.target.cluster.id) term = "id";
-            else if (res.target.cluster.timestamp) term = "timestamp";
-          } else if (res.content) {
-            if (res.content._id) term = "_id";
-            else if (res.content.clusterTimestamp) term = "clusterTimestamp";
-          }
 
-          console.log(term);
+          // if failed, no parent file, but target available
+          // if pass, parent file present, target available
 
-          const index = stackCopy.findIndex((message) =>
-            message[term] === res.err ? res.err[term] : res[term]
+          // need to find parent cluster
+          // then find message to update status to saved or failed
+
+          // let term;
+          // if (res.failed) {
+          //   if (res.target.cluster.id)
+          //     term = "id"; // message failed and parent is verified
+          //   else if (res.target.cluster.timestamp) term = "timestamp"; // message failed and the parent unverified
+          // } else if (res.content) {
+          //   if (res.content._id)
+          //     term = "_id"; // message saved and the parent verified
+          //   else if (res.content.clusterTimestamp) term = "clusterTimestamp"; // message saved and the parent unverified
+          // }
+
+          // console.log("res: ", res);
+
+          // debugger;
+
+          // find parent
+          let clusterKey;
+          if (res.target.cluster.id) clusterKey = "id";
+          else if (res.target.cluster.timestamp)
+            clusterKey = ["clusterTimestamp", "timestamp"];
+
+          // console.log("stackCopy - ", stackCopy);
+
+          const clusterIndex = stackCopy.findIndex(
+            (cluster) => cluster[clusterKey] === res.target.cluster[clusterKey]
           );
 
-          console.assert(index === -1, "message not found");
+          // console.log(
+          //   "timestamp of n1",
+          //   stackCopy[clusterIndex].content[1].timestamp
+          // );
 
-          console.log(index);
-          console.log(res);
+          // const hey = false ? 1 : 2;
+          // console.log("HEY ", hey);
+
+          // console.log("res.err ternary: ", res.err ? true : false);
+
+          // ? ////////////////////////////////////////////////////////////
+
+          // const array = [
+          //   { string: "zero" },
+          //   { string: "one" },
+          //   { string: "two" },
+          // ];
+
+          // let condition = true;
+          // const isTrue = condition ? true : false;
+          // console.log("isTrue: ", isTrue);
+
+          // let index = array.findIndex((element) =>
+          //   element.string === condition ? "one" : "two"
+          // );
+          // console.log("index when condition is true", index);
+
+          // condition = false;
+          // const conditionIsFalse = condition ? false : true;
+          // console.log("conditionIsFalse: ", conditionIsFalse);
+
+          // index = array.findIndex((element) =>
+          //   element.string === condition ? "one" : "two"
+          // );
+          // console.log("index when condition is false", index);
+
+          // ? ////////////////////////////////////////////////////////////
+
+          // find message
+          let messageIndex = stackCopy[clusterIndex].content.findIndex(
+            (message) =>
+              message.timestamp === (res.err ? res.err : res.content.timestamp)
+          ); // index always 0 because ternary and operator precedence, use parentheses
+
+          // console.log("content to update: ", stackCopy[clusterIndex].content); // ! already 2 items
+          // console.log("res.content.timestamp: ", res.content.timestamp);
+          // // console.log("res.err: ", res.err);
+
+          // console.log("cluster - ", clusterIndex);
+          // console.log("message - ", messageIndex);
+
+          // if (res.failed) {
+          //   // find parent,
+          //   // find msg with timestamp
+          //   // set status as failed
+          // } else {
+          //   // find parent
+          //   // find msg with timestamp
+          // }
+          // console.log("term: ", term);
+
+          // find parent cluster
+          // const clusterIndex = stackCopy.findIndex((cluster) =>
+          //   cluster[term] === res.failed
+          //     ? res.target.cluster[term]
+          //     : res.content[term]
+          // );
+
+          // console.assert(index === -1, "message not found");
+
+          // console.log("Cl-index: ", clusterIndex);
+          // console.log("Msg-index: ", index);
+          // console.log(res);
 
           // // update local parent cluster to res data
-          dataCopy[selectedGroup._id][selectedChannel._id][index].content =
-            res.content;
+          // dataCopy[res.target.group][res.target.channel][index].content =
+          //   res.content;
+
+          // todo failed
+
+          console.log(
+            `replacing cluster ${clusterIndex} message ${messageIndex} with ${res.content.text}`
+          );
+
+          dataCopy[res.target.group][res.target.channel][clusterIndex].content[
+            messageIndex
+          ] = res.content;
+
+          // console.log(dataCopy);
 
           return dataCopy;
         });

@@ -36,11 +36,8 @@ const messageClusterSchema = new mongoose.Schema(
     toJSON: { virtuals: true },
     methods: {
       async append(contentData) {
-        delete contentData.clusterTimestamp;
-        delete contentData.clusterId;
-        this.content.push(contentData);
-        console.log(this);
-        await this.save(); // ! subdocs validation failed on update? and can't populate
+        this.content.push(contentData.content);
+        await this.save();
       },
     },
   }
