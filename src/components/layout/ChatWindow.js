@@ -164,6 +164,7 @@ function ChatWindow() {
             ...prevStack[res.target.group][res.target.channel],
           ]; // ! is selected x a good way to do this? what if channel changes, use id? given by res
 
+          // ! res will have parent cluster attached
           // find parent
           let clusterKey;
           if (res.target.cluster.id) clusterKey = "id";
@@ -181,7 +182,7 @@ function ChatWindow() {
           // find message
           let messageIndex = stackCopy[clusterIndex].content.findIndex(
             (message) =>
-              message.timestamp === (res.err ? res.err : res.data.timestamp)
+              message.timestamp === (res.err ? res.err : res.data.timestamp) // ! check location of this timestamp if success
           ); // index always 0 because ternary and operator precedence, use parentheses to eval right side first
 
           // ! msgIndex is -1
