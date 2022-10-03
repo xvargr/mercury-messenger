@@ -139,10 +139,10 @@ io.on("connection", async function (socket) {
       sender,
       channel,
       group,
-      content: [clusterData.content],
+      content: [clusterData.data],
     });
 
-    await newMessageCluster.save();
+    // await newMessageCluster.save();
 
     const populatedCluster = await newMessageCluster.populate([
       {
@@ -158,11 +158,14 @@ io.on("connection", async function (socket) {
       // .to(`c:${populatedCluster.channel._id}`)
       .to(`c:${clusterData.target.channel}`)
       .emit("newMessage", populatedCluster); // sender still gets message // solution, use socket, not io to emit
-    callback(populatedCluster); // todo send back object cluster with target
-    // setTimeout(async () => {
-    //   // await newMessageCluster.save();
-    // callback(populatedCluster);
-    // }, 5000);
+    // callback(populatedCluster); // todo send back object cluster with target
+    setTimeout(async () => {
+      await newMessageCluster.save();
+      callback({
+        target: clusterData.target,
+        data: populatedCluster,
+      });
+    }, 5000);
   });
 
   socket.on("appendCluster", async function (clusterData, callback) {
@@ -196,7 +199,8 @@ io.on("connection", async function (socket) {
             .emit("appendMessage", parentCluster); // sender still gets message // solution, use socket, not io to emit
           callback({
             target: clusterData.target,
-            content: parentCluster,
+            data: parentCluster,
+            delayed: true,
           });
         }
 
@@ -218,7 +222,7 @@ io.on("connection", async function (socket) {
         .emit("appendMessage", parentCluster); // sender still gets message // solution, use socket, not io to emit
       callback({
         target: clusterData.target,
-        content: parentCluster.content[parentCluster.content.length - 1],
+        data: parentCluster.content[parentCluster.content.length - 1],
       });
     }
   });
