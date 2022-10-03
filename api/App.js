@@ -163,7 +163,7 @@ io.on("connection", async function (socket) {
       await newMessageCluster.save();
       callback({
         target: clusterData.target,
-        data: populatedCluster,
+        data: populatedCluster, // ? send the whole parent?
       });
     }, 5000);
   });
