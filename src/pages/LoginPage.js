@@ -79,7 +79,7 @@ function LoginPage() {
     }
     formValidator();
   }
-
+  // console.log(`${window.location.protocol}//${window.location.hostname}:3100`);
   function submitHandler(e) {
     e.preventDefault();
     if (!inpErr) {
@@ -94,7 +94,7 @@ function LoginPage() {
         headers: { "Content-Type": "multipart/form-data" },
       };
       const axiosUser = axios.create({
-        baseURL: "http://localhost:3100",
+        baseURL: `${window.location.protocol}//${window.location.hostname}:3100`, // ! needs to be in env?
         withCredentials: true,
       });
       axiosUser
@@ -144,7 +144,7 @@ function LoginPage() {
       </div>
 
       <form
-        className="w-[70%] h-1/3 max-h-64 bg-gray-800 rounded-xl flex justify-evenly items-center md:w-3/5 md:max-w-md"
+        className="w-[90%] h-1/3 max-h-64 bg-gray-800 rounded-xl flex justify-evenly items-center md:w-3/5 md:max-w-md"
         onSubmit={submitHandler}
       >
         <div className="w-3/4 h-full flex flex-col justify-between items-center">

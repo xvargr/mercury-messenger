@@ -30,7 +30,7 @@ const DOMAIN = process.env.APP_DOMAIN;
 const httpServer = createServer(app); // create a server for express, need this to reuse server instance for socket.io
 const io = new Server(httpServer, {
   cors: {
-    origin: DOMAIN,
+    origin: [DOMAIN, "http://192.168.0.237:3000"],
     credentials: true,
   },
   serveClient: false,
@@ -56,7 +56,8 @@ db.once("open", function () {
 app.use(
   cors({
     // todo dynamic origin
-    origin: DOMAIN,
+    origin: [DOMAIN, "http://192.168.0.237:3000"],
+    optionsSuccessStatus: 200,
     credentials: true,
   })
 );
@@ -93,6 +94,7 @@ const wrap = (middleware) => (socket, next) => {
   middleware(socket.request, {}, next);
 }; // wrapper function for socket.io, to enable the use of express middleware
 
+// wraps passport middleware, gives access to passport user object in socket connections
 io.use(wrap(sessionSettings));
 io.use(wrap(passport.initialize()));
 io.use(wrap(passport.session()));
@@ -125,11 +127,20 @@ io.on("connection", async function (socket) {
     path: "channels.text",
   });
 
-  // assign them to all rooms based on groups and channels
+  // assign them to all rooms based on groups and channels, and prepare latest 50 chat clusters for initialization
   for (const group of userGroups) {
     socket.join(`g:${group.id}`);
     group.channels.text.forEach((channel) => socket.join(`c:${channel.id}`));
   }
+
+  // todo prepare (50 last cluster) chat data for each channel of member
+  // ! continue here, prepare chat data to initialize
+
+  // console.log(sender);
+  // console.log(userGroups);
+  // console.log(socket.id);
+  // console.log(socket.rooms);
+  socket.emit("initialize", `hi there, ${socket.request.user.username}`);
 
   socket.on("newCluster", async function (clusterData, callback) {
     const channel = await Channel.findById(clusterData.target.channel);
@@ -142,7 +153,7 @@ io.on("connection", async function (socket) {
       content: [clusterData.data],
     });
 
-    // await newMessageCluster.save();
+    await newMessageCluster.save();
 
     const populatedCluster = await newMessageCluster.populate([
       {
@@ -158,14 +169,17 @@ io.on("connection", async function (socket) {
       // .to(`c:${populatedCluster.channel._id}`)
       .to(`c:${clusterData.target.channel}`)
       .emit("newMessage", populatedCluster); // sender still gets message // solution, use socket, not io to emit
-    // callback(populatedCluster); // todo send back object cluster with target
-    setTimeout(async () => {
-      await newMessageCluster.save();
-      callback({
-        target: clusterData.target,
-        data: populatedCluster, // ? send the whole parent?
-      });
-    }, 5000);
+    // setTimeout(async () => {
+    //   await newMessageCluster.save();
+    //   callback({
+    //     target: clusterData.target,
+    //     data: populatedCluster,
+    //   });
+    // }, 5000);
+    callback({
+      target: clusterData.target,
+      data: populatedCluster,
+    });
   });
 
   socket.on("appendCluster", async function (clusterData, callback) {
@@ -184,7 +198,6 @@ io.on("connection", async function (socket) {
     }
 
     let parentCluster = await findParent(clusterData);
-    // console.log(parentCluster.channel.toString());
 
     // async wait for parentCluster to save
     if (!parentCluster) {
@@ -194,13 +207,25 @@ io.on("connection", async function (socket) {
         if (parentCluster) {
           clearInterval(waitForParent);
           parentCluster.append(clusterData);
-          socket
-            .to(`c:${parentCluster.channel}`)
-            .emit("appendMessage", parentCluster); // sender still gets message // solution, use socket, not io to emit
+          socket.to(`c:${parentCluster.channel}`).emit("appendMessage", {
+            target: {
+              ...clusterData.target,
+              cluster: {
+                timestamp: clusterData.target.cluster.timestamp,
+                id: parentCluster._id,
+              },
+            },
+            data: parentCluster.content[clusterData.target.index],
+          }); // sender still gets message // solution, use socket, not io to emit
           callback({
-            target: clusterData.target,
-            data: parentCluster,
-            delayed: true,
+            target: {
+              ...clusterData.target,
+              cluster: {
+                timestamp: clusterData.target.cluster.timestamp,
+                id: parentCluster._id,
+              },
+            },
+            data: parentCluster.content[clusterData.target.index],
           });
         }
 
@@ -211,18 +236,29 @@ io.on("connection", async function (socket) {
             failed: clusterData.content.timestamp,
             target: {
               ...clusterData.target,
+              cluster: { id: parentCluster._id },
             },
           });
         }
       }, 2000);
     } else {
       parentCluster.append(clusterData);
-      socket
-        .to(`c:${parentCluster.channel}`)
-        .emit("appendMessage", parentCluster); // sender still gets message // solution, use socket, not io to emit
+      socket.to(`c:${parentCluster.channel}`).emit("appendMessage", {
+        target: {
+          ...clusterData.target,
+          cluster: {
+            timestamp: clusterData.target.cluster.timestamp,
+            id: parentCluster._id,
+          },
+        },
+        data: parentCluster.content[clusterData.target.index],
+      }); // sender still gets message // solution, use socket, not io to emit
       callback({
-        target: clusterData.target,
-        data: parentCluster.content[parentCluster.content.length - 1],
+        target: {
+          ...clusterData.target,
+          cluster: { id: parentCluster._id },
+        },
+        data: parentCluster.content[clusterData.target.index],
       });
     }
   });

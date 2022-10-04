@@ -36,7 +36,11 @@ const messageClusterSchema = new mongoose.Schema(
     toJSON: { virtuals: true },
     methods: {
       async append(contentData) {
-        this.content.push(contentData.content);
+        if (this.content.length === contentData.target.index) {
+          this.content.push(contentData.content);
+        } else {
+          this.content[contentData.target.index] = contentData.content;
+        }
         await this.save();
       },
     },

@@ -28,7 +28,7 @@ function ChannelBadge(props) {
     if (!showDialogue) setShowDialogue(true);
     else {
       const axiosDeleteChannel = axios.create({
-        baseURL: "http://localhost:3100",
+        baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
         withCredentials: true,
       });
       axiosDeleteChannel
@@ -56,7 +56,7 @@ function ChannelBadge(props) {
       headers: { "Content-Type": "multipart/form-data" },
     };
     const axiosEditChannel = axios.create({
-      baseURL: "http://localhost:3100",
+      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
       withCredentials: true,
     });
 

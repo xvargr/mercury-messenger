@@ -32,7 +32,7 @@ function GroupsBar() {
 
   function fetchGroups() {
     const axiosGroupFetch = axios.create({
-      baseURL: "http://localhost:3100",
+      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
       withCredentials: true,
     });
 
@@ -76,7 +76,11 @@ function GroupsBar() {
 
   useEffect(() => {
     if (groupMounted && isLoggedIn && socket === null) {
-      setSocket(io("http://localhost:3100/", { withCredentials: true }));
+      setSocket(
+        io(`${window.location.protocol}//${window.location.hostname}:3100`, {
+          withCredentials: true,
+        })
+      );
     }
   });
 
