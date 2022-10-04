@@ -76,7 +76,6 @@ function ChatWindow() {
       });
 
       function clusterAcknowledged(res) {
-        console.log("clust event");
         setChatData((prevStack) => {
           // setState callback is used to access the latest pending state before rerender
           // spread so that the values instead of the pointer is referenced by the new variable
@@ -91,7 +90,6 @@ function ChatWindow() {
             (message) => message.clusterTimestamp === res.data.clusterTimestamp
           );
 
-          console.log(res);
           const contentCopy =
             dataCopy[res.target.group][res.target.channel][index].content;
 
@@ -141,6 +139,13 @@ function ChatWindow() {
         );
       }
 
+      // find index of pending message
+      const pendingIndex =
+        chatData[selectedGroup._id][selectedChannel._id][clusterIndex].content
+          .length;
+
+      appendObject.target.index = pendingIndex; // for sort verification
+
       // update local data with temporary data
       setChatData((prevStack) => {
         const dataCopy = { ...prevStack };
@@ -156,57 +161,21 @@ function ChatWindow() {
       });
 
       function appendAcknowledged(res) {
-        console.log("append event");
         setChatData((prevStack) => {
-          debugger;
           const dataCopy = { ...prevStack };
           const stackCopy = [
             ...prevStack[res.target.group][res.target.channel],
-          ]; // ! is selected x a good way to do this? what if channel changes, use id? given by res
-
-          // ! res will have parent cluster attached
-          // find parent
-          let clusterKey;
-          if (res.target.cluster.id) clusterKey = "id";
-          else if (res.target.cluster.timestamp) {
-            clusterKey = ["clusterTimestamp", "timestamp"];
-          }
+          ];
 
           const clusterIndex = stackCopy.findIndex(
-            (cluster) => cluster[clusterKey] === res.target.cluster[clusterKey]
+            (cluster) => cluster.id === res.target.cluster.id
           );
 
-          console.log(res);
-          console.log(stackCopy[clusterIndex]);
-
-          // find message
+          // find pending message
           let messageIndex = stackCopy[clusterIndex].content.findIndex(
             (message) =>
-              message.timestamp === (res.err ? res.err : res.data.timestamp) // ! check location of this timestamp if success
+              message.timestamp === (res.err ? res.err : res.data.timestamp)
           ); // index always 0 because ternary and operator precedence, use parentheses to eval right side first
-
-          // ! msgIndex is -1
-
-          // todo failed
-
-          // if (messageIndex === -1 && res.delayed) {
-          //   const array = stackCopy[clusterIndex].content;
-          //   // push and sort
-          //   // recursive
-
-          //   function sortAndInsert() {}
-
-          //   function sort(params) {
-          //     const { input, sortBy, reverse = false } = params;
-          //     if (typeof input !== array) {
-          //       throw new Error("input needs to be an array");
-          //     }
-          //     console.log("hello");
-          //   }
-
-          //   if (stackCopy) {
-          //   }
-          // }
 
           dataCopy[res.target.group][res.target.channel][clusterIndex].content[
             messageIndex
@@ -225,40 +194,40 @@ function ChatWindow() {
 
   // todo set up intervals to rerender, for updated timestamp display
 
-  function renderMessages(stack) {
-    const renderedStack = [];
+  function renderClusters(stack) {
+    const clusterStack = [];
 
-    function renderContent(content) {
-      const renderedContent = [];
+    function renderMessages(content) {
+      const messageStack = [];
       // todo support content other than text
       // todo support failed status
-      content.forEach((content) => {
-        renderedContent.push(
+      content.forEach((message) => {
+        messageStack.push(
           <Message
-            key={content.timestamp}
-            timestamp={content.timestamp}
-            pending={content._id ? false : true}
+            key={message.timestamp}
+            timestamp={message.timestamp}
+            pending={message._id ? false : true}
           >
-            {content.text}
+            {message.text}
           </Message>
         );
       });
-      return renderedContent;
+      return messageStack;
     }
 
-    stack.forEach((message) => {
-      renderedStack.push(
+    stack.forEach((cluster) => {
+      clusterStack.push(
         <Sender
-          sender={message.sender}
-          timestamp={message.clusterTimestamp}
-          key={message.clusterTimestamp}
-          pending={message._id ? false : true}
+          sender={cluster.sender}
+          timestamp={cluster.clusterTimestamp}
+          key={cluster.clusterTimestamp}
+          pending={cluster._id ? false : true}
         >
-          {renderContent(message.content)}
+          {renderMessages(cluster.content)}
         </Sender>
       );
     });
-    return renderedStack;
+    return clusterStack;
   }
 
   if (!groupMounted) {
@@ -279,7 +248,7 @@ function ChatWindow() {
         <ChannelBanner name={selectedChannel.name} />
 
         <div className="w-full flex-grow overflow-y-scroll scrollbar-dark scroll-smooth">
-          {renderMessages(chatStack)}
+          {renderClusters(chatStack)}
           <div className="w-full h-24" ref={endStopRef}></div>
           <ChatInputBox return={sendOut} />
         </div>

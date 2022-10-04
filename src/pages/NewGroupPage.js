@@ -28,7 +28,7 @@ function NewGroupPage() {
       headers: { "Content-Type": "multipart/form-data" },
     };
     const axiosNewGroup = axios.create({
-      baseURL: "http://localhost:3100",
+      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
       withCredentials: true,
     });
 
@@ -55,7 +55,7 @@ function NewGroupPage() {
 
   function joinGroupHandler(link) {
     const axiosNewGroup = axios.create({
-      baseURL: "http://localhost:3100",
+      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
       withCredentials: true,
     });
 

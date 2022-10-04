@@ -51,7 +51,7 @@ function GroupBanner(props) {
 
   function leaveGroup() {
     const axiosUserLeave = axios.create({
-      baseURL: "http://localhost:3100",
+      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
       withCredentials: true,
     });
 
@@ -72,7 +72,7 @@ function GroupBanner(props) {
 
   function deleteGroup() {
     const axiosDeleteGroup = axios.create({
-      baseURL: "http://localhost:3100",
+      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
       withCredentials: true,
     });
 

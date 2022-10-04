@@ -40,7 +40,7 @@ function UserPage() {
     headers: { "Content-Type": "multipart/form-data" },
   };
   const axiosUser = axios.create({
-    baseURL: "http://localhost:3100",
+    baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
     withCredentials: true,
   });
 

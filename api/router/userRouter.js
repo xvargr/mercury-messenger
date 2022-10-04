@@ -22,7 +22,6 @@ router
   .post(upload.none(), validateUser, asyncErrorWrapper(newUser))
   .delete(isLoggedIn, logOutUser);
 
-// login user
 router.post("/login", upload.none(), logInUser);
 
 router
