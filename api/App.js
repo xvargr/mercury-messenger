@@ -127,11 +127,30 @@ io.on("connection", async function (socket) {
     path: "channels.text",
   });
 
-  // assign them to all rooms based on groups and channels, and prepare latest 50 chat clusters for initialization
+  const initData = {};
+
+  // assign them to all rooms based on groups and channels,
+  // prepare latest 50 chat clusters for initialization
   for (const group of userGroups) {
-    socket.join(`g:${group.id}`);
-    group.channels.text.forEach((channel) => socket.join(`c:${channel.id}`));
+    // socket.join(`g:${group.id}`);
+    initData[group.id] = {};
+    group.channels.text.forEach(async (channel) => {
+      socket.join(`c:${channel.id}`);
+      initData[group.id][channel.id] = [];
+
+      const clusters = await Message.find({ channel })
+        .sort({
+          clusterTimestamp: "asc",
+        })
+        .limit(50);
+
+      clusters.forEach((cluster) => {
+        initData[group.id][channel.id].push(cluster);
+      });
+    });
   }
+
+  console.log(initData); // ! empty channels
 
   // todo prepare (50 last cluster) chat data for each channel of member
   // ! continue here, prepare chat data to initialize
@@ -140,7 +159,7 @@ io.on("connection", async function (socket) {
   // console.log(userGroups);
   // console.log(socket.id);
   // console.log(socket.rooms);
-  socket.emit("initialize", `hi there, ${socket.request.user.username}`);
+  socket.emit("initialize", initData);
 
   socket.on("newCluster", async function (clusterData, callback) {
     const channel = await Channel.findById(clusterData.target.channel);
