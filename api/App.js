@@ -8,7 +8,7 @@ import MongoStore from "connect-mongo";
 import session from "express-session";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import moment from "moment";
+// import moment from "moment";
 
 // models
 import User from "./models/User.js";
@@ -129,36 +129,26 @@ io.on("connection", async function (socket) {
 
   const initData = {};
 
-  // assign them to all rooms based on groups and channels,
-  // prepare latest 50 chat clusters for initialization
+  // forEach is not async friendly, use for of
   for (const group of userGroups) {
     // socket.join(`g:${group.id}`);
     initData[group.id] = {};
-    group.channels.text.forEach(async (channel) => {
+    for (const channel of group.channels.text) {
       socket.join(`c:${channel.id}`);
       initData[group.id][channel.id] = [];
 
       const clusters = await Message.find({ channel })
         .sort({
-          clusterTimestamp: "asc",
+          clusterTimestamp: "desc",
         })
-        .limit(50);
+        .populate({ path: "sender", select: ["userImage", "username"] })
+        .limit(20);
 
-      clusters.forEach((cluster) => {
-        initData[group.id][channel.id].push(cluster);
-      });
-    });
+      for (const cluster of await clusters) {
+        initData[group.id][channel.id].unshift(cluster);
+      }
+    }
   }
-
-  console.log(initData); // ! empty channels
-
-  // todo prepare (50 last cluster) chat data for each channel of member
-  // ! continue here, prepare chat data to initialize
-
-  // console.log(sender);
-  // console.log(userGroups);
-  // console.log(socket.id);
-  // console.log(socket.rooms);
   socket.emit("initialize", initData);
 
   socket.on("newCluster", async function (clusterData, callback) {
@@ -188,6 +178,8 @@ io.on("connection", async function (socket) {
       // .to(`c:${populatedCluster.channel._id}`)
       .to(`c:${clusterData.target.channel}`)
       .emit("newMessage", populatedCluster); // sender still gets message // solution, use socket, not io to emit
+
+    // artificial delay for testing asynchronous appends
     // setTimeout(async () => {
     //   await newMessageCluster.save();
     //   callback({
@@ -195,6 +187,7 @@ io.on("connection", async function (socket) {
     //     data: populatedCluster,
     //   });
     // }, 5000);
+
     callback({
       target: clusterData.target,
       data: populatedCluster,
