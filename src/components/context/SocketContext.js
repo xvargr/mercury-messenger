@@ -6,7 +6,7 @@ export const SocketContext = createContext();
 
 export function SocketStateProvider(props) {
   const [socket, setSocket] = useState(null);
-  const { chatData, setChatData } = useContext(DataContext);
+  const { setChatData } = useContext(DataContext);
 
   // this should only run once to avoid multiple instances of socket event listeners
   // this check avoids duplicate listeners
@@ -16,10 +16,7 @@ export function SocketStateProvider(props) {
       console.log(`connected as ${socket.id}`);
     });
 
-    socket.on("initialize", (res) => {
-      console.log("initializing messages");
-      console.log(res);
-    });
+    socket.on("initialize", (res) => setChatData(res));
 
     // new message received handler
     socket.on("newMessage", function (res) {
@@ -27,9 +24,12 @@ export function SocketStateProvider(props) {
       const notification = new Audio("/beep.mp3");
       notification.play();
 
-      const workingChatData = { ...chatData };
-      workingChatData[res.group._id][res.channel._id].push(res);
-      setChatData(workingChatData);
+      setChatData((prevData) => {
+        const dataCopy = { ...prevData };
+        dataCopy[res.group._id][res.channel._id].push(res);
+        return dataCopy;
+      });
+      // setChatData(workingChatData);
     });
 
     socket.on("appendMessage", function (res) {

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useContext } from "react";
+import { useEffect, useMemo, useRef, useContext } from "react";
 import { useParams } from "react-router-dom";
 // components
 import ChatInputBox from "../chat/ChatInputBox";
@@ -16,38 +16,31 @@ function ChatWindow() {
   const { groupMounted, chatData, setChatData } = useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
   const { socket } = useContext(SocketContext);
-  const [chatStack, setChatStack] = useState([]);
   const endStopRef = useRef();
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    // update the local chat stack on main chat data update
-    if (groupMounted) {
-      setChatStack(chatData[selectedGroup._id][selectedChannel._id]);
-      // console.table(
-      //   chatData[selectedGroup._id][selectedChannel._id][0]?.content
-      // );
-    }
-  });
+  const thisChatStack = useMemo(() => {
+    return chatData ? chatData[selectedGroup._id][selectedChannel._id] : [];
+  }, [chatData, selectedGroup, selectedChannel]);
 
   useEffect(() => {
     // scroll to bottom on every new message
-    if (endStopRef.current) endStopRef.current.scrollIntoView();
-  }, [chatStack]);
+    if (endStopRef.current) {
+      endStopRef.current.scrollIntoView();
+    }
+  }, [chatData]);
 
   function sendOut(messageData) {
     const elapsed =
-      chatStack.length > 0
-        ? Date.now() - chatStack[chatStack.length - 1].clusterTimestamp
+      thisChatStack.length > 0
+        ? Date.now() - thisChatStack[thisChatStack.length - 1].clusterTimestamp
         : 0;
 
     const lastSender =
-      chatStack.length > 0
-        ? chatStack[chatStack.length - 1].sender.username
+      thisChatStack.length > 0
+        ? thisChatStack[thisChatStack.length - 1].sender.username
         : null;
 
     const lastCluster =
-      chatStack.length > 0 ? chatStack[chatStack.length - 1] : null;
+      thisChatStack.length > 0 ? thisChatStack[thisChatStack.length - 1] : null;
 
     // new cluster if last message is more than 1 min ago or someone else messaged since
     if (elapsed > 60000 || lastSender !== localStorage.username) {
@@ -140,9 +133,7 @@ function ChatWindow() {
       }
 
       // find index of pending message
-      const pendingIndex =
-        chatData[selectedGroup._id][selectedChannel._id][clusterIndex].content
-          .length;
+      const pendingIndex = thisChatStack[clusterIndex].content.length;
 
       appendObject.target.index = pendingIndex; // for sort verification
 
@@ -202,15 +193,18 @@ function ChatWindow() {
       // todo support content other than text
       // todo support failed status
       content.forEach((message) => {
-        messageStack.push(
-          <Message
-            key={message.timestamp}
-            timestamp={message.timestamp}
-            pending={message._id ? false : true}
-          >
-            {message.text}
-          </Message>
-        );
+        // some messages can be null if asynchronously saved, so check
+        if (message) {
+          messageStack.push(
+            <Message
+              key={message.timestamp}
+              timestamp={message.timestamp}
+              pending={message._id ? false : true}
+            >
+              {message.text}
+            </Message>
+          );
+        }
       });
       return messageStack;
     }
@@ -230,7 +224,7 @@ function ChatWindow() {
     return clusterStack;
   }
 
-  if (!groupMounted) {
+  if (!groupMounted || !chatData) {
     return (
       <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">
         <ChannelBanner name={channel} />
@@ -238,7 +232,7 @@ function ChatWindow() {
         <div className="w-full flex-grow overflow-y-hidden">
           <ChatSkeletonLoader count={15} />
 
-          <ChatInputBox return={sendOut} />
+          <ChatInputBox return={null} />
         </div>
       </section>
     );
@@ -248,8 +242,8 @@ function ChatWindow() {
         <ChannelBanner name={selectedChannel.name} />
 
         <div className="w-full flex-grow overflow-y-scroll scrollbar-dark scroll-smooth">
-          {renderClusters(chatStack)}
-          <div className="w-full h-24" ref={endStopRef}></div>
+          {renderClusters(thisChatStack)}
+          <div className="w-full h-28" ref={endStopRef}></div>
           <ChatInputBox return={sendOut} />
         </div>
       </section>

@@ -41,10 +41,10 @@ function GroupBanner(props) {
   function TrayCollapsed() {
     return (
       <div
-        className="w-12 bg-gray-800 rounded-b-lg fixed top-10 flex justify-center items-center cursor-pointer"
+        className="w-12 h-3 bg-gray-800 rounded-b-lg fixed top-10 flex justify-center items-center hover:h-4 transition-all cursor-pointer group"
         onClick={expandHandler}
       >
-        <ChevronDownIcon className="h-3 w-3" />
+        <ChevronDownIcon className="h-3 w-3 text-gray-700 group-hover:text-gray-500 transition-colors" />
       </div>
     );
   }
@@ -109,7 +109,7 @@ function GroupBanner(props) {
 
   function TrayExpanded() {
     return (
-      <div className="w-1/4 px-2 py-4 bg-gray-900 text-gray-400 rounded-b-lg fixed top-10 flex flex-col justify-center items-center">
+      <div className="w-1/5 px-2 py-4 bg-gray-900 text-gray-400 rounded-b-lg fixed top-10 flex flex-col justify-center items-center">
         <InviteButton inviteLink={inviteLink} />
         {isAdmin ? <AdminOptions /> : null}
         <button
@@ -119,10 +119,10 @@ function GroupBanner(props) {
           LEAVE
         </button>
         <div
-          className="w-12 bg-gray-900 rounded-b-lg flex items-center justify-center absolute -bottom-3 cursor-pointer"
+          className="w-12 h-3 bg-gray-900 rounded-b-lg flex items-center justify-center absolute -bottom-3  hover:h-4 hover:translate-y-1 transition-all cursor-pointer group"
           onClick={expandHandler}
         >
-          <ChevronUpIcon className="h-3 w-3" />
+          <ChevronUpIcon className="h-4 w-3 text-gray-700 group-hover:text-gray-500 transition-colors" />
         </div>
       </div>
     );
