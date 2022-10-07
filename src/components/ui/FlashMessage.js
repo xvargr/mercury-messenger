@@ -19,7 +19,7 @@ export function FlashMessage(props) {
 
   useEffect(() => {
     if (props.position === 0 && fadeClass.length === 0) {
-      let selfUnmountTimer = setTimeout(() => {
+      const selfUnmountTimer = setTimeout(() => {
         setFadeClass("opacity-0 transition-opacity duration-700");
         setTimeout(() => {
           props.unmount(props.position);

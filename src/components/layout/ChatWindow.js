@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useContext } from "react";
+import { useEffect, useState, useMemo, useRef, useContext } from "react";
 import { useParams } from "react-router-dom";
 // components
 import ChatInputBox from "../chat/ChatInputBox";
@@ -16,6 +16,7 @@ function ChatWindow() {
   const { groupMounted, chatData, setChatData } = useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
   const { socket } = useContext(SocketContext);
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
   const endStopRef = useRef();
   const thisChatStack = useMemo(() => {
     return chatData ? chatData[selectedGroup._id][selectedChannel._id] : [];
@@ -28,22 +29,52 @@ function ChatWindow() {
     }
   }, [chatData]);
 
-  function sendOut(messageData) {
-    const elapsed =
-      thisChatStack.length > 0
-        ? Date.now() - thisChatStack[thisChatStack.length - 1].clusterTimestamp
-        : 0;
+  // rerender every 30 sec, for updating timestamps
+  useEffect(() => {
+    const rerenderInterval = setInterval(
+      () => setLastUpdate(Date.now()),
+      30000
+    );
+    return () => clearInterval(rerenderInterval);
+  }, [lastUpdate]);
 
-    const lastSender =
-      thisChatStack.length > 0
-        ? thisChatStack[thisChatStack.length - 1].sender.username
-        : null;
+  function sendOut(sendObj) {
+    const { messageData, meta } = sendObj;
 
-    const lastCluster =
-      thisChatStack.length > 0 ? thisChatStack[thisChatStack.length - 1] : null;
+    if (meta?.retry) {
+      // pending()
+    } else {
+      const { elapsed, lastCluster, lastSender } = getLastInfo();
+      if (elapsed > 60000 || lastSender !== localStorage.username) {
+        sendNewCluster(messageData);
+      } else if (elapsed < 60000 && lastSender === localStorage.username) {
+        sendAppendCluster({ messageData, lastCluster });
+      }
+    }
 
-    // new cluster if last message is more than 1 min ago or someone else messaged since
-    if (elapsed > 60000 || lastSender !== localStorage.username) {
+    // function pending() {}
+
+    function getLastInfo() {
+      const elapsed =
+        thisChatStack.length > 0
+          ? Date.now() -
+            thisChatStack[thisChatStack.length - 1].clusterTimestamp
+          : 0;
+
+      const lastSender =
+        thisChatStack.length > 0
+          ? thisChatStack[thisChatStack.length - 1].sender.username
+          : null;
+
+      const lastCluster =
+        thisChatStack.length > 0
+          ? thisChatStack[thisChatStack.length - 1]
+          : null;
+
+      return { elapsed, lastCluster, lastSender };
+    }
+
+    function sendNewCluster(messageData) {
       const genesisCluster = {
         target: { group: selectedGroup._id, channel: selectedChannel._id },
         data: messageData,
@@ -61,7 +92,6 @@ function ChatWindow() {
         clusterTimestamp: messageData.timestamp,
       };
 
-      // ! don't use selected context
       setChatData((prevStack) => {
         const dataCopy = { ...prevStack };
         dataCopy[selectedGroup._id][selectedChannel._id].push(pendingCluster);
@@ -99,7 +129,11 @@ function ChatWindow() {
       socket.emit("newCluster", genesisCluster, (res) => {
         clusterAcknowledged(res);
       });
-    } else if (elapsed < 60000 && lastSender === localStorage.username) {
+    }
+
+    function sendAppendCluster(input) {
+      const { messageData, lastCluster } = input;
+
       // create an object with necessary info to send to api
       const appendObject = {
         target: {
@@ -181,9 +215,9 @@ function ChatWindow() {
         appendAcknowledged(res)
       );
     }
-  }
 
-  // todo set up intervals to rerender, for updated timestamp display
+    // new cluster if last message is more than 1 min ago or someone else messaged since
+  }
 
   function renderClusters(stack) {
     const clusterStack = [];
@@ -200,6 +234,9 @@ function ChatWindow() {
               key={message.timestamp}
               timestamp={message.timestamp}
               pending={message._id ? false : true}
+              failed={true}
+              retry={null}
+              delete={null}
             >
               {message.text}
             </Message>
@@ -223,6 +260,10 @@ function ChatWindow() {
     });
     return clusterStack;
   }
+
+  // todo fetch more if scroll up
+
+  // todo back to latest button
 
   if (!groupMounted || !chatData) {
     return (
