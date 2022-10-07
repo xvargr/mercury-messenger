@@ -15,14 +15,16 @@ import User from "./models/User.js";
 import Group from "./models/Group.js";
 import Channel from "./models/Channel.js";
 import Message from "./models/Message.js";
+
 // middleware
 import ExpressError from "./utils/ExpressError.js";
+
 // routers
 import userRouter from "./router/userRouter.js";
 import groupRouter from "./router/groupRouter.js";
 import channelRouter from "./router/channelRouter.js";
 
-// global vars reassignments, env variables
+// global vars reassignments, instances, env variables
 const app = express();
 const API_PORT = 3100;
 // const SIO_PORT = 3200;
@@ -111,6 +113,8 @@ io.use(async function (socket, next) {
 
 // ? notify last message, use latest timestamp compare on user model?
 
+// todo one login at a time
+
 // socket.io events
 io.on("connection", async function (socket) {
   console.log(
@@ -149,6 +153,8 @@ io.on("connection", async function (socket) {
       }
     }
   }
+
+  // ! todo on new channel update chatData
   socket.emit("initialize", initData);
 
   socket.on("newCluster", async function (clusterData, callback) {
