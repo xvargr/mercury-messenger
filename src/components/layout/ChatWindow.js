@@ -52,6 +52,7 @@ function ChatWindow() {
       }
     }
 
+    // ! HERE, todo fails, add to chatData when new c/g is made, move to own file
     // function pending() {}
 
     function getLastInfo() {

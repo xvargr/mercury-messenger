@@ -9,9 +9,6 @@ export function DataStateProvider(props) {
   const [groupData, setGroupData] = useState(null);
   const [chatData, setChatData] = useState(null);
 
-  // * you can also put functions here and export them
-  // * push this this to array etc
-
   if (groupData && chatData === null) {
     const workingChatData = {};
 
@@ -23,6 +20,23 @@ export function DataStateProvider(props) {
       workingChatData[group._id] = chatObject;
     });
     setChatData(workingChatData);
+  }
+
+  function patchChatContext(input) {
+    const { groupId = null, channelId = null, type = null } = input;
+
+    setChatData((prevData) => {
+      const workingData = { ...prevData };
+
+      if (!channelId) throw new Error("channel id is required");
+      if (!groupId) throw new Error("group id is required");
+
+      if (type === "new") workingData[groupId] = {};
+      else if (type === "add") workingData[groupId][channelId] = [];
+      else throw new Error("type is required");
+
+      return workingData;
+    });
   }
 
   const dataState = {
