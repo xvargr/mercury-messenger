@@ -29,8 +29,8 @@ function ChannelsBar() {
   }
 
   const groupIndex = groupMounted
-    ? groupData.findIndex((data) => {
-        return data.name === selectedGroup.name;
+    ? groupData.findIndex((group) => {
+        return group.name === selectedGroup.name;
       })
     : null;
 

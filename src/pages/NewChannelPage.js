@@ -38,6 +38,10 @@ function NewChannelPage() {
       .then((res) => {
         setSelectedChannel(null);
         setGroupMounted(false);
+        // addChannel({
+        //   parent: selectedGroup,
+        //   newChannel: res.data.newChannel,
+        // });
 
         setFlashMessages(res.data.messages);
         navigate(`/g/${selectedGroup.name}`);

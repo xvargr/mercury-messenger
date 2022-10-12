@@ -125,34 +125,45 @@ io.on("connection", async function (socket) {
   );
   // todo reject if user already has a connection
 
-  // find sender and their groups in database
+  // todo add socket to room on new create
+
+  // todo broadcast changes to group and channels
+
   const sender = await User.findById(socket.request.user.id).lean();
-  const userGroups = await Group.find({ members: sender }).populate({
-    path: "channels.text",
-  });
 
-  const initData = {};
+  async function constructChatData(user) {
+    // find sender and their groups in database
+    const userGroups = await Group.find({ members: user }).populate({
+      path: "channels.text",
+    });
 
-  // forEach is not async friendly, use for of
-  for (const group of userGroups) {
-    // socket.join(`g:${group.id}`);
-    initData[group.id] = {};
-    for (const channel of group.channels.text) {
-      socket.join(`c:${channel.id}`);
-      initData[group.id][channel.id] = [];
+    const chatData = {};
 
-      const clusters = await Message.find({ channel })
-        .sort({
-          clusterTimestamp: "desc",
-        })
-        .populate({ path: "sender", select: ["userImage", "username"] })
-        .limit(20);
+    // forEach is not async friendly, use for of
+    for (const group of userGroups) {
+      socket.join(`g:${group.id}`);
+      chatData[group.id] = {};
+      for (const channel of group.channels.text) {
+        socket.join(`c:${channel.id}`);
+        chatData[group.id][channel.id] = [];
 
-      for (const cluster of await clusters) {
-        initData[group.id][channel.id].unshift(cluster);
+        const clusters = await Message.find({ channel })
+          .sort({
+            clusterTimestamp: "desc",
+          })
+          .populate({ path: "sender", select: ["userImage", "username"] })
+          .limit(20);
+
+        for (const cluster of await clusters) {
+          chatData[group.id][channel.id].unshift(cluster);
+        }
       }
     }
+
+    return chatData;
   }
+
+  const initData = await constructChatData(sender);
 
   // ! todo on new channel update chatData
   socket.emit("initialize", initData);

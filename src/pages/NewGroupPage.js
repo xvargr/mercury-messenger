@@ -39,35 +39,37 @@ function NewGroupPage() {
     axiosNewGroup
       .post("/g", newGroupData, axiosConfig)
       .then((res) => {
-        setSelectedGroup(null);
+        setSelectedGroup(res.data.newGroup);
         setSelectedChannel(null);
         setGroupMounted(false);
         setFlashMessages(res.data.messages);
+        // addGroup(res.data.newGroup);
 
-        navigate(`/g/${res.data.groupData.name}`);
+        navigate(`/g/${res.data.newGroup.name}`);
       })
       .catch((err) => {
         setAxiosCreateErr({
-          message: err.response.data.messages[0].message, // ! fis to json response format
+          message: err.response.data.messages[0].message,
         });
       });
   }
 
-  function joinGroupHandler(link) {
+  function joinGroupHandler(joinCode) {
     const axiosNewGroup = axios.create({
       baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
       withCredentials: true,
     });
 
     axiosNewGroup
-      .post(link)
+      .post(joinCode)
       .then((res) => {
-        setSelectedGroup(null);
+        setSelectedGroup(res.data.joinedGroup);
         setSelectedChannel(null);
-        setGroupMounted(false);
         setFlashMessages(res.data.messages);
+        setGroupMounted(false);
+        // addGroup(res.data.joinedGroup);
 
-        navigate(`/g/${res.data.groupData.name}`);
+        navigate(`/g/${res.data.joinedGroup.name}`);
       })
       .catch((err) => {
         console.log(err);
