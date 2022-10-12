@@ -19,8 +19,10 @@ export async function fetchGroups(req, res) {
       select: ["_id", "username", "userImage"],
     },
   ]);
-  // console.count("sending get");
-  res.json(result);
+  // ! artificial delay
+  setTimeout(() => {
+    res.json(result);
+  }, 5000);
 }
 
 export async function newGroup(req, res) {
@@ -46,7 +48,7 @@ export async function newGroup(req, res) {
   await newGroup.save();
 
   res.status(201).json({
-    groupData: newGroup,
+    newGroup: newGroup,
     messages: [{ message: "Successfully created new group", type: "success" }],
   });
 }
@@ -88,8 +90,16 @@ export async function joinWithCode(req, res) {
   group.members.push(user);
   await group.save();
 
+  await group.populate({
+    path: "channels",
+    populate: [
+      { path: "text", model: "Channel" },
+      { path: "task", model: "Channel" },
+    ],
+  });
+
   res.status(200).json({
-    groupData: group,
+    joinedGroup: group,
     messages: [{ message: "successfully joined channel", type: "success" }],
   });
 }

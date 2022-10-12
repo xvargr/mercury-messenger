@@ -18,10 +18,8 @@ export async function newChannel(req, res) {
   await newChannel.save();
   await parentGroup.save();
 
-  console.log(
-    `  > new channel "${req.body.name} made in group ${req.body.group}"`
-  );
   res.status(201).json({
+    newChannel,
     messages: [
       { message: "Successfully created new channel", type: "success" },
     ],

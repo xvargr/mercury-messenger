@@ -19,7 +19,7 @@ const userObject = {
 
 function UserPage() {
   const navigate = useNavigate();
-  const { setIsLoggedIn, setGroupData, setGroupMounted } =
+  const { setIsLoggedIn, setGroupData, setChatData, setGroupMounted } =
     useContext(DataContext);
   const { setFlashMessages } = useContext(FlashContext);
   const { socket, setSocket } = useContext(SocketContext);
@@ -53,6 +53,7 @@ function UserPage() {
         setSocket(null);
         setIsLoggedIn(false);
         setGroupData(null);
+        setChatData(null);
         setGroupMounted(false);
         navigate("/login");
       })
@@ -76,6 +77,7 @@ function UserPage() {
           setSocket(null);
           setIsLoggedIn(false);
           setGroupData(null);
+          setChatData(null);
           setGroupMounted(false);
           navigate("/login");
         })

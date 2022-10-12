@@ -18,6 +18,8 @@ export function SocketStateProvider(props) {
 
     socket.on("initialize", (res) => setChatData(res));
 
+    // socket.on("")
+
     // new message received handler
     socket.on("newMessage", function (res) {
       // todo only play when user not focused on window or not if current group/channel

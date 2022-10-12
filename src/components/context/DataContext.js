@@ -9,6 +9,7 @@ export function DataStateProvider(props) {
   const [groupData, setGroupData] = useState(null);
   const [chatData, setChatData] = useState(null);
 
+  // initialize chat data structure
   if (groupData && chatData === null) {
     const workingChatData = {};
 
@@ -22,22 +23,104 @@ export function DataStateProvider(props) {
     setChatData(workingChatData);
   }
 
-  function patchChatContext(input) {
-    const { groupId = null, channelId = null, type = null } = input;
+  // // to be used when joining or making a new group
+  // function addGroup(newGroup) {
+  //   // accepts group document
+  //   // add to groupData
+  //   setGroupData((currentData) => {
+  //     const workingData = [...currentData];
+  //     workingData.push(newGroup);
+  //     return workingData;
+  //   });
 
-    setChatData((prevData) => {
-      const workingData = { ...prevData };
+  //   // add to chatData
+  //   setChatData((currentData) => {
+  //     const workingData = { ...currentData };
+  //     workingData[newGroup._id] = {};
+  //     newGroup.channels.text.forEach(
+  //       (channel) => (workingData[newGroup._id][channel._id] = [])
+  //     );
+  //     return workingData;
+  //   });
+  // }
 
-      if (!channelId) throw new Error("channel id is required");
-      if (!groupId) throw new Error("group id is required");
+  // // to be used when creating a new channel
+  // function addChannel(params) {
+  //   const { parent, newChannel } = params;
+  //   // accept channel and parent document
+  //   // assumes parent group exists
 
-      if (type === "new") workingData[groupId] = {};
-      else if (type === "add") workingData[groupId][channelId] = [];
-      else throw new Error("type is required");
+  //   // add to groupData
+  //   setGroupData((currentData) => {
+  //     const workingData = [...currentData];
+  //     const parentIndex = workingData.findIndex(
+  //       (group) => group._id === parent._id
+  //     );
+  //     if (parentIndex === -1) throw new Error("parent does not exist");
 
-      return workingData;
-    });
-  }
+  //     workingData[parentIndex].channels.text.push(newChannel);
+
+  //     return workingData;
+  //   });
+
+  //   // add to chatData
+  //   setChatData((currentData) => {
+  //     const workingData = { ...currentData };
+
+  //     workingData[parent._id][newChannel._id] = [];
+
+  //     return workingData;
+  //   });
+  // }
+
+  // // to be used when deleting a group
+  // function removeGroup(removedGroupId) {
+  //   // accept an id string
+  //   // remove from groupData
+  //   setGroupData((currentData) => {
+  //     const workingData = [...currentData];
+  //     const index = workingData.findIndex(
+  //       (group) => group._id === removedGroupId
+  //     );
+
+  //     workingData.splice(index, 1);
+
+  //     return workingData;
+  //   });
+
+  //   // remove from chatData
+  //   setChatData((currentData) => {
+  //     const workingData = { ...currentData };
+  //     delete workingData[removedGroupId];
+  //     return workingData;
+  //   });
+  // }
+
+  // // to be used when deleting a channel
+  // function removeChannel(parentId, removedChannelId) {
+  //   // accept an id string
+  //   // remove from groupData
+  //   setGroupData((currentData) => {
+  //     const workingData = [...currentData];
+  //     const parentIndex = workingData.findIndex(
+  //       (group) => group._id === parentId
+  //     );
+  //     const channelIndex = workingData[parentIndex].channel.text.findIndex(
+  //       (channel) => channel._id === removedChannelId
+  //     );
+
+  //     workingData[parentIndex].channel.text.splice(channelIndex, 1);
+
+  //     return workingData;
+  //   });
+
+  //   // remove from chatData
+  //   setChatData((currentData) => {
+  //     const workingData = { ...currentData };
+  //     delete workingData[parentId][removedChannelId];
+  //     return workingData;
+  //   });
+  // }
 
   const dataState = {
     groupData,
@@ -48,6 +131,10 @@ export function DataStateProvider(props) {
     setIsLoggedIn,
     chatData,
     setChatData,
+    // addGroup,
+    // addChannel,
+    // removeGroup,
+    // removeChannel,
   };
 
   return (

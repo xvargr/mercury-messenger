@@ -13,47 +13,81 @@ import { SkeletonGroup } from "../ui/SkeletonLoaders";
 import { UiContext } from "../context/UiContext";
 import { DataContext } from "../context/DataContext";
 import { SocketContext } from "../context/SocketContext";
+// utility hooks
+import axiosInstance from "../../utils/axios";
 
 function GroupsBar() {
   const { group, channel } = useParams();
-  const {
-    groupData,
-    groupMounted,
-    setGroupData,
-    setGroupMounted,
-    isLoggedIn,
-    setChatData, // todo set chat data on fetch
-  } = useContext(DataContext);
+  const { groupData, groupMounted, setGroupData, setGroupMounted, isLoggedIn } =
+    useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
   const { socket, setSocket } = useContext(SocketContext);
-  const navigate = useNavigate();
+  const { fetchGroups, abortFetch /*,controller*/ } = axiosInstance();
+  // const navigate = useNavigate();
 
-  const controller = new AbortController(); // axios abort controller
+  // const controller = new AbortController(); // axios abort controller
 
-  function fetchGroups() {
-    const axiosGroupFetch = axios.create({
-      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
-      withCredentials: true,
-    });
+  // console.log(fetchGroups.AxiosRequestConfig);
+  // console.dir(fetchGroups);
+  // console.log(fetchController);
+  // debugger;
+  console.count("rerendered");
 
-    axiosRetry(axiosGroupFetch, {
-      retries: 5, // number of retries
-      retryDelay: (retryCount) => {
-        console.log(`retry attempt: ${retryCount}`);
-        return retryCount * 10000; // time interval between retries
-      },
-      retryCondition: (error) => {
-        // if retry condition is not specified, by default idempotent requests are retried
-        // return error.response.status === 503; // retry only if err 503
-        if (error.response.status === 401) navigate("/login");
-        else return true;
-        // todo retry conditions
-        // todo don't retry 401 unauthorized, reroute to login
-        // return true; // retry every time
-      },
-    });
+  const controller = new AbortController();
 
-    axiosGroupFetch.get("/g", { signal: controller.signal }).then((res) => {
+  // function fetchGroups() {
+  //   const axiosGroupFetch = axios.create({
+  //     baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
+  //     withCredentials: true,
+  //   });
+
+  //   // axiosRetry(axiosGroupFetch, {
+  //   //   retries: 5, // number of retries
+  //   //   retryDelay: (retryCount) => {
+  //   //     console.log(`retry attempt: ${retryCount}`);
+  //   //     return retryCount * 10000; // time interval between retries
+  //   //   },
+  //   //   retryCondition: (error) => {
+  //   //     // if retry condition is not specified, by default idempotent requests are retried
+  //   //     // return error.response.status === 503; // retry only if err 503
+  //   //     if (error.response.status === 401) navigate("/login");
+  //   //     else return true;
+  //   //     // todo more retry conditions
+  //   //     // return true; // retry every time
+  //   //   },
+  //   // });
+
+  //   return axiosGroupFetch.get("/g", {
+  //     signal: controller.signal,
+  //   });
+  // }
+
+  // fetchGroups().then((res) => {
+  //   const groupData = res.data;
+
+  //   if (group) {
+  //     const currentGroup = groupData.find((grp) => grp.name === group);
+  //     setSelectedGroup(currentGroup);
+  //     if (channel) {
+  //       const currentChannel = currentGroup.channels.text.find(
+  //         (chn) => chn.name === channel
+  //       );
+  //       setSelectedChannel(currentChannel);
+  //     } else setSelectedChannel(null);
+  //   } else setSelectedGroup(null);
+
+  //   setGroupMounted(true);
+  //   setGroupData(groupData);
+  // });
+  // }
+
+  if (!groupMounted && localStorage.username && isLoggedIn) {
+    fetchGroups().then((res) => {
+      // axiosGroupFetch
+      //   .get("/g", {
+      //     signal: controller.signal,
+      //   })
+      // .then((res) => {
       const groupData = res.data;
 
       if (group) {
@@ -70,9 +104,8 @@ function GroupsBar() {
       setGroupMounted(true);
       setGroupData(groupData);
     });
+    // .catch((err) => console.log(err)); // ? have to catch cancel? why?
   }
-
-  if (!groupMounted && localStorage.username && isLoggedIn) fetchGroups();
 
   useEffect(() => {
     if (groupMounted && isLoggedIn && socket === null) {
@@ -84,9 +117,15 @@ function GroupsBar() {
     }
   });
 
+  // ! abort not acknowledged
   useEffect(() => {
     return () => {
-      controller.abort(); // abort fetch on unmount
+      console.log("fetch abort ran");
+      // abortFetch(); // abort fetch on unmount
+      // console.log(controller);
+      controller.abort();
+
+      // fetchController.abort(); // abort fetch on unmount
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // abort axios request on unmount
