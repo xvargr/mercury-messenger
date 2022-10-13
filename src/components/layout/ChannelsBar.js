@@ -28,17 +28,18 @@ function ChannelsBar() {
     );
   }
 
-  const groupIndex = groupMounted
-    ? groupData.findIndex((group) => {
-        return group.name === selectedGroup.name;
-      })
-    : null;
+  const groupIndex =
+    groupMounted && selectedGroup
+      ? groupData.findIndex((group) => {
+          return group.name === selectedGroup.name;
+        })
+      : null;
 
   function channelChangeHandler(channel) {
     setSelectedChannel(channel);
   }
 
-  if (!groupMounted) {
+  if (!groupMounted || !selectedGroup) {
     return (
       <section className="bg-gray-700 h-screen w-1/4 lg:w-1/5 shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
         <GroupBanner name={group} />

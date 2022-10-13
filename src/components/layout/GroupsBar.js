@@ -1,7 +1,5 @@
 import { useContext, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import axiosRetry from "axios-retry";
+import { useParams } from "react-router-dom";
 import { io } from "socket.io-client";
 // components
 import GroupBadge from "../groups/GroupBadge";
@@ -22,90 +20,7 @@ function GroupsBar() {
     useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
   const { socket, setSocket } = useContext(SocketContext);
-  const { fetchGroups, abortFetch /*,controller*/ } = axiosInstance();
-  // const navigate = useNavigate();
-
-  // const controller = new AbortController(); // axios abort controller
-
-  // console.log(fetchGroups.AxiosRequestConfig);
-  // console.dir(fetchGroups);
-  // console.log(fetchController);
-  // debugger;
-  console.count("rerendered");
-
-  const controller = new AbortController();
-
-  // function fetchGroups() {
-  //   const axiosGroupFetch = axios.create({
-  //     baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
-  //     withCredentials: true,
-  //   });
-
-  //   // axiosRetry(axiosGroupFetch, {
-  //   //   retries: 5, // number of retries
-  //   //   retryDelay: (retryCount) => {
-  //   //     console.log(`retry attempt: ${retryCount}`);
-  //   //     return retryCount * 10000; // time interval between retries
-  //   //   },
-  //   //   retryCondition: (error) => {
-  //   //     // if retry condition is not specified, by default idempotent requests are retried
-  //   //     // return error.response.status === 503; // retry only if err 503
-  //   //     if (error.response.status === 401) navigate("/login");
-  //   //     else return true;
-  //   //     // todo more retry conditions
-  //   //     // return true; // retry every time
-  //   //   },
-  //   // });
-
-  //   return axiosGroupFetch.get("/g", {
-  //     signal: controller.signal,
-  //   });
-  // }
-
-  // fetchGroups().then((res) => {
-  //   const groupData = res.data;
-
-  //   if (group) {
-  //     const currentGroup = groupData.find((grp) => grp.name === group);
-  //     setSelectedGroup(currentGroup);
-  //     if (channel) {
-  //       const currentChannel = currentGroup.channels.text.find(
-  //         (chn) => chn.name === channel
-  //       );
-  //       setSelectedChannel(currentChannel);
-  //     } else setSelectedChannel(null);
-  //   } else setSelectedGroup(null);
-
-  //   setGroupMounted(true);
-  //   setGroupData(groupData);
-  // });
-  // }
-
-  if (!groupMounted && localStorage.username && isLoggedIn) {
-    fetchGroups().then((res) => {
-      // axiosGroupFetch
-      //   .get("/g", {
-      //     signal: controller.signal,
-      //   })
-      // .then((res) => {
-      const groupData = res.data;
-
-      if (group) {
-        const currentGroup = groupData.find((grp) => grp.name === group);
-        setSelectedGroup(currentGroup);
-        if (channel) {
-          const currentChannel = currentGroup.channels.text.find(
-            (chn) => chn.name === channel
-          );
-          setSelectedChannel(currentChannel);
-        } else setSelectedChannel(null);
-      } else setSelectedGroup(null);
-
-      setGroupMounted(true);
-      setGroupData(groupData);
-    });
-    // .catch((err) => console.log(err)); // ? have to catch cancel? why?
-  }
+  const { userGroups } = axiosInstance();
 
   useEffect(() => {
     if (groupMounted && isLoggedIn && socket === null) {
@@ -115,20 +30,37 @@ function GroupsBar() {
         })
       );
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupMounted]);
 
-  // ! abort not acknowledged
   useEffect(() => {
-    return () => {
-      console.log("fetch abort ran");
-      // abortFetch(); // abort fetch on unmount
-      // console.log(controller);
-      controller.abort();
+    if (!groupMounted && isLoggedIn) {
+      userGroups
+        .fetch()
+        .then((res) => {
+          const groupData = res.data;
 
-      // fetchController.abort(); // abort fetch on unmount
+          if (group) {
+            const currentGroup = groupData.find((grp) => grp.name === group);
+            setSelectedGroup(currentGroup);
+            if (channel) {
+              const currentChannel = currentGroup.channels.text.find(
+                (chn) => chn.name === channel
+              );
+              setSelectedChannel(currentChannel);
+            } else setSelectedChannel(null);
+          } else setSelectedGroup(null);
+
+          setGroupMounted(true);
+          setGroupData(groupData);
+        })
+        .catch((e) => e);
+    }
+    return () => {
+      userGroups.abortFetch(); // abort fetch on unmount
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // abort axios request on unmount
+  }); // abort axios request on unmount
 
   function groupChangeHandler(group) {
     setSelectedGroup(groupData.find((grp) => grp.name === group));

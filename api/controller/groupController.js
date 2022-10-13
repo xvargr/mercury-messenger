@@ -19,10 +19,7 @@ export async function fetchGroups(req, res) {
       select: ["_id", "username", "userImage"],
     },
   ]);
-  // ! artificial delay
-  setTimeout(() => {
-    res.json(result);
-  }, 5000);
+  res.json(result);
 }
 
 export async function newGroup(req, res) {

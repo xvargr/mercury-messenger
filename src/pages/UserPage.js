@@ -1,7 +1,6 @@
 import { useContext, useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PhotographIcon } from "@heroicons/react/outline";
-import axios from "axios";
 // context
 import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
@@ -11,6 +10,8 @@ import InputBox from "../components/ui/InputBox";
 import CircleButton from "../components/ui/CircleButton";
 import TextButton from "../components/ui/TextButton";
 import { DeleteUserModal } from "../components/ui/Modal";
+// utility hooks
+import axiosInstance from "../utils/axios";
 
 const userObject = {
   name: null,
@@ -31,22 +32,15 @@ function UserPage() {
   const [passwordInput, setPasswordInput] = useState("");
   const imageRef = useRef();
   const imageInputRef = useRef();
+  const { userAccount } = axiosInstance();
 
   useEffect(() => {
     imageInputRef.current.value = localStorage.username;
   }, []);
 
-  const axiosConfig = {
-    headers: { "Content-Type": "multipart/form-data" },
-  };
-  const axiosUser = axios.create({
-    baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
-    withCredentials: true,
-  });
-
   function logOutUser() {
-    axiosUser
-      .delete("/u", axiosConfig)
+    userAccount
+      .logOut()
       .then((res) => {
         localStorage.clear();
         if (socket !== null) socket.disconnect();
@@ -69,8 +63,8 @@ function UserPage() {
       const userData = new FormData();
       userData.append("password", passwordInput);
 
-      axiosUser
-        .put(`/u/${localStorage.userId}`, userData, axiosConfig)
+      userAccount
+        .delete(localStorage.userId, userData)
         .then((res) => {
           localStorage.clear();
           if (socket !== null) socket.disconnect();
@@ -98,8 +92,8 @@ function UserPage() {
     if (userObject.name) userData.append("name", userObject.name);
     if (userObject.image) userData.append("file", userObject.image);
 
-    axiosUser
-      .patch(`/u/${localStorage.userId}`, userData, axiosConfig)
+    userAccount
+      .edit(localStorage.userId, userData)
       .then((res) => {
         localStorage.setItem("username", res.data.userData.username);
         localStorage.setItem("userImage", res.data.userData.userImage);
@@ -111,6 +105,7 @@ function UserPage() {
           "userImageMedium",
           res.data.userData.userImageMedium
         );
+        setFlashMessages(res.data.messages);
 
         navigate("/");
       })
@@ -176,12 +171,7 @@ function UserPage() {
           feedback={passwordFeedback}
         />
       ) : null}
-      {/* <DeleteUserModal
-        isOpen={modalIsOpen}
-        onClick={toggleModal}
-        onSubmit={deleteUser}
-        ref={modalRef}
-      /> */}
+
       <div className="bg-gray-700 h-full w-full flex flex-col items-center justify-evenly">
         <form
           className="w-4/5 h-4/5 flex flex-col justify-center items-center"
@@ -236,7 +226,7 @@ function UserPage() {
           className="text-gray-900 hover:cursor-pointer"
           onClick={toggleModal}
         >
-          delete acc
+          delete account
         </div>
       </div>
     </>

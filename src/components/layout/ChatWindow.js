@@ -19,7 +19,9 @@ function ChatWindow() {
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const endStopRef = useRef();
   const thisChatStack = useMemo(() => {
-    return chatData ? chatData[selectedGroup._id][selectedChannel._id] : [];
+    return chatData && selectedGroup && selectedChannel
+      ? chatData[selectedGroup._id][selectedChannel._id]
+      : null;
   }, [chatData, selectedGroup, selectedChannel]);
 
   useEffect(() => {
@@ -266,7 +268,7 @@ function ChatWindow() {
 
   // todo back to latest button
 
-  if (!groupMounted || !chatData) {
+  if (!groupMounted || !thisChatStack) {
     return (
       <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">
         <ChannelBanner name={channel} />
