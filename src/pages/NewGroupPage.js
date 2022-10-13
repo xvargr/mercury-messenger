@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useContext, useState } from "react";
-import axios from "axios";
 // components
 import NewGroupForm from "../components/forms/NewGroupForm";
 import JoinByInvite from "../components/forms/JoinByInvite";
@@ -8,6 +7,8 @@ import JoinByInvite from "../components/forms/JoinByInvite";
 import { UiContext } from "../components/context/UiContext";
 import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
+// utility hooks
+import axiosInstance from "../utils/axios";
 
 function NewGroupPage() {
   const { setGroupMounted } = useContext(DataContext);
@@ -21,23 +22,16 @@ function NewGroupPage() {
     message: null,
     status: null,
   });
+  const { userGroups } = axiosInstance();
   const navigate = useNavigate();
 
   function newGroupHandler(groupObject) {
-    const axiosConfig = {
-      headers: { "Content-Type": "multipart/form-data" },
-    };
-    const axiosNewGroup = axios.create({
-      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
-      withCredentials: true,
-    });
-
     let newGroupData = new FormData();
     newGroupData.append("name", groupObject.name);
     newGroupData.append("file", groupObject.image);
 
-    axiosNewGroup
-      .post("/g", newGroupData, axiosConfig)
+    userGroups
+      .new(newGroupData)
       .then((res) => {
         setSelectedGroup(res.data.newGroup);
         setSelectedChannel(null);
@@ -55,19 +49,13 @@ function NewGroupPage() {
   }
 
   function joinGroupHandler(joinCode) {
-    const axiosNewGroup = axios.create({
-      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
-      withCredentials: true,
-    });
-
-    axiosNewGroup
-      .post(joinCode)
+    userGroups
+      .join(joinCode)
       .then((res) => {
         setSelectedGroup(res.data.joinedGroup);
         setSelectedChannel(null);
         setFlashMessages(res.data.messages);
         setGroupMounted(false);
-        // addGroup(res.data.joinedGroup);
 
         navigate(`/g/${res.data.joinedGroup.name}`);
       })

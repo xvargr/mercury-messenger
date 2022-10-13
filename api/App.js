@@ -127,7 +127,7 @@ io.on("connection", async function (socket) {
 
   // todo add socket to room on new create
 
-  // todo broadcast changes to group and channels
+  // ! todo broadcast changes to group and channels
 
   const sender = await User.findById(socket.request.user.id).lean();
 

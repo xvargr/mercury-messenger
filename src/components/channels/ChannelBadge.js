@@ -1,12 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useContext } from "react";
-import axios from "axios";
+import { useState, useContext, useEffect } from "react";
 
 import { DotsVerticalIcon, TrashIcon, XIcon } from "@heroicons/react/solid";
 
 import { DataContext } from "../context/DataContext";
 import { FlashContext } from "../context/FlashContext";
 import { UiContext } from "../context/UiContext";
+
+import axiosInstance from "../../utils/axios";
 
 function ChannelBadge(props) {
   const [isEditing, setIsEditing] = useState(false);
@@ -16,6 +17,7 @@ function ChannelBadge(props) {
   const { selectedGroup, selectedChannel } = useContext(UiContext);
   const { setFlashMessages } = useContext(FlashContext);
   const navigate = useNavigate();
+  const { userChannels } = axiosInstance();
 
   const emphasis = props.selected ? "bg-gray-600" : "hover:bg-gray-600";
 
@@ -24,15 +26,18 @@ function ChannelBadge(props) {
     props.onClick(props.data);
   }
 
+  useEffect(() => {
+    return () => {
+      userChannels.abortDelete();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function deleteChannel() {
     if (!showDialogue) setShowDialogue(true);
     else {
-      const axiosDeleteChannel = axios.create({
-        baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
-        withCredentials: true,
-      });
-      axiosDeleteChannel
-        .delete(`/c/${props.data._id}`)
+      userChannels
+        .delete(props.data._id)
         .then((res) => {
           const tempGroupData = groupData;
           const updatedGroupData = res.data.groupData;
@@ -52,19 +57,11 @@ function ChannelBadge(props) {
   function editChannel(e) {
     e.preventDefault();
 
-    const axiosConfig = {
-      headers: { "Content-Type": "multipart/form-data" },
-    };
-    const axiosEditChannel = axios.create({
-      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
-      withCredentials: true,
-    });
-
     const channelData = new FormData();
     channelData.append("name", nameField);
 
-    axiosEditChannel
-      .patch(`/c/${props.data._id}`, channelData, axiosConfig)
+    userChannels
+      .edit(props.data._id, channelData)
       .then((res) => {
         const tempGroupData = groupData;
         const channelIndex = tempGroupData[
@@ -82,7 +79,6 @@ function ChannelBadge(props) {
         navigate(`/g/${selectedGroup.name}`);
       })
       .catch((err) => {
-        console.log(err);
         setIsEditing(false);
         setShowDialogue(false);
         setFlashMessages(err.response.data.messages);

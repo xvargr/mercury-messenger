@@ -1,6 +1,5 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 // context
 import { DataContext } from "../context/DataContext";
 import { UiContext } from "../context/UiContext";
@@ -8,6 +7,8 @@ import { FlashContext } from "../context/FlashContext";
 // components
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
 import InviteButton from "../ui/InviteButton";
+// utility hooks
+import axiosInstance from "../../utils/axios";
 
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -16,10 +17,11 @@ function GroupBanner(props) {
   const { selectedGroup, setSelectedChannel, setSelectedGroup } =
     useContext(UiContext);
   const navigate = useNavigate();
+  const { userGroups } = axiosInstance();
 
   let inviteLink;
   let isAdmin;
-  if (groupMounted) {
+  if (groupMounted && selectedGroup !== null) {
     inviteLink = selectedGroup.inviteLink;
 
     isAdmin = selectedGroup.administrators.some(
@@ -50,13 +52,8 @@ function GroupBanner(props) {
   }
 
   function leaveGroup() {
-    const axiosUserLeave = axios.create({
-      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
-      withCredentials: true,
-    });
-
-    axiosUserLeave
-      .patch(`/g/${selectedGroup._id}`)
+    userGroups
+      .leave(selectedGroup._id)
       .then((res) => {
         setSelectedGroup(null);
         setSelectedChannel(null);
@@ -71,13 +68,8 @@ function GroupBanner(props) {
   }
 
   function deleteGroup() {
-    const axiosDeleteGroup = axios.create({
-      baseURL: `${window.location.protocol}//${window.location.hostname}:3100`,
-      withCredentials: true,
-    });
-
-    axiosDeleteGroup
-      .delete(`/g/${selectedGroup._id}`)
+    userGroups
+      .delete(selectedGroup._id)
       .then((res) => {
         setSelectedGroup(null);
         setSelectedChannel(null);

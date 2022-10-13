@@ -1,6 +1,5 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 import InputBox from "../components/ui/InputBox";
 import { DataContext } from "../components/context/DataContext";
@@ -8,20 +7,23 @@ import { UiContext } from "../components/context/UiContext";
 
 import CircleButton from "../components/ui/CircleButton";
 
-let userData = {
-  username: "",
-  password: "",
-  passwordCheck: "",
-};
+import axiosInstance from "../utils/axios";
 
 function LoginPage() {
   const navigate = useNavigate();
   const [inpErr, setInpErr] = useState(true);
   const [feedback, setFeedback] = useState("");
   const [buttonStatus, setButtonStatus] = useState("error");
+  const [formState, setFormState] = useState("login");
   const { setGroupMounted, setIsLoggedIn } = useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
-  const [formState, setFormState] = useState("login");
+  const [userData, setUserData] = useState({
+    username: "",
+    password: "",
+    passwordCheck: "",
+  });
+  const { userAccount } = axiosInstance();
+
   // const warnRef = useRef(null);
   useEffect(() => {
     formValidator();
@@ -71,15 +73,24 @@ function LoginPage() {
 
   function onChangeHandler(e) {
     if (e.target.id === "username") {
+      setUserData((prevData) => {
+        return { ...prevData, username: e.target.value };
+      });
       userData.username = e.target.value;
     } else if (e.target.id === "password") {
+      setUserData((prevData) => {
+        return { ...prevData, password: e.target.value };
+      });
       userData.password = e.target.value;
     } else {
+      setUserData((prevData) => {
+        return { ...prevData, passwordCheck: e.target.value };
+      });
       userData.passwordCheck = e.target.value;
     }
     formValidator();
   }
-  // console.log(`${window.location.protocol}//${window.location.hostname}:3100`);
+
   function submitHandler(e) {
     e.preventDefault();
     if (!inpErr) {
@@ -90,15 +101,8 @@ function LoginPage() {
       formData.append("username", userData.username);
       formData.append("password", userData.password);
 
-      const axiosConfig = {
-        headers: { "Content-Type": "multipart/form-data" },
-      };
-      const axiosUser = axios.create({
-        baseURL: `${window.location.protocol}//${window.location.hostname}:3100`, // ! needs to be in env?
-        withCredentials: true,
-      });
-      axiosUser
-        .post(route, formData, axiosConfig)
+      userAccount
+        .sign(route, formData)
         .then((res) => {
           setSelectedGroup(null);
           setSelectedChannel(null);

@@ -11,14 +11,12 @@ export function SocketStateProvider(props) {
   // this should only run once to avoid multiple instances of socket event listeners
   // this check avoids duplicate listeners
   if (socket && !socket._callbacks) {
-    socket.on("connect", function (/*don't redefine socket here*/) {
-      // works, "connect" not "connected"
-      console.log(`connected as ${socket.id}`);
-    });
+    // socket.on("connect", function (/*don't redefine socket here*/) {
+    //   // works, "connect" not "connected"
+    //   // console.log(`connected as ${socket.id}`);
+    // });
 
     socket.on("initialize", (res) => setChatData(res));
-
-    // socket.on("")
 
     // new message received handler
     socket.on("newMessage", function (res) {
