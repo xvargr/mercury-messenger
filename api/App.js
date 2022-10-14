@@ -169,6 +169,7 @@ io.on("connection", async function (socket) {
   socket.emit("initialize", initData);
 
   socket.on("newCluster", async function (clusterData, callback) {
+    return;
     const channel = await Channel.findById(clusterData.target.channel);
     const group = await Group.findById(clusterData.target.group);
 
@@ -212,6 +213,8 @@ io.on("connection", async function (socket) {
   });
 
   socket.on("appendCluster", async function (clusterData, callback) {
+    return;
+
     function findParent(arg) {
       let result;
       if (arg.target.cluster.id) {

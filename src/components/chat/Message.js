@@ -2,8 +2,21 @@ import { useEffect, useState } from "react";
 import { PaperAirplaneIcon, TrashIcon } from "@heroicons/react/outline";
 
 function FailedActions(props) {
-  const { retry, remove } = props;
+  const { retry, remove, failed } = props;
   const [opacity, setOpacity] = useState("");
+
+  // ! retry duplicates and breaks acknowledgement
+  function executeRetry() {
+    console.log("resend ex");
+    // debugger;
+    retry(failed);
+  }
+
+  function executeRemove() {
+    console.log("delete ex");
+    // debugger;
+    remove();
+  }
 
   useEffect(() => {
     const opacityTimer = setTimeout(() => {
@@ -23,14 +36,14 @@ function FailedActions(props) {
       </div>
       <span
         className="w-full flex rounded-l-md justify-center hover:bg-gray-400 transition-colors duration-75 group"
-        onClick={remove}
+        onClick={executeRemove}
       >
         <TrashIcon className="h-full py-0.5 text-gray-900" />
       </span>
       <span className="h-3/4 self-center outline outline-1 outline-gray-800 absolute"></span>
       <span
         className="w-full flex rounded-r-md justify-center hover:bg-gray-400 transition-colors duration-75 group"
-        onClick={retry}
+        onClick={executeRetry}
       >
         <PaperAirplaneIcon className="h-full py-0.5 text-gray-900 rotate-90" />
       </span>
@@ -48,7 +61,9 @@ function Message(props) {
       } flex justify-between items-center`}
     >
       {children}
-      {failed ? <FailedActions retry={retry} remove={remove} /> : null}
+      {failed ? (
+        <FailedActions retry={retry} remove={remove} failed={failed} />
+      ) : null}
     </div>
   );
 }
