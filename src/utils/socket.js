@@ -9,7 +9,7 @@ export default function useSocket() {
   const timeoutDuration = 5000;
 
   function sendMessage(args) {
-    const { message, target } = args;
+    const { message, target, failed } = args;
     const genesisCluster = { target, data: message };
     const pendingCluster = {
       sender: {
@@ -23,10 +23,20 @@ export default function useSocket() {
       clusterTimestamp: message.timestamp,
     };
 
-    // ! retry is pushed again and duplicated, no fails after
+    // push unsaved, non-failed cluster to message stack, failed messages property gets reset to null on retry
     setChatData((prevStack) => {
       const dataCopy = { ...prevStack };
-      dataCopy[target.group][target.channel].push(pendingCluster);
+
+      if (!failed) dataCopy[target.group][target.channel].push(pendingCluster);
+      else {
+        const clusterIndex = dataCopy[target.group][target.channel].findIndex(
+          (cluster) => cluster.clusterTimestamp === message.timestamp
+        );
+
+        dataCopy[target.group][target.channel][clusterIndex].content[0].failed =
+          null;
+      }
+
       return dataCopy;
     });
 
@@ -67,18 +77,17 @@ export default function useSocket() {
         );
 
         dataCopy[target.group][target.channel][index].content[0].failed = {
+          // was just setting {failed = res} here, that results in a circular reference that fails json.stringify in emit method
           message: { ...message },
           target: { ...target },
+          status: true,
         };
 
         return dataCopy;
       });
     }
 
-    console.log(JSON.stringify(genesisCluster)); // ! retries with arg as failed object fails as it is a circular reference
-    // console.log(args);
-    // const babe = { ...genesisCluster };
-    // console.log(JSON.stringify(babe));
+    // console.log(JSON.stringify(genesisCluster)); // emit fails with arg as failed object as it is a circular reference, fix by spread or reassigning
 
     socket
       .timeout(timeoutDuration)
@@ -90,7 +99,7 @@ export default function useSocket() {
   }
 
   function appendMessage(args) {
-    const { message, parent, target } = args;
+    const { message, parent, target, failed } = args;
 
     // create an object with necessary info to send to api
     const appendObject = {
@@ -117,21 +126,38 @@ export default function useSocket() {
           cluster.clusterTimestamp === appendObject.target.cluster.timestamp
       );
     }
+
     // find index of pending message
-    const pendingIndex =
-      chatData[target.group][target.channel][clusterIndex].content.length;
+    let pendingIndex;
+    if (!failed) {
+      pendingIndex =
+        chatData[target.group][target.channel][clusterIndex].content.length;
+    } else {
+      pendingIndex = chatData[target.group][target.channel][
+        clusterIndex
+      ].content.findIndex((content) => content.timestamp === message.timestamp);
+    }
 
     appendObject.target.index = pendingIndex; // index of message in cluster for backend parity
 
-    // update local data with temporary data
+    console.log(`client requesting append of index ${pendingIndex}`);
+
+    // update local data with temporary data, if is a retry, reset failed property
     setChatData((prevStack) => {
       const dataCopy = { ...prevStack };
 
-      const updatedCluster =
-        dataCopy[target.group][target.channel][clusterIndex];
-      updatedCluster.content.push(message);
+      if (!failed) {
+        const updatedCluster =
+          dataCopy[target.group][target.channel][clusterIndex];
+        updatedCluster.content.push(message);
 
-      dataCopy[target.group][target.channel][clusterIndex] = updatedCluster;
+        dataCopy[target.group][target.channel][clusterIndex] = updatedCluster;
+      } else {
+        console.log(dataCopy[target.group][target.channel][clusterIndex]);
+        dataCopy[target.group][target.channel][clusterIndex].content[
+          pendingIndex
+        ].failed = null;
+      }
 
       return dataCopy;
     });
@@ -171,7 +197,12 @@ export default function useSocket() {
 
         dataCopy[target.group][target.channel][clusterIndex].content[
           appendObject.target.index
-        ].failed = { ...message, ...parent, ...target };
+        ].failed = {
+          message: { ...message },
+          parent: { ...parent },
+          target: { ...target },
+          status: true,
+        };
 
         return dataCopy;
       });

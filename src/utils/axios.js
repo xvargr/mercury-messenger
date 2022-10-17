@@ -7,7 +7,7 @@ export default function useAxiosInstance() {
 
   // axios instance config
   const instanceConfig = {
-    baseURL: `${window.location.protocol}//${window.location.hostname}:3100`, // ! temporary for dev
+    baseURL: `${window.location.protocol}//${window.location.hostname}:3100`, // ! temporary
     withCredentials: true,
   };
 

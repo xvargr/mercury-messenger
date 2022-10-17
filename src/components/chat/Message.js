@@ -2,25 +2,42 @@ import { useEffect, useState } from "react";
 import { PaperAirplaneIcon, TrashIcon } from "@heroicons/react/outline";
 
 function FailedActions(props) {
-  const { retry, remove, failed } = props;
+  const retryObject = props;
+  const { genesisFailed, clusterData, actions } = retryObject;
   const [opacity, setOpacity] = useState("");
 
-  // ! retry duplicates and breaks acknowledgement
+  // ? check if parent cluster failed
+  // if so, send new cluster as retry
   function executeRetry() {
-    console.log("resend ex");
-    // debugger;
-    retry(failed);
+    if (genesisFailed) {
+      actions.sendMessage();
+    }
   }
+
+  // ? if parentCluster is acknowledged, but some messages are not sent
+  // send append cluster
+  // ? change appendCluster to accept array??
+  // ? send append signal one by one
+  // ? send new object entirely
+
+  // ! retry duplicates and breaks acknowledgement
+  // function executeRetry() {
+  //   retry({
+  //     message: failed.message,
+  //     target: failed.target,
+  //     failed: failed.status,
+  //     parent: failed.parent,
+  //   });
+  // }
 
   function executeRemove() {
     console.log("delete ex");
-    // debugger;
-    remove();
+    actions.remove();
   }
 
   useEffect(() => {
     const opacityTimer = setTimeout(() => {
-      setOpacity("opacity-0 transition-opacity duration-700"); // why does this not work? : solution, only this component must update, does not work if nested in other component
+      setOpacity("opacity-0 transition-opacity duration-700"); // why does this not work? : solution, only this component must update, does not work if nested in other component, this retry component was nested in message
     }, 2000);
     return () => {
       clearTimeout(opacityTimer);
@@ -52,7 +69,7 @@ function FailedActions(props) {
 }
 
 function Message(props) {
-  const { children, failed, pending, retry, remove } = props;
+  const { children, failed, pending, retryObject } = props;
 
   return (
     <div
@@ -61,9 +78,7 @@ function Message(props) {
       } flex justify-between items-center`}
     >
       {children}
-      {failed ? (
-        <FailedActions retry={retry} remove={remove} failed={failed} />
-      ) : null}
+      {retryObject ? <FailedActions retryObject={retryObject} /> : null}
     </div>
   );
 }

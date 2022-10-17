@@ -42,27 +42,19 @@ function ChatWindow() {
   }, [lastUpdate]);
 
   function sendOut(sendObj) {
-    const { messageData, meta } = sendObj;
-    if (meta?.retry) {
-      // pending() // todo retry
-    } else {
-      const { elapsed, lastCluster, lastSender } = getLastInfo();
-      if (elapsed > 60000 || lastSender !== localStorage.username) {
-        sendMessage({
-          message: messageData,
-          target: { group: selectedGroup._id, channel: selectedChannel._id },
-        });
-      } else if (elapsed < 60000 && lastSender === localStorage.username) {
-        appendMessage({
-          message: messageData,
-          parent: lastCluster,
-          target: { group: selectedGroup._id, channel: selectedChannel._id },
-        });
-      }
+    const { elapsed, lastCluster, lastSender } = getLastInfo();
+    if (elapsed > 60000 || lastSender !== localStorage.username) {
+      sendMessage({
+        message: sendObj,
+        target: { group: selectedGroup._id, channel: selectedChannel._id },
+      });
+    } else if (elapsed < 60000 && lastSender === localStorage.username) {
+      appendMessage({
+        message: sendObj,
+        parent: lastCluster,
+        target: { group: selectedGroup._id, channel: selectedChannel._id },
+      });
     }
-
-    // ! HERE, todo fails, add to chatData when new c/g is made, move to own file
-    // function pending() {}
 
     function getLastInfo() {
       const elapsed =
@@ -88,27 +80,71 @@ function ChatWindow() {
   function renderClusters(stack) {
     const clusterStack = [];
 
-    function renderMessages(content) {
+    function renderMessages(cluster) {
+      const content = cluster.content;
       const messageStack = [];
       // todo support content other than text
-      // todo support failed status
       let isGenesis = true;
+      const someFailed = content.some((message) => message?.failed);
+      const genesisFailed = content[0].failed;
+
+      let retryObject;
+      if (isGenesis && someFailed) {
+        retryObject = {
+          genesisFailed: genesisFailed ? true : false,
+          clusterData: cluster,
+          actions: {
+            sendMessage,
+            appendMessage,
+            remove: null,
+          },
+          // someFailed,
+        };
+      } else retryObject = null;
+
+      if (someFailed) {
+        const failIndexes = [];
+        console.log(content);
+        // debugger;
+        const failedMessages = content.filter((message) => message.failed);
+        console.log(failedMessages);
+
+        failedMessages.forEach((failedMessage) => {
+          const index = failedMessages.findIndex(
+            (message) => message.timestamp === failedMessage.timestamp
+          );
+          failIndexes.push(index);
+        });
+
+        console.log(failIndexes);
+
+        retryObject.failIndexes = failIndexes; // ! here, working on parent only retry <------!!!!
+      }
+
+      // ! only retry parent
+
       content.forEach((message) => {
-        // some messages can be null if asynchronously saved, so check
+        // some messages can be null if saved out of order, so check
         if (message) {
+          console.log("rendering message");
           messageStack.push(
             <Message
               key={message.timestamp}
               pending={message._id ? false : true}
-              failed={message.failed}
-              retry={isGenesis ? sendMessage : appendMessage}
-              remove={null}
+              failed={message.failed} // ? change to boolean
+              // retry={isGenesis ? { sendMessage, appendMessage } : null}
+              // remove={null}
+              retryObject={retryObject}
+              // isGenesis={isGenesis}
+              // genesisFailed={genesisFailed ? true : false}
+              // someFailed={someFailed}
+              // clusterData={isGenesis ? cluster : null}
             >
               {message.text}
             </Message>
           );
         }
-        isGenesis = false;
+        isGenesis = isGenesis ? false : true;
       });
       return messageStack;
     }
@@ -121,7 +157,7 @@ function ChatWindow() {
           key={cluster.clusterTimestamp}
           pending={cluster._id ? false : true}
         >
-          {renderMessages(cluster.content)}
+          {renderMessages(cluster)}
         </Sender>
       );
     });
@@ -130,7 +166,7 @@ function ChatWindow() {
 
   // todo fetch more if scroll up
 
-  // todo back to latest button
+  // todo back to current button
 
   if (!groupMounted || !thisChatStack) {
     return (
