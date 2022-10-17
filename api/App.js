@@ -168,8 +168,14 @@ io.on("connection", async function (socket) {
   // ! todo on new channel update chatData
   socket.emit("initialize", initData);
 
+  let n = 0;
   socket.on("newCluster", async function (clusterData, callback) {
+    if (n % 2 === 0) {
+      n++;
+      return;
+    }
     return;
+
     const channel = await Channel.findById(clusterData.target.channel);
     const group = await Group.findById(clusterData.target.group);
 
@@ -213,6 +219,10 @@ io.on("connection", async function (socket) {
   });
 
   socket.on("appendCluster", async function (clusterData, callback) {
+    if (n % 2 === 1) {
+      n++;
+      return;
+    }
     return;
 
     function findParent(arg) {
@@ -230,6 +240,10 @@ io.on("connection", async function (socket) {
     }
 
     let parentCluster = await findParent(clusterData);
+
+    console.log(
+      `api received append request if index ${clusterData.target.index}`
+    );
 
     // async wait for parentCluster to save
     if (!parentCluster) {

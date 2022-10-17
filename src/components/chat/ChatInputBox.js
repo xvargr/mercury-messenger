@@ -32,7 +32,7 @@ function ChatInputBox(props) {
       messageData.text = textRef.current.value;
       textRef.current.value = null;
 
-      props.return({ messageData, meta: null });
+      props.return(messageData);
     }
   }
 
