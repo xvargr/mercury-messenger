@@ -46,8 +46,17 @@ function MainWindow() {
     // setFlashMessages(messagesHelper); // if the content of an array is updated but the pointer stays the same react sees that as not a change thus will not rerender
   }
 
+  // function ReconnectingModal(params) {
+  //   return (
+  //     <div className="absolute font-bold bg-red-600">
+  //       reconnecting... // todo reconnection modal
+  //     </div>
+  //   );
+  // }
+
   return (
     <>
+      {/* <ReconnectingModal /> */}
       <FlashMessageWrapper>
         {messageStack?.map((message) => {
           const position = messageStack.indexOf(message);
