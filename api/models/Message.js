@@ -52,7 +52,6 @@ messageClusterSchema.virtual("lastMessage").get(function () {
 });
 
 messageClusterSchema.pre("validate", function () {
-  // console.log("pre validate ran");
   if (!this.clusterTimestamp) {
     this.clusterTimestamp = this.content[0].timestamp;
   }

@@ -6,7 +6,7 @@ import { SocketContext } from "../components/context/SocketContext";
 export default function useSocket() {
   const { chatData, setChatData } = useContext(DataContext);
   const { socket } = useContext(SocketContext);
-  const timeoutDuration = 5000;
+  const timeoutDuration = 7000;
 
   function sendMessage(args) {
     const { message, target, failed } = args;
@@ -140,8 +140,6 @@ export default function useSocket() {
 
     appendObject.target.index = pendingIndex; // index of message in cluster for backend parity
 
-    console.log(`client requesting append of index ${pendingIndex}`);
-
     // update local data with temporary data, if is a retry, reset failed property
     setChatData((prevStack) => {
       const dataCopy = { ...prevStack };
@@ -153,7 +151,6 @@ export default function useSocket() {
 
         dataCopy[target.group][target.channel][clusterIndex] = updatedCluster;
       } else {
-        console.log(dataCopy[target.group][target.channel][clusterIndex]);
         dataCopy[target.group][target.channel][clusterIndex].content[
           pendingIndex
         ].failed = null;
@@ -163,6 +160,8 @@ export default function useSocket() {
     });
 
     function appendAcknowledged(res) {
+      console.log("appendAcknowledged");
+      console.log(res);
       setChatData((prevStack) => {
         const dataCopy = { ...prevStack };
         const stackCopy = [...prevStack[res.target.group][res.target.channel]];
@@ -186,6 +185,8 @@ export default function useSocket() {
     }
 
     function appendTimedOut() {
+      console.log("appendTimedOut");
+      // console.log(res)
       setChatData((prevStack) => {
         const dataCopy = { ...prevStack };
         const stackCopy = [...prevStack[target.group][target.channel]];
@@ -211,10 +212,19 @@ export default function useSocket() {
     socket
       .timeout(timeoutDuration)
       .emit("appendCluster", appendObject, (err, res) => {
-        if (err) appendTimedOut();
+        console.log("err", err);
+        console.log("res", res); // ! sometimes api sends failed to save as res instead of err
+        if (err || res.failed)
+          appendTimedOut(); // ? append fails and responded so is still considered a response, not err
         else appendAcknowledged(res);
       });
   }
+
+  // todo
+  // test messages and retries on multiple clients
+  // one instance of user connection only
+  // move to own file and cleanup/refactoring
+  // reconnection modal
 
   return {
     sendMessage,

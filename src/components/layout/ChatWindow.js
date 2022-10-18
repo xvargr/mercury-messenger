@@ -77,74 +77,52 @@ function ChatWindow() {
     }
   }
 
+  // renders every cluster in the current chat
   function renderClusters(stack) {
     const clusterStack = [];
 
+    // renders the sender/cluster wrapper
     function renderMessages(cluster) {
+      // todo support content other than text
       const content = cluster.content;
       const messageStack = [];
-      // todo support content other than text
-      let isGenesis = true;
       const someFailed = content.some((message) => message?.failed);
-      const genesisFailed = content[0].failed;
+      let isGenesis = true;
+      let retryObject = null;
 
-      let retryObject;
-      if (isGenesis && someFailed) {
+      // creates object with all necessary information for a retry if any failed
+      if (someFailed) {
         retryObject = {
-          genesisFailed: genesisFailed ? true : false,
+          // genesisFailed: content[0].failed ? true : false,
           clusterData: cluster,
           actions: {
             sendMessage,
             appendMessage,
             remove: null,
           },
-          // someFailed,
+          failedIndex: content.reduce((result, message, index) => {
+            if (message.failed) result.push(index);
+            return result;
+          }, []),
         };
-      } else retryObject = null;
-
-      if (someFailed) {
-        const failIndexes = [];
-        console.log(content);
-        // debugger;
-        const failedMessages = content.filter((message) => message.failed);
-        console.log(failedMessages);
-
-        failedMessages.forEach((failedMessage) => {
-          const index = failedMessages.findIndex(
-            (message) => message.timestamp === failedMessage.timestamp
-          );
-          failIndexes.push(index);
-        });
-
-        console.log(failIndexes);
-
-        retryObject.failIndexes = failIndexes; // ! here, working on parent only retry <------!!!!
       }
 
-      // ! only retry parent
-
+      // renders the individual messages in the cluster
       content.forEach((message) => {
         // some messages can be null if saved out of order, so check
         if (message) {
-          console.log("rendering message");
           messageStack.push(
             <Message
               key={message.timestamp}
               pending={message._id ? false : true}
-              failed={message.failed} // ? change to boolean
-              // retry={isGenesis ? { sendMessage, appendMessage } : null}
-              // remove={null}
-              retryObject={retryObject}
-              // isGenesis={isGenesis}
-              // genesisFailed={genesisFailed ? true : false}
-              // someFailed={someFailed}
-              // clusterData={isGenesis ? cluster : null}
+              failed={message.failed} // indicates fails on messages
+              retryObject={isGenesis ? retryObject : null} // enables retry actions on genesis message if any child failed
             >
               {message.text}
             </Message>
           );
         }
-        isGenesis = isGenesis ? false : true;
+        if (isGenesis) isGenesis = false;
       });
       return messageStack;
     }

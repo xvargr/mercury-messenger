@@ -1,35 +1,35 @@
 import { useEffect, useState } from "react";
-import { PaperAirplaneIcon, TrashIcon } from "@heroicons/react/outline";
+import {
+  PaperAirplaneIcon,
+  TrashIcon,
+  ExclamationCircleIcon,
+} from "@heroicons/react/outline";
 
 function FailedActions(props) {
-  const retryObject = props;
-  const { genesisFailed, clusterData, actions } = retryObject;
+  const { clusterData, actions, failedIndex } = props.retryObject;
+  const content = clusterData.content;
   const [opacity, setOpacity] = useState("");
 
-  // ? check if parent cluster failed
-  // if so, send new cluster as retry
   function executeRetry() {
-    if (genesisFailed) {
-      actions.sendMessage();
-    }
+    failedIndex.forEach((index) => {
+      const { message, target, status, parent } = content[index].failed;
+      if (index === 0)
+        actions.sendMessage({
+          message: { ...message },
+          target: { ...target },
+          failed: status,
+        });
+      else
+        actions.appendMessage({
+          message: { ...message },
+          target: { ...target },
+          parent: { ...parent },
+          failed: status,
+        });
+    });
   }
 
-  // ? if parentCluster is acknowledged, but some messages are not sent
-  // send append cluster
-  // ? change appendCluster to accept array??
-  // ? send append signal one by one
-  // ? send new object entirely
-
-  // ! retry duplicates and breaks acknowledgement
-  // function executeRetry() {
-  //   retry({
-  //     message: failed.message,
-  //     target: failed.target,
-  //     failed: failed.status,
-  //     parent: failed.parent,
-  //   });
-  // }
-
+  // todo deletion
   function executeRemove() {
     console.log("delete ex");
     actions.remove();
@@ -45,7 +45,9 @@ function FailedActions(props) {
   });
 
   return (
-    <div className="bg-gray-500 shadow-md w-1/6 max-w-[9rem] h-6 max-h-6 m-0.5 rounded-md flex justify-around shrink-0 self-baseline relative cursor-pointer">
+    <div
+      className={`bg-gray-500 shadow-md w-1/6 max-w-[9rem] h-6 max-h-6 m-0.5 rounded-md flex justify-around shrink-0 self-baseline relative cursor-pointer ${props.className}`}
+    >
       <div
         className={`w-full h-full bg-mexican-red-400 text-center rounded-md font-semibold absolute z-10 pointer-events-none ${opacity}`}
       >
@@ -78,7 +80,14 @@ function Message(props) {
       } flex justify-between items-center`}
     >
       {children}
-      {retryObject ? <FailedActions retryObject={retryObject} /> : null}
+      {retryObject ? (
+        <FailedActions
+          retryObject={retryObject}
+          className={pending || failed ? null : "opacity-50"}
+        />
+      ) : failed ? (
+        <ExclamationCircleIcon className="h-6 text-mexican-red-600" />
+      ) : null}
     </div>
   );
 }

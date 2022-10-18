@@ -91,6 +91,9 @@ app.use("/u", userRouter);
 app.use("/g", groupRouter);
 app.use("/c", channelRouter);
 
+// currently connected users via socket.io, used to prevent multiple connections
+// const socketUsers = [] // todo
+
 // socket.io middleware
 const wrap = (middleware) => (socket, next) => {
   middleware(socket.request, {}, next);
@@ -170,11 +173,11 @@ io.on("connection", async function (socket) {
 
   let n = 0;
   socket.on("newCluster", async function (clusterData, callback) {
+    console.log("received new message request");
     if (n % 2 === 0) {
       n++;
       return;
     }
-    return;
 
     const channel = await Channel.findById(clusterData.target.channel);
     const group = await Group.findById(clusterData.target.group);
@@ -219,38 +222,53 @@ io.on("connection", async function (socket) {
   });
 
   socket.on("appendCluster", async function (clusterData, callback) {
-    if (n % 2 === 1) {
+    console.log(`received append request of index ${clusterData.target.index}`);
+    if (n % 2 === 0) {
       n++;
       return;
     }
-    return;
 
-    function findParent(arg) {
+    async function findParent(arg) {
       let result;
       if (arg.target.cluster.id) {
-        result = Message.findById(arg.target.cluster.id);
+        result = await Message.findById(arg.target.cluster.id);
       } else if (arg.target.cluster.timestamp) {
-        result = Message.findOne({
+        result = await Message.findOne({
           clusterTimestamp: arg.target.cluster.timestamp,
         });
       } else {
         throw new Error("an id or timestamp is required");
       }
-      return result;
+
+      // if (result) {
+      //   if (result.__v === arg.target.index - 1) {
+      //     console.log("accepting");
+      //     return result;
+      //   } else {
+      //     console.log("rejecting");
+      //     return null;
+      //   }
+      // }
+
+      if (result?.__v === arg.target.index - 1) return result;
+      else return null;
     }
 
-    let parentCluster = await findParent(clusterData);
+    let parentCluster = await findParent(clusterData, true);
 
-    console.log(
-      `api received append request if index ${clusterData.target.index}`
-    );
+    // let retries = 1
+    // while (!parentCluster && retries <= 3) {
+
+    //   retries++
+    // }
 
     // async wait for parentCluster to save
     if (!parentCluster) {
       let retries = 0;
       const waitForParent = setInterval(async () => {
-        parentCluster = await findParent(clusterData);
+        parentCluster = await findParent(clusterData, true);
         if (parentCluster) {
+          console.log(parentCluster.__v);
           clearInterval(waitForParent);
           parentCluster.append(clusterData);
           socket.to(`c:${parentCluster.channel}`).emit("appendMessage", {
@@ -263,6 +281,9 @@ io.on("connection", async function (socket) {
             },
             data: parentCluster.content[clusterData.target.index],
           }); // sender still gets message // solution, use socket, not io to emit
+          console.log(
+            `append request of index ${clusterData.target.index} saved after ${retries} retries`
+          );
           callback({
             target: {
               ...clusterData.target,
@@ -277,18 +298,44 @@ io.on("connection", async function (socket) {
 
         retries++;
         if (retries >= 3) {
+          console.log(
+            `append request of index ${clusterData.target.index} failed to save`
+          );
+
           clearInterval(waitForParent);
           callback({
             failed: clusterData.content.timestamp,
             target: {
               ...clusterData.target,
-              cluster: { id: parentCluster._id },
+              // cluster: { id: parentCluster._id }, // if made it here then parentCluster is null
             },
           });
         }
       }, 2000);
+      // } else if (parentCluster.__v !== clusterData.target.index) {
     } else {
+      console.log(
+        `append request of index ${clusterData.target.index} saved on first try`
+      );
+
+      console.log(parentCluster.__v);
+
+      // if (parentCluster.__v !== clusterData.target.index) {
+
+      // }
+
+      // while (parentCluster.__v !== clusterData.target.index) {
+      //   console.log("index does not match, waiting")
+      //   setTimeout(async () => {
+
+      //     parentCluster = await findParent(clusterData);
+      //   }, 750);
+      // }
+
       parentCluster.append(clusterData);
+
+      console.log(parentCluster.__v);
+
       socket.to(`c:${parentCluster.channel}`).emit("appendMessage", {
         target: {
           ...clusterData.target,
