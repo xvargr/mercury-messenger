@@ -33,11 +33,11 @@ export default function useAxiosInstance() {
   // retry config
   const infiniteRetry = {
     retries: Infinity, // number of retries
-    retryDelay: 5000, // accepts a function, has retryCount passed to it, must return a number
+    retryDelay: () => 5000, // accepts a function, has retryCount passed to it, must return a number
   };
   const threeRetries = {
     retries: 3, // number of retries
-    retryDelay: 10000, // accepts a function, has retryCount passed to it, must return a number
+    retryDelay: () => 5000, // accepts a function, has retryCount passed to it, must return a number
   };
 
   // retry conditions

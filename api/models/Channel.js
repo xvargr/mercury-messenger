@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import Message from "./Message.js";
 
-const channelSchema = new mongoose.Schema({
+const ChannelSchema = new mongoose.Schema({
   name: {
     type: String,
     trim: true,
@@ -8,6 +9,14 @@ const channelSchema = new mongoose.Schema({
   },
   type: { type: String, enum: ["text", "task"], required: true },
 });
-const Channel = mongoose.model("Channel", channelSchema);
+
+ChannelSchema.pre("remove", async function (next) {
+  // delete messages associated with channel
+  await Message.deleteMany({ channel: this });
+
+  next();
+});
+
+const Channel = mongoose.model("Channel", ChannelSchema);
 
 export default Channel;

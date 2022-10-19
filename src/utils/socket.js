@@ -212,16 +212,14 @@ export default function useSocket() {
     socket
       .timeout(timeoutDuration)
       .emit("appendCluster", appendObject, (err, res) => {
-        console.log("err", err);
-        console.log("res", res); // ! sometimes api sends failed to save as res instead of err
         if (err || res.failed)
-          appendTimedOut(); // ? append fails and responded so is still considered a response, not err
+          appendTimedOut(); // handle err if append fails on backend with res.failed in addition to timeout
         else appendAcknowledged(res);
       });
   }
 
   // todo
-  // test messages and retries on multiple clients
+  // test messages and retries on multiple clients // done :)
   // one instance of user connection only
   // move to own file and cleanup/refactoring
   // reconnection modal

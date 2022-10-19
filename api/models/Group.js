@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 import Channel from "./Channel.js";
+import Message from "./Message.js";
 
 const options = {
   toObject: { virtuals: true },
@@ -73,12 +74,17 @@ GroupSchema.pre("remove", async function (next) {
 
   const channelsArr = [...textArr, ...taskArr];
 
-  // ? cast error here may be caused by the group not populating necessary fields
+  // message cleanup is needed here as well as deleting channels using preRemove does not triggers channel preRemove hook
+  await Message.deleteMany({
+    channel: { $in: channelsArr },
+  });
+
+  // if you got a cast error here may be caused by the group not populating necessary fields
   await Channel.deleteMany({
     _id: { $in: channelsArr },
   });
+
   next();
-  // todo delete messages in channels? pre channel delete middleware?
 });
 // post save check if empty
 GroupSchema.post("save", async function () {

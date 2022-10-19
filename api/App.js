@@ -7,14 +7,10 @@ import passport from "./utils/passportDefine.js";
 import MongoStore from "connect-mongo";
 import session from "express-session";
 import { createServer } from "http";
-import { Server } from "socket.io";
-// import moment from "moment";
+import socket from "./utils/socket.js";
 
 // models
 import User from "./models/User.js";
-import Group from "./models/Group.js";
-import Channel from "./models/Channel.js";
-import Message from "./models/Message.js";
 
 // middleware
 import ExpressError from "./utils/ExpressError.js";
@@ -27,16 +23,11 @@ import channelRouter from "./router/channelRouter.js";
 // global vars reassignments, instances, env variables
 const app = express();
 const API_PORT = 3100;
-// const SIO_PORT = 3200;
 const DOMAIN = process.env.APP_DOMAIN;
 const httpServer = createServer(app); // create a server for express, need this to reuse server instance for socket.io
-const io = new Server(httpServer, {
-  cors: {
-    origin: [DOMAIN, "http://192.168.0.237:3000"],
-    credentials: true,
-  },
-  serveClient: false,
-}); // pass the created server to socket
+
+socket.connectServer(httpServer); // pass the created server to socket
+// const io = socket.io;
 
 // mongoDB connection
 const db = mongoose.connection;
@@ -91,275 +82,18 @@ app.use("/u", userRouter);
 app.use("/g", groupRouter);
 app.use("/c", channelRouter);
 
-// currently connected users via socket.io, used to prevent multiple connections
-// const socketUsers = [] // todo
-
 // socket.io middleware
 const wrap = (middleware) => (socket, next) => {
   middleware(socket.request, {}, next);
 }; // wrapper function for socket.io, to enable the use of express middleware
 
-// wraps passport middleware, gives access to passport user object in socket connections
-io.use(wrap(sessionSettings));
-io.use(wrap(passport.initialize()));
-io.use(wrap(passport.session()));
+// wraps passport middleware, gives access to passport user object in socket connections for authentication
+socket.io.use(wrap(sessionSettings));
+socket.io.use(wrap(passport.initialize()));
+socket.io.use(wrap(passport.session()));
 
-// socket auth middleware
-io.use(async function (socket, next) {
-  if (socket.request.isAuthenticated()) {
-    next();
-  } else {
-    const err = new ExpressError("Unauthorized", 401);
-    next(err); // refuse connection
-  }
-});
-
-// ? notify last message, use latest timestamp compare on user model?
-
-// todo one login at a time
-
-// socket.io events
-io.on("connection", async function (socket) {
-  console.log(
-    "user connected, ID:",
-    socket.id,
-    " username: ",
-    socket.request.user.username
-  );
-  // todo reject if user already has a connection
-
-  // todo add socket to room on new create
-
-  // ! todo broadcast changes to group and channels
-
-  const sender = await User.findById(socket.request.user.id).lean();
-
-  async function constructChatData(user) {
-    // find sender and their groups in database
-    const userGroups = await Group.find({ members: user }).populate({
-      path: "channels.text",
-    });
-
-    const chatData = {};
-
-    // forEach is not async friendly, use for of
-    for (const group of userGroups) {
-      socket.join(`g:${group.id}`);
-      chatData[group.id] = {};
-      for (const channel of group.channels.text) {
-        socket.join(`c:${channel.id}`);
-        chatData[group.id][channel.id] = [];
-
-        const clusters = await Message.find({ channel })
-          .sort({
-            clusterTimestamp: "desc",
-          })
-          .populate({ path: "sender", select: ["userImage", "username"] })
-          .limit(20);
-
-        for (const cluster of await clusters) {
-          chatData[group.id][channel.id].unshift(cluster);
-        }
-      }
-    }
-
-    return chatData;
-  }
-
-  const initData = await constructChatData(sender);
-
-  // ! todo on new channel update chatData
-  socket.emit("initialize", initData);
-
-  let n = 0;
-  socket.on("newCluster", async function (clusterData, callback) {
-    console.log("received new message request");
-    if (n % 2 === 0) {
-      n++;
-      return;
-    }
-
-    const channel = await Channel.findById(clusterData.target.channel);
-    const group = await Group.findById(clusterData.target.group);
-
-    const newMessageCluster = new Message({
-      sender,
-      channel,
-      group,
-      content: [clusterData.data],
-    });
-
-    await newMessageCluster.save();
-
-    const populatedCluster = await newMessageCluster.populate([
-      {
-        path: "sender",
-        select: ["username"],
-        populate: { path: "userImage" },
-      },
-      { path: "group", select: ["name"] },
-      { path: "content" },
-    ]);
-
-    socket
-      // .to(`c:${populatedCluster.channel._id}`)
-      .to(`c:${clusterData.target.channel}`)
-      .emit("newMessage", populatedCluster); // sender still gets message // solution, use socket, not io to emit
-
-    // artificial delay for testing asynchronous appends
-    // setTimeout(async () => {
-    //   await newMessageCluster.save();
-    //   callback({
-    //     target: clusterData.target,
-    //     data: populatedCluster,
-    //   });
-    // }, 5000);
-
-    callback({
-      target: clusterData.target,
-      data: populatedCluster,
-    });
-  });
-
-  socket.on("appendCluster", async function (clusterData, callback) {
-    console.log(`received append request of index ${clusterData.target.index}`);
-    if (n % 2 === 0) {
-      n++;
-      return;
-    }
-
-    async function findParent(arg) {
-      let result;
-      if (arg.target.cluster.id) {
-        result = await Message.findById(arg.target.cluster.id);
-      } else if (arg.target.cluster.timestamp) {
-        result = await Message.findOne({
-          clusterTimestamp: arg.target.cluster.timestamp,
-        });
-      } else {
-        throw new Error("an id or timestamp is required");
-      }
-
-      // if (result) {
-      //   if (result.__v === arg.target.index - 1) {
-      //     console.log("accepting");
-      //     return result;
-      //   } else {
-      //     console.log("rejecting");
-      //     return null;
-      //   }
-      // }
-
-      if (result?.__v === arg.target.index - 1) return result;
-      else return null;
-    }
-
-    let parentCluster = await findParent(clusterData, true);
-
-    // let retries = 1
-    // while (!parentCluster && retries <= 3) {
-
-    //   retries++
-    // }
-
-    // async wait for parentCluster to save
-    if (!parentCluster) {
-      let retries = 0;
-      const waitForParent = setInterval(async () => {
-        parentCluster = await findParent(clusterData, true);
-        if (parentCluster) {
-          console.log(parentCluster.__v);
-          clearInterval(waitForParent);
-          parentCluster.append(clusterData);
-          socket.to(`c:${parentCluster.channel}`).emit("appendMessage", {
-            target: {
-              ...clusterData.target,
-              cluster: {
-                timestamp: clusterData.target.cluster.timestamp,
-                id: parentCluster._id,
-              },
-            },
-            data: parentCluster.content[clusterData.target.index],
-          }); // sender still gets message // solution, use socket, not io to emit
-          console.log(
-            `append request of index ${clusterData.target.index} saved after ${retries} retries`
-          );
-          callback({
-            target: {
-              ...clusterData.target,
-              cluster: {
-                timestamp: clusterData.target.cluster.timestamp,
-                id: parentCluster._id,
-              },
-            },
-            data: parentCluster.content[clusterData.target.index],
-          });
-        }
-
-        retries++;
-        if (retries >= 3) {
-          console.log(
-            `append request of index ${clusterData.target.index} failed to save`
-          );
-
-          clearInterval(waitForParent);
-          callback({
-            failed: clusterData.content.timestamp,
-            target: {
-              ...clusterData.target,
-              // cluster: { id: parentCluster._id }, // if made it here then parentCluster is null
-            },
-          });
-        }
-      }, 2000);
-      // } else if (parentCluster.__v !== clusterData.target.index) {
-    } else {
-      console.log(
-        `append request of index ${clusterData.target.index} saved on first try`
-      );
-
-      console.log(parentCluster.__v);
-
-      // if (parentCluster.__v !== clusterData.target.index) {
-
-      // }
-
-      // while (parentCluster.__v !== clusterData.target.index) {
-      //   console.log("index does not match, waiting")
-      //   setTimeout(async () => {
-
-      //     parentCluster = await findParent(clusterData);
-      //   }, 750);
-      // }
-
-      parentCluster.append(clusterData);
-
-      console.log(parentCluster.__v);
-
-      socket.to(`c:${parentCluster.channel}`).emit("appendMessage", {
-        target: {
-          ...clusterData.target,
-          cluster: {
-            timestamp: clusterData.target.cluster.timestamp,
-            id: parentCluster._id,
-          },
-        },
-        data: parentCluster.content[clusterData.target.index],
-      }); // sender still gets message // solution, use socket, not io to emit
-      callback({
-        target: {
-          ...clusterData.target,
-          cluster: { id: parentCluster._id },
-        },
-        data: parentCluster.content[clusterData.target.index],
-      });
-    }
-  });
-
-  socket.on("disconnect", function () {
-    console.log("user disconnected");
-  });
-});
+// initialize socket events
+socket.initialize();
 
 // 404 catch
 app.all("*", function (req, res, next) {
@@ -381,6 +115,7 @@ app.use(function (err, req, res, next) {
 // app.listen(API_PORT, () => {
 //   console.log(`--> Mercury api listening on port ${API_PORT}`);
 // }); // this is express' server, below we created our own with both express and socket on it
+
 httpServer.listen(API_PORT, () =>
   console.log(`--> Mercury api listening on port ${API_PORT}`)
 );
