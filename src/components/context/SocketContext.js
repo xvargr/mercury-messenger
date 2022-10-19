@@ -13,8 +13,10 @@ export function SocketStateProvider(props) {
   if (socket && !socket._callbacks) {
     // socket.on("connect", function (/*don't redefine socket here*/) {
     //   // works, "connect" not "connected"
-    //   // console.log(`connected as ${socket.id}`);
+    //   console.log(`connected as ${socket.id}`);
     // });
+
+    // socket.on("error", (err) => console.log(err));
 
     socket.on("initialize", (res) => setChatData(res));
 
