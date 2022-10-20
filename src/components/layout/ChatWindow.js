@@ -1,20 +1,23 @@
 import { useEffect, useState, useMemo, useRef, useContext } from "react";
 import { useParams } from "react-router-dom";
+
 // components
 import ChatInputBox from "../chat/ChatInputBox";
 import ChannelBanner from "../chat/ChatBanner";
 import Sender from "../chat/SenderWrapper";
 import Message from "../chat/Message";
+
 // context
 import { DataContext } from "../context/DataContext";
 import { UiContext } from "../context/UiContext";
 import { ChatSkeletonLoader } from "../ui/SkeletonLoaders";
+
 // utility hooks
 import useSocket from "../../utils/socket";
 
 function ChatWindow() {
   const { channel } = useParams();
-  const { groupMounted, chatData /*, setChatData*/ } = useContext(DataContext);
+  const { groupMounted, chatData } = useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
   const { sendMessage, appendMessage } = useSocket();
   const [lastUpdate, setLastUpdate] = useState(Date.now());
@@ -25,8 +28,8 @@ function ChatWindow() {
       : null;
   }, [chatData, selectedGroup, selectedChannel]);
 
+  // scroll to bottom on every new message
   useEffect(() => {
-    // scroll to bottom on every new message
     if (endStopRef.current) {
       endStopRef.current.scrollIntoView();
     }
@@ -42,18 +45,20 @@ function ChatWindow() {
   }, [lastUpdate]);
 
   function sendOut(sendObj) {
-    const { elapsed, lastCluster, lastSender } = getLastInfo();
-    if (elapsed > 60000 || lastSender !== localStorage.username) {
-      sendMessage({
-        message: sendObj,
-        target: { group: selectedGroup._id, channel: selectedChannel._id },
-      });
-    } else if (elapsed < 60000 && lastSender === localStorage.username) {
-      appendMessage({
-        message: sendObj,
-        parent: lastCluster,
-        target: { group: selectedGroup._id, channel: selectedChannel._id },
-      });
+    if (groupMounted) {
+      const { elapsed, lastCluster, lastSender } = getLastInfo();
+      if (elapsed > 60000 || lastSender !== localStorage.username) {
+        sendMessage({
+          message: sendObj,
+          target: { group: selectedGroup._id, channel: selectedChannel._id },
+        });
+      } else if (elapsed < 60000 && lastSender === localStorage.username) {
+        appendMessage({
+          message: sendObj,
+          parent: lastCluster,
+          target: { group: selectedGroup._id, channel: selectedChannel._id },
+        });
+      }
     }
 
     function getLastInfo() {

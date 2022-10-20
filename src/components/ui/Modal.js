@@ -1,8 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { XIcon } from "@heroicons/react/outline";
 import InputBox from "./InputBox";
+import Dots from "../ui/Dots";
 
-export const DeleteUserModal = (props) => {
+export function DeleteUserModal(props) {
   const { toggle, onSubmit, feedback } = props;
   const modalRef = useRef();
 
@@ -13,8 +14,6 @@ export const DeleteUserModal = (props) => {
   function sendBack(e) {
     props.sendBack(e.target.value);
   }
-
-  //   console.log(props.feedback);
 
   return (
     <div
@@ -54,4 +53,32 @@ export const DeleteUserModal = (props) => {
       </div>
     </div>
   );
-};
+}
+
+export function ReconnectingModal(params) {
+  const { isReconnecting } = params;
+  const [transform, setTransform] = useState("-translate-y-12");
+
+  useEffect(() => {
+    if (isReconnecting) {
+      setTimeout(() => {
+        setTransform("translate-y-0");
+      }, 75);
+    } else {
+      setTimeout(() => {
+        setTransform("-translate-y-12");
+      }, 75);
+    }
+  }, [isReconnecting]);
+
+  return (
+    <div
+      className={`absolute justify-self-center justify-around font-bold bg-gray-500 text-gray-900 h-12 w-2/5 max-w-2xl p-1 rounded-b-md shadow-md transition-transform ease-out transform ${transform} z-50`}
+    >
+      <span className="h-full w-full flex justify-center items-center">
+        reconnecting
+        <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-700" />
+      </span>
+    </div>
+  );
+}

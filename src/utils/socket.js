@@ -218,14 +218,14 @@ export default function useSocket() {
       });
   }
 
-  // todo
-  // test messages and retries on multiple clients // done :)
-  // one instance of user connection only
-  // move to own file and cleanup/refactoring
-  // reconnection modal
+  function broadcastChange(data) {
+    console.log(data);
+    socket.emit("structureChange", data); // ! <-- here
+  }
 
   return {
     sendMessage,
     appendMessage,
+    broadcastChange,
   };
 }
