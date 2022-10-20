@@ -150,7 +150,9 @@ function UserPage() {
       setPasswordFeedback(null);
     } else if (
       e.type === "click" &&
-      (e.target.id === "modalBackground" || e.target.id === "modalCloseButton")
+      (e.target.id === "modalBackground" ||
+        e.target.id === "modalCloseButton" ||
+        e.target.parentElement.id === "modalCloseButton")
     ) {
       setModalIsOpen(false);
       setPasswordFeedback(null);

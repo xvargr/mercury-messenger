@@ -26,6 +26,17 @@ module.exports = {
           900: "#2E0C16",
         },
       },
+      animation: {
+        pulseIndefinitely0: "slowPulse 3s ease-in-out infinite",
+        pulseIndefinitely1: "slowPulse 3s ease-in-out infinite 1s",
+        pulseIndefinitely2: "slowPulse 3s ease-in-out infinite 2s",
+      },
+      keyframes: {
+        slowPulse: {
+          "0%, 100%": { opacity: 1 },
+          "50%": { opacity: 0.3 },
+        },
+      },
     },
   },
   plugins: [],

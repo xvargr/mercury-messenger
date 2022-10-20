@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage";
 import ChatWindow from "./components/layout/ChatWindow";
 import ChannelsBar from "./components/layout/ChannelsBar";
 import HomeWindow from "./components/layout/HomeWindow";
+import ChannelIndex from "./components/layout/ChannelIndex";
 
 // import context
 import { UiStateProvider } from "./components/context/UiContext";
@@ -20,7 +21,7 @@ import { SocketStateProvider } from "./components/context/SocketContext";
 
 function App() {
   return (
-    <main className="flex h-screen w-screen">
+    <main className="flex justify-center h-screen w-screen">
       <DataStateProvider>
         <SocketStateProvider>
           <FlashStateProvider>
@@ -41,7 +42,7 @@ function App() {
                         </>
                       }
                     >
-                      <Route index element={"Channel index"} />
+                      <Route index element={<ChannelIndex />} />
                       <Route path="c">
                         <Route path="new" element={<NewChannelPage />} />
                         <Route path=":channel" element={<ChatWindow />} />

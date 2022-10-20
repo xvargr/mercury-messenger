@@ -3,6 +3,13 @@ import moment from "moment/moment";
 function Sender(props) {
   const { sender, children, timestamp, pending } = props;
 
+  let timeText;
+  if (timestamp > Date.now() || Date.now() - timestamp < 30000) {
+    timeText = "just now";
+  } else if (Date.now() - timestamp < 1.8e6) {
+    timeText = moment(timestamp).fromNow();
+  } else timeText = moment(timestamp).calendar();
+
   let emphasis;
   if (props.type === "mention") {
     emphasis = "bg-amber-500";
@@ -31,7 +38,9 @@ function Sender(props) {
               {sender.username}
             </span>
             <span className="text-sm opacity-60">
-              {moment(timestamp).fromNow()}
+              {/* {moment(timestamp).calendar()} */}
+              {/* {moment(timestamp).fromNow()} */}
+              {timeText}
             </span>
           </div>
           <div>{children}</div>

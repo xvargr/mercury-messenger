@@ -12,6 +12,7 @@ import axiosInstance from "../../utils/axios";
 
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [translate, setTranslate] = useState("");
   const { setFlashMessages } = useContext(FlashContext);
   const { groupMounted, setGroupMounted } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel, setSelectedGroup } =
@@ -38,17 +39,6 @@ function GroupBanner(props) {
 
   function expandHandler() {
     isExpanded ? setIsExpanded(false) : setIsExpanded(true);
-  }
-
-  function TrayCollapsed() {
-    return (
-      <div
-        className="w-12 h-3 bg-gray-800 rounded-b-lg fixed top-10 flex justify-center items-center hover:h-4 transition-all cursor-pointer group"
-        onClick={expandHandler}
-      >
-        <ChevronDownIcon className="h-3 w-3 text-gray-700 group-hover:text-gray-500 transition-colors" />
-      </div>
-    );
   }
 
   function leaveGroup() {
@@ -116,6 +106,17 @@ function GroupBanner(props) {
         >
           <ChevronUpIcon className="h-4 w-3 text-gray-700 group-hover:text-gray-500 transition-colors" />
         </div>
+      </div>
+    );
+  }
+
+  function TrayCollapsed() {
+    return (
+      <div
+        className="w-12 h-3 bg-gray-800 rounded-b-lg fixed top-10 flex justify-center items-center hover:h-4 transition-all cursor-pointer group"
+        onClick={expandHandler}
+      >
+        <ChevronDownIcon className="h-3 w-3 text-gray-700 group-hover:text-gray-500 transition-colors" />
       </div>
     );
   }

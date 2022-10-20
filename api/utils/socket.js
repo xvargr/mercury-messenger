@@ -171,7 +171,15 @@ async function appendCluster(args) {
 
 function structureChange(args) {
   const { data, callback } = args;
+
+  console.log("structure change signal received");
+
+  console.log(data);
 } // ! working here, emit change
+
+// ? when does the emit happen?
+// ? user send signal or during pre post create?
+// ? maybe using pre post is a good way to add and remove rooms?
 
 const socketInstance = {
   io: null,
@@ -194,6 +202,7 @@ const socketInstance = {
         !socketUsers.isConnected(socket.request.user.username)
       ) {
         socketUsers.connect(socket.request.user.username);
+        console.log(socket.request.user.id);
         next();
       } else {
         const err = new ExpressError("Unauthorized", 401);
@@ -202,12 +211,7 @@ const socketInstance = {
     });
 
     this.io.on("connection", async function (socket) {
-      console.log(
-        "user connected, ID:",
-        socket.id,
-        " username: ",
-        socket.request.user.username
-      );
+      console.log("currently connected: ", socketUsers.connectedUsers);
 
       // todo add socket to room on new create
       // * can use connectedUsers array to show if user is online
@@ -237,6 +241,7 @@ const socketInstance = {
 
       socket.on("disconnect", function () {
         socketUsers.disconnect(socket.request.user.username);
+        console.log("currently connected: ", socketUsers.connectedUsers);
       });
     });
   },

@@ -2,7 +2,10 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import axiosRetry from "axios-retry";
 
+import useSocket from "./socket";
+
 export default function useAxiosInstance() {
+  const { broadcastChange } = useSocket();
   const navigate = useNavigate();
 
   // axios instance config
@@ -75,6 +78,7 @@ export default function useAxiosInstance() {
       retryCondition: (err) => toLoginOnUnauthorized(err),
     });
 
+    broadcastChange({ type: null, id: null, change: null });
     return deleteChannelInstance.delete(`/c/${idString}`, config);
   }
 

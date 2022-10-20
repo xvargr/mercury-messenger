@@ -6,17 +6,19 @@ export const SocketContext = createContext();
 
 export function SocketStateProvider(props) {
   const [socket, setSocket] = useState(null);
+  const [socketIsConnected, setSocketIsConnected] = useState(null);
+
   const { setChatData } = useContext(DataContext);
 
   // this should only run once to avoid multiple instances of socket event listeners
   // this check avoids duplicate listeners
   if (socket && !socket._callbacks) {
-    // socket.on("connect", function (/*don't redefine socket here*/) {
-    //   // works, "connect" not "connected"
-    //   console.log(`connected as ${socket.id}`);
-    // });
+    socket.on("connect", function (/*don't redefine socket here*/) {
+      // works, "connect" not "connected"
+      setSocketIsConnected(true);
+    });
 
-    // socket.on("error", (err) => console.log(err));
+    socket.on("connect_error", (err) => setSocketIsConnected(false));
 
     socket.on("initialize", (res) => setChatData(res));
 
@@ -52,7 +54,11 @@ export function SocketStateProvider(props) {
     });
   }
 
-  const socketInstance = { socket, setSocket };
+  const socketInstance = {
+    socket,
+    setSocket,
+    socketIsConnected,
+  };
 
   return (
     <SocketContext.Provider value={socketInstance}>
