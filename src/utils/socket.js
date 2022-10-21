@@ -218,14 +218,8 @@ export default function useSocket() {
       });
   }
 
-  function broadcastChange(data) {
-    console.log(data);
-    socket.emit("structureChange", data); // ! <-- here
-  }
-
   return {
     sendMessage,
     appendMessage,
-    broadcastChange,
   };
 }

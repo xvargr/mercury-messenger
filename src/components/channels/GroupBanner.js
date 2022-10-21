@@ -12,7 +12,6 @@ import axiosInstance from "../../utils/axios";
 
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [translate, setTranslate] = useState("");
   const { setFlashMessages } = useContext(FlashContext);
   const { groupMounted, setGroupMounted } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel, setSelectedGroup } =

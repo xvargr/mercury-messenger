@@ -7,7 +7,7 @@ import passport from "./utils/passportDefine.js";
 import MongoStore from "connect-mongo";
 import session from "express-session";
 import { createServer } from "http";
-import socket from "./utils/socket.js";
+import { socketInstance } from "./utils/socket.js";
 
 // models
 import User from "./models/User.js";
@@ -26,8 +26,7 @@ const API_PORT = 3100;
 const DOMAIN = process.env.APP_DOMAIN;
 const httpServer = createServer(app); // create a server for express, need this to reuse server instance for socket.io
 
-socket.connectServer(httpServer); // pass the created server to socket
-// const io = socket.io;
+socketInstance.connectServer(httpServer); // pass the created server to socket
 
 // mongoDB connection
 const db = mongoose.connection;
@@ -88,12 +87,12 @@ const wrap = (middleware) => (socket, next) => {
 }; // wrapper function for socket.io, to enable the use of express middleware
 
 // wraps passport middleware, gives access to passport user object in socket connections for authentication
-socket.io.use(wrap(sessionSettings));
-socket.io.use(wrap(passport.initialize()));
-socket.io.use(wrap(passport.session()));
+socketInstance.io.use(wrap(sessionSettings));
+socketInstance.io.use(wrap(passport.initialize()));
+socketInstance.io.use(wrap(passport.session()));
 
 // initialize socket events
-socket.initialize();
+socketInstance.initialize();
 
 // 404 catch
 app.all("*", function (req, res, next) {
