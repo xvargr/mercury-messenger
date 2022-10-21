@@ -86,6 +86,7 @@ GroupSchema.pre("remove", async function (next) {
 
   next();
 });
+
 // post save check if empty
 GroupSchema.post("save", async function () {
   if (this.members.length === 0) {

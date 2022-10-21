@@ -169,13 +169,16 @@ async function appendCluster(args) {
   }
 }
 
-function structureChange(args) {
-  const { data, callback } = args;
+// function structureChange(args) {
+//   const { data, callback, socket, io, sender } = args;
+//   const { type, change, id } = data;
 
-  console.log("structure change signal received");
+//   let roomType;
+//   if (type === "channel") roomType = "c:";
+//   else if (type === "group") roomType = "g:";
 
-  console.log(data);
-} // ! working here, emit change
+//   io.in(`${roomType}${id}`).emit("structureChange", data);
+// }
 
 // ? when does the emit happen?
 // ? user send signal or during pre post create?
@@ -210,7 +213,7 @@ const socketInstance = {
       }
     });
 
-    this.io.on("connection", async function (socket) {
+    this.io.on("connection", async function (socket, io = this) {
       console.log("currently connected: ", socketUsers.connectedUsers);
 
       // todo add socket to room on new create
@@ -224,10 +227,6 @@ const socketInstance = {
 
       // sends chat data of all groups that user is a part of
       socket.emit("initialize", initData);
-
-      socket.on("structureChange", (data, callback) =>
-        structureChange({ data, callback })
-      ); // ! working here
 
       // new message handler
       socket.on("newCluster", (clusterData, callback) =>
@@ -247,4 +246,39 @@ const socketInstance = {
   },
 };
 
-export default socketInstance;
+const socketSync = {
+  emitChanges(args) {
+    const io = socketInstance.io;
+    const { target, change } = args;
+    console.log(args);
+
+    let roomType;
+    if (change.type === "channel") roomType = "c:";
+    else if (change.type === "group") roomType = "g:";
+
+    // ? if create, add users in g to new c room
+
+    // ? if edit or del, remove users from room, emut at parent g?
+
+    // io.in(`${roomType}${target.id}`).emit("structureChange", change); // ! <== working here
+  },
+
+  // channel: {
+  //   create() {},
+  //   update() {},
+  //   delete() {},
+  // },
+
+  // group: {
+  //   create() {},
+  //   update() {},
+  //   delete() {},
+  // },
+
+  // message: {
+  //   update() {},
+  //   delete() {},
+  // },
+};
+
+export { socketInstance, socketSync };

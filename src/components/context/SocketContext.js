@@ -52,6 +52,11 @@ export function SocketStateProvider(props) {
         return dataCopy;
       });
     });
+
+    socket.on("structureChange", function (res) {
+      console.log("Struct change signal received");
+      console.log(res);
+    });
   }
 
   const socketInstance = {

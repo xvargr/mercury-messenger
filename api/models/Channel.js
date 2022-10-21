@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import Message from "./Message.js";
 
+import { socketSync } from "../utils/socket.js";
+
 const ChannelSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -8,6 +10,19 @@ const ChannelSchema = new mongoose.Schema({
     required: true,
   },
   type: { type: String, enum: ["text", "task"], required: true },
+});
+
+ChannelSchema.post("save", async function (next) {
+  console.log("channel post save ran");
+  // console.log(this);
+
+  // socketSync.emitChange({target:{}, change:{}});
+  socketSync.emitChanges({
+    target: { type: "channel", id: this.id },
+    change: { type: "create", data: this },
+  });
+
+  // next();
 });
 
 ChannelSchema.pre("remove", async function (next) {
