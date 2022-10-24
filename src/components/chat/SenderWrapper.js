@@ -2,7 +2,6 @@ import moment from "moment/moment";
 
 function Sender(props) {
   const { sender, children, timestamp, pending } = props;
-
   let timeText;
   if (timestamp > Date.now() || Date.now() - timestamp < 30000) {
     timeText = "just now";
@@ -37,11 +36,7 @@ function Sender(props) {
             >
               {sender.username}
             </span>
-            <span className="text-sm opacity-60">
-              {/* {moment(timestamp).calendar()} */}
-              {/* {moment(timestamp).fromNow()} */}
-              {timeText}
-            </span>
+            <span className="text-sm opacity-60">{timeText}</span>
           </div>
           <div>{children}</div>
         </span>

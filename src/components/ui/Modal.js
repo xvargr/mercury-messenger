@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+
 import { XIcon } from "@heroicons/react/outline";
 import InputBox from "./InputBox";
 import Dots from "../ui/Dots";

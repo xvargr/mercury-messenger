@@ -61,7 +61,7 @@ export async function deleteGroup(req, res) {
   });
 
   if (!group.administrators.some((admin) => admin._id.equals(req.user._id))) {
-    throw new ExpressError("Not authorized", 401);
+    throw new ExpressError("Forbidden", 403);
   }
 
   await group.remove();

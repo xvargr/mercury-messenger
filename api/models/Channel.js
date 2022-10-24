@@ -13,16 +13,10 @@ const ChannelSchema = new mongoose.Schema({
 });
 
 ChannelSchema.post("save", async function (next) {
-  console.log("channel post save ran");
-  // console.log(this);
-
-  // socketSync.emitChange({target:{}, change:{}});
   socketSync.emitChanges({
     target: { type: "channel", id: this.id },
     change: { type: "create", data: this },
   });
-
-  // next();
 });
 
 ChannelSchema.pre("remove", async function (next) {

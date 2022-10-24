@@ -2,8 +2,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import axiosRetry from "axios-retry";
 
-import useSocket from "./socket";
-
 export default function useAxiosInstance() {
   const navigate = useNavigate();
 
@@ -45,10 +43,11 @@ export default function useAxiosInstance() {
   // retry conditions
   function toLoginOnUnauthorized(err) {
     // if retry condition is not specified, by default idempotent requests are retried
-    // return error.response.status === 503; // retry only if err 503
+    const noRetryCodes = [400, 403, 404];
+
     if (err.response.status === 401) navigate("/login");
+    else if (noRetryCodes.includes(err.response.status)) return false;
     else return true;
-    // todo more retry conditions
   }
 
   // axios instances

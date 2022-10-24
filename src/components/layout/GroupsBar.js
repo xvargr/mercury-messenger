@@ -1,6 +1,5 @@
 import { useContext, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { io } from "socket.io-client";
 // components
 import GroupBadge from "../groups/GroupBadge";
 import NewGroupButton from "../groups/NewGroupButton";
@@ -19,17 +18,12 @@ function GroupsBar() {
   const { groupData, groupMounted, setGroupData, setGroupMounted, isLoggedIn } =
     useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
-  const { socket, setSocket } = useContext(SocketContext);
+  const { socketIsConnected, connectSocket } = useContext(SocketContext);
   const { userGroups } = axiosInstance();
 
   useEffect(() => {
-    if (groupMounted && isLoggedIn && socket === null) {
-      setSocket(
-        io(`${window.location.protocol}//${window.location.hostname}:3100`, {
-          withCredentials: true,
-        })
-      );
-    }
+    if (groupMounted && isLoggedIn && socketIsConnected === false)
+      connectSocket();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupMounted]);
 

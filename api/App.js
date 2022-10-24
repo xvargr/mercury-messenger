@@ -103,12 +103,18 @@ app.all("*", function (req, res, next) {
 // Custom Error Handler
 app.use(function (err, req, res, next) {
   console.log("!-> handled error");
-  const { message = "Something went wrong", status = 500 } = err;
+  const {
+    message = "Something went wrong",
+    status = 500,
+    respond = false,
+  } = err;
   console.log(status, message);
   // console.log("stack: ", err);
-  res.status(status).json({
-    messages: [{ message, type: "error" }],
-  });
+  if (respond) {
+    res.status(status).json({
+      messages: [{ message, type: "error" }],
+    });
+  }
 });
 
 // app.listen(API_PORT, () => {

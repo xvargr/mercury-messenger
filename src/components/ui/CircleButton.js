@@ -70,7 +70,7 @@ function CircleButton(props) {
 
   return (
     <button
-      className={`${emphasis} ${bgDark} p-2 rounded-full w-fit transition-colors ease-in duration-75 ${props.className}`}
+      className={`${bgDark} ${emphasis} p-2 rounded-full w-fit transition-colors ease-in duration-75 ${props.className}`}
       disabled={disabled}
       onClick={props.onClick}
     >

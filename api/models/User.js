@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 
 import Group from "../models/Group.js";
+import Message from "../models/Message.js";
 import ExpressError from "../utils/ExpressError.js";
 
 const options = {
@@ -38,8 +39,6 @@ const UserSchema = new mongoose.Schema({
 // user pre remove cleanup,
 // delete from all groups, and destroy user image
 UserSchema.pre("remove", async function (next) {
-  // console.log("user", this);
-
   const groups = await Group.find({ members: this }).populate([
     { path: "channels", populate: ["text", "task"] },
     { path: "administrators", select: ["_id", "username"] },
@@ -48,11 +47,9 @@ UserSchema.pre("remove", async function (next) {
       select: ["_id", "username"],
     },
   ]);
-  // console.log("groups", groups);
 
+  // find and remove user from members of group
   groups.forEach((group) => {
-    // find and remove user from members
-    // console.log("group", group);
     const memberIndex = group.members.findIndex((member) =>
       member._id.equals(this._id)
     );
@@ -65,17 +62,23 @@ UserSchema.pre("remove", async function (next) {
     );
     if (adminIndex >= 0) group.administrators.splice(adminIndex, 1);
   });
-  // console.log(groups);
 
   // delete profile image if not default
   // might not want to hardcode this
-  if (this.userImage.filename !== "PIA18107_q1t2oc.jpg")
+  if (this.userImage.filename !== "PIA18107_q1t2oc.jpg") {
     cloudinary.uploader.destroy(this.userImage.filename);
+  }
+
+  // delete messages associated with user, or keep and change to deleted user
+  await Message.deleteMany({ sender: this });
+  // messages.forEach(async (message) => {
+  //   message.sender = { deleted: true };
+  //   await message.save();
+  // });
 
   groups.forEach(async (group) => {
     await group.save();
   });
-  // todo delete all messages
   next();
 });
 

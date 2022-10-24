@@ -14,8 +14,7 @@ function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { setFlashMessages } = useContext(FlashContext);
   const { groupMounted, setGroupMounted } = useContext(DataContext);
-  const { selectedGroup, setSelectedChannel, setSelectedGroup } =
-    useContext(UiContext);
+  const { selectedGroup, clearSelected } = useContext(UiContext);
   const navigate = useNavigate();
   const { userGroups } = axiosInstance();
 
@@ -44,8 +43,7 @@ function GroupBanner(props) {
     userGroups
       .leave(selectedGroup._id)
       .then((res) => {
-        setSelectedGroup(null);
-        setSelectedChannel(null);
+        clearSelected();
         setGroupMounted(false);
         setFlashMessages(res.data.messages);
 
@@ -60,8 +58,7 @@ function GroupBanner(props) {
     userGroups
       .delete(selectedGroup._id)
       .then((res) => {
-        setSelectedGroup(null);
-        setSelectedChannel(null);
+        clearSelected();
         setGroupMounted(false);
         setFlashMessages(res.data.messages);
 

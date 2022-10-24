@@ -16,7 +16,7 @@ function LoginPage() {
   const [buttonStatus, setButtonStatus] = useState("error");
   const [formState, setFormState] = useState("login");
   const { setGroupMounted, setIsLoggedIn } = useContext(DataContext);
-  const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
+  const { clearSelected } = useContext(UiContext);
   const [userData, setUserData] = useState({
     username: "",
     password: "",
@@ -104,8 +104,7 @@ function LoginPage() {
       userAccount
         .sign(route, formData)
         .then((res) => {
-          setSelectedGroup(null);
-          setSelectedChannel(null);
+          clearSelected();
           setGroupMounted(false);
           setIsLoggedIn(true);
 
