@@ -12,16 +12,21 @@ const DOMAIN = process.env.APP_DOMAIN;
 // this is a helper object that provide methods to help with ensuring a single connection per user
 const socketUsers = {
   connectedUsers: [],
-  connect(thisUser) {
-    this.connectedUsers.push(thisUser);
+  connect(socket) {
+    this.connectedUsers.push({
+      userId: socket.request.user.id,
+      socketId: socket.id,
+    });
   },
-  disconnect(thisUser) {
+  disconnect(socket) {
     this.connectedUsers = this.connectedUsers.filter(
-      (user) => user !== thisUser
+      (user) => user.socketId !== socket.id
     );
   },
-  isConnected(thisUser) {
-    return this.connectedUsers.includes(thisUser);
+  isConnected(socket) {
+    return this.connectedUsers.some(
+      (user) => user.userId === socket.request.user.id
+    );
   },
 };
 
@@ -169,21 +174,6 @@ async function appendCluster(args) {
   }
 }
 
-// function structureChange(args) {
-//   const { data, callback, socket, io, sender } = args;
-//   const { type, change, id } = data;
-
-//   let roomType;
-//   if (type === "channel") roomType = "c:";
-//   else if (type === "group") roomType = "g:";
-
-//   io.in(`${roomType}${id}`).emit("structureChange", data);
-// }
-
-// ? when does the emit happen?
-// ? user send signal or during pre post create?
-// ? maybe using pre post is a good way to add and remove rooms?
-
 const socketInstance = {
   io: null,
 
@@ -200,20 +190,19 @@ const socketInstance = {
   initialize() {
     // refuse connection if not authenticated or user already has a connection
     this.io.use(async function (socket, next) {
-      if (
-        socket.request.isAuthenticated() &&
-        !socketUsers.isConnected(socket.request.user.username)
-      ) {
-        socketUsers.connect(socket.request.user.username);
-        console.log(socket.request.user.id);
+      if (socket.request.isAuthenticated()) {
+        socketUsers.connect(socket);
         next();
       } else {
         const err = new ExpressError("Unauthorized", 401);
-        next(err); // refuse connection // todo unique response if already connected, offer to use current connection
+        // err.data = {
+        //   message: "Another device, click to use here instead",
+        // }; // feature not necessary, api and app can handle multiple instances
+        next(err); // refuse connection
       }
     });
 
-    this.io.on("connection", async function (socket, io = this) {
+    this.io.on("connection", async function (socket) {
       console.log("currently connected: ", socketUsers.connectedUsers);
 
       // todo add socket to room on new create
@@ -239,7 +228,7 @@ const socketInstance = {
       );
 
       socket.on("disconnect", function () {
-        socketUsers.disconnect(socket.request.user.username);
+        socketUsers.disconnect(socket);
         console.log("currently connected: ", socketUsers.connectedUsers);
       });
     });
@@ -250,35 +239,28 @@ const socketSync = {
   emitChanges(args) {
     const io = socketInstance.io;
     const { target, change } = args;
-    console.log(args);
 
     let roomType;
     if (change.type === "channel") roomType = "c:";
     else if (change.type === "group") roomType = "g:";
 
+    // socketSync.emitChanges({
+    //   target: { type: "channel", id: this.id },
+    //   change: { type: "create", data: this },
+    // });
+
     // ? if create, add users in g to new c room
+    // if (change.type==="create") socket.join()
+    console.log(io.sockets.sockets.get("LXfkW10QwoXolGHmAAAD"));
 
     // ? if edit or del, remove users from room, emut at parent g?
 
-    // io.in(`${roomType}${target.id}`).emit("structureChange", change); // ! <== working here
+    // ? on join with link too
+
+    // ! need to add user to new room before emit
+
+    io.in(`${roomType}${target.id}`).emit("structureChange", change); // ! <== working here
   },
-
-  // channel: {
-  //   create() {},
-  //   update() {},
-  //   delete() {},
-  // },
-
-  // group: {
-  //   create() {},
-  //   update() {},
-  //   delete() {},
-  // },
-
-  // message: {
-  //   update() {},
-  //   delete() {},
-  // },
 };
 
 export { socketInstance, socketSync };

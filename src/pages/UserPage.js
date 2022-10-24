@@ -23,7 +23,7 @@ function UserPage() {
   const { setIsLoggedIn, setGroupData, setChatData, setGroupMounted } =
     useContext(DataContext);
   const { setFlashMessages } = useContext(FlashContext);
-  const { socket, setSocket } = useContext(SocketContext);
+  const { socketClear } = useContext(SocketContext);
   const [inpErr, setInpErr] = useState(true);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [buttonText, setButtonText] = useState("Keep changes");
@@ -43,8 +43,7 @@ function UserPage() {
       .logOut()
       .then((res) => {
         localStorage.clear();
-        if (socket !== null) socket.disconnect();
-        setSocket(null);
+        socketClear();
         setIsLoggedIn(false);
         setGroupData(null);
         setChatData(null);
@@ -67,8 +66,7 @@ function UserPage() {
         .delete(localStorage.userId, userData)
         .then((res) => {
           localStorage.clear();
-          if (socket !== null) socket.disconnect();
-          setSocket(null);
+          socketClear();
           setIsLoggedIn(false);
           setGroupData(null);
           setChatData(null);

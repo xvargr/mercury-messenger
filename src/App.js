@@ -23,9 +23,9 @@ function App() {
   return (
     <main className="flex justify-center h-screen w-screen">
       <DataStateProvider>
-        <SocketStateProvider>
-          <FlashStateProvider>
-            <UiStateProvider>
+        <FlashStateProvider>
+          <UiStateProvider>
+            <SocketStateProvider>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/" element={<MainWindow />}>
@@ -53,9 +53,9 @@ function App() {
                   <Route path="*" element={<div>404</div>} />
                 </Route>
               </Routes>
-            </UiStateProvider>
-          </FlashStateProvider>
-        </SocketStateProvider>
+            </SocketStateProvider>
+          </UiStateProvider>
+        </FlashStateProvider>
       </DataStateProvider>
     </main>
   );

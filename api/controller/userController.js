@@ -8,7 +8,7 @@ import ExpressError from "../utils/ExpressError.js";
 export async function newUser(req, res) {
   const result = await User.findOne({ username: req.body.username }).lean();
   if (result)
-    return res.status(401).json({
+    return res.status(406).json({
       messages: [{ message: "Username taken", type: "error" }],
     });
 
@@ -110,15 +110,14 @@ export async function editUser(req, res) {
 
 export async function deleteUser(req, res) {
   // console.log(req.body);
-  if (req.user.id !== req.params.uid)
-    throw new ExpressError("Unauthorized", 401);
+  if (req.user.id !== req.params.uid) throw new ExpressError("Forbidden", 403);
 
   const user = await User.findById(req.user.id);
 
   // console.log(user);
   const passwordCheck = await bcrypt.compare(req.body.password, user.password);
 
-  if (!passwordCheck) throw new ExpressError("INCORRECT PASSWORD", 401);
+  if (!passwordCheck) throw new ExpressError("INCORRECT PASSWORD", 403);
   else await user.remove();
 
   res.status(200).send("ok");

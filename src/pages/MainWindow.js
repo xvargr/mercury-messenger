@@ -12,6 +12,7 @@ import {
 import { ReconnectingModal } from "../components/ui/Modal";
 
 // context
+import { UiContext } from "../components/context/UiContext";
 import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
 import { SocketContext } from "../components/context/SocketContext";
@@ -19,6 +20,7 @@ import { SocketContext } from "../components/context/SocketContext";
 function MainWindow() {
   const navigate = useNavigate();
   const { socketIsConnected } = useContext(SocketContext);
+  const { setWindowIsFocused } = useContext(UiContext);
   const { isLoggedIn, setIsLoggedIn } = useContext(DataContext);
   const { flashMessages, setFlashMessages } = useContext(FlashContext);
   const [messageStack, setMessageStack] = useState([]);
@@ -45,6 +47,17 @@ function MainWindow() {
       }
     }
   });
+
+  // window is focused detection used for notification sounds
+  useEffect(() => {
+    window.addEventListener("focus", () => setWindowIsFocused(true));
+    window.addEventListener("blur", () => setWindowIsFocused(false));
+    return () => {
+      window.addEventListener("focus", () => setWindowIsFocused(true));
+      window.addEventListener("blur", () => setWindowIsFocused(false));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function unmountFlash(position) {
     const messagesHelper = [...messageStack]; //  spread the array to create a new array instead of saving the pointer

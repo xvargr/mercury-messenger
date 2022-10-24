@@ -37,7 +37,7 @@ export async function editChannel(req, res) {
 
   // check if user is admin
   if (!group.administrators.some((admin) => admin._id.equals(req.user._id))) {
-    throw new ExpressError("Not authorized", 401);
+    throw new ExpressError("Forbidden", 403);
   }
 
   if (req.body.name.length < 3) {

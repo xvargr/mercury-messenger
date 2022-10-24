@@ -160,8 +160,6 @@ export default function useSocket() {
     });
 
     function appendAcknowledged(res) {
-      console.log("appendAcknowledged");
-      console.log(res);
       setChatData((prevStack) => {
         const dataCopy = { ...prevStack };
         const stackCopy = [...prevStack[res.target.group][res.target.channel]];

@@ -24,7 +24,7 @@ async function validateGroup(req, res, next) {
   const result = await Group.findOne({ name });
   if (result) {
     cloudinary.uploader.destroy(req.file.filename);
-    next(new ExpressError("That name is unavailable", 401));
+    next(new ExpressError("That name is unavailable", 400));
   }
 
   if (validation.error) {
@@ -58,12 +58,12 @@ async function validateChannel(req, res, next) {
     type === "text" &&
     result.channels.text.some((channel) => channel.name === name)
   ) {
-    next(new ExpressError("There is already a channel by that name", 401));
+    next(new ExpressError("There is already a channel by that name", 400));
   } else if (
     type === "task" &&
     result.channels.task.some((channel) => channel.name === name)
   ) {
-    next(new ExpressError("There is already a channel by that name", 401));
+    next(new ExpressError("There is already a channel by that name", 400));
   }
 
   if (validation.error) {
