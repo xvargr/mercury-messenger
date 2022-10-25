@@ -106,11 +106,12 @@ app.use(function (err, req, res, next) {
   const {
     message = "Something went wrong",
     status = 500,
-    respond = false,
+    respond = true,
   } = err;
   console.log(status, message);
   // console.log("stack: ", err);
   if (respond) {
+    // console.log("SENDING BACK ERR");
     res.status(status).json({
       messages: [{ message, type: "error" }],
     });

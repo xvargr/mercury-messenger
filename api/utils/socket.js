@@ -236,13 +236,46 @@ const socketInstance = {
 };
 
 const socketSync = {
-  emitChanges(args) {
+  async emitChanges(args) {
     const io = socketInstance.io;
     const { target, change } = args;
+    const roomType = target.type === "channel" ? "c:" : "g:";
+    const socketsAffected = [];
 
-    let roomType;
-    if (change.type === "channel") roomType = "c:";
-    else if (change.type === "group") roomType = "g:";
+    console.log("args: ", args);
+
+    if (change.type === "create") {
+      const currChannel = await Channel.findById(target.id).lean();
+      const parentGroup = await Group.findOne({
+        "channels.text": currChannel,
+      })
+        .populate({
+          path: "members",
+          select: ["_id", "username"],
+        })
+        .lean();
+
+      const idsAffected = parentGroup.members.map((member) =>
+        member._id.toString()
+      ); // ? get ids of affected users
+
+      socketsAffected = socketUsers.connectedUsers.filter(
+        (user) => user.userId
+      ); // ? get socketId from mongoose id
+
+      console.log(idsAffected);
+
+      // const parentGroup = await Group.find({
+      //   channels: {
+      //     text: change.data,
+      //   },
+      // });
+
+      console.log(parentGroup); // ! not found
+      // console.log(parentGroup.channels); // ! not found
+      // console.log(parentGroup.channels.text); // ! not found
+      io.emit("structureChange", parentGroup);
+    }
 
     // socketSync.emitChanges({
     //   target: { type: "channel", id: this.id },
@@ -250,8 +283,12 @@ const socketSync = {
     // });
 
     // ? if create, add users in g to new c room
+    // if (change.type === "create") {
+
+    // }
+
     // if (change.type==="create") socket.join()
-    console.log(io.sockets.sockets.get("LXfkW10QwoXolGHmAAAD"));
+    // console.log(io.sockets.sockets.get("LXfkW10QwoXolGHmAAAD"));
 
     // ? if edit or del, remove users from room, emut at parent g?
 

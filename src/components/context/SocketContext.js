@@ -79,7 +79,7 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("structureChange", function (res) {
-      const { target, change } = res;
+      // const { target, change } = res;
 
       console.log("Struct change signal received");
       console.log(res);
