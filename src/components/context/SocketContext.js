@@ -1,4 +1,5 @@
 import { useState, createContext, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
 import { DataContext } from "./DataContext";
@@ -10,9 +11,12 @@ export function SocketStateProvider(props) {
   const [socket, setSocket] = useState(null);
   const [socketIsConnected, setSocketIsConnected] = useState(false);
 
-  const { setChatData } = useContext(DataContext);
-  const { windowIsFocused, selectedChannel } = useContext(UiContext);
+  const { groupData, setGroupData, chatData, setChatData, getGroupIndex } =
+    useContext(DataContext);
+  const { windowIsFocused, selectedChannel, selectedGroup } =
+    useContext(UiContext);
 
+  const navigate = useNavigate();
   const notification = new Audio("/beep.mp3");
 
   function connectSocket() {
@@ -79,13 +83,37 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("structureChange", function (res) {
-      // const { target, change } = res;
+      const { target, change } = res;
 
       console.log("Struct change signal received");
       console.log(res);
 
       // * deleting
       // find in gdt and cdt // 1
+      if (target.type === "channel" && change.type === "delete") {
+        setGroupData((currentData) => {
+          // ! PARENT will be unavailable here
+          const dataCopy = [...currentData];
+          const parentIndex = getGroupIndex(target.parent); // ! find an alternative way to get this index
+
+          // ! channels undefined
+          const channelIndex = dataCopy[parentIndex].channels.text.findIndex(
+            (channel) => channel._id === target.id
+          );
+
+          delete dataCopy[parentIndex].channels.text[channelIndex];
+          return dataCopy;
+        });
+        setChatData((currentData) => {
+          const dataCopy = { ...currentData };
+          delete dataCopy[target.parent][target.id]; // ! and here
+          return dataCopy;
+        });
+
+        if (selectedChannel._id === target.id) {
+          navigate(`/g/${selectedGroup.name}`);
+        }
+      }
 
       // remove
 
@@ -100,6 +128,22 @@ export function SocketStateProvider(props) {
 
       // * create
       // create item in gdt and cdt
+      if (target.type === "channel" && change.type === "create") {
+        setGroupData((currentData) => {
+          const dataCopy = [...currentData];
+          const parentIndex = getGroupIndex(target.parent);
+
+          dataCopy[parentIndex].channels.text.push(change.data);
+          return dataCopy;
+        });
+        setChatData((currentData) => {
+          const dataCopy = { ...currentData };
+          dataCopy[target.parent][target.id] = [];
+          return dataCopy;
+        });
+      }
+
+      // ! can lose admin status on update sometimes ??
 
       // update gdt & cdt // 2
     });

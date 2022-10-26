@@ -35,7 +35,6 @@ function NewChannelPage() {
         navigate(`/g/${selectedGroup.name}`);
       })
       .catch((err) => {
-        console.log(err);
         // setFlashMessages(err.response.data.messages);
         setAxiosErr({
           message: err.response.data.messages[0].message,

@@ -20,6 +20,11 @@ ChannelSchema.post("save", async function (next) {
 });
 
 ChannelSchema.pre("remove", async function (next) {
+  socketSync.emitChanges({
+    target: { type: "channel", id: this.id },
+    change: { type: "delete" },
+  });
+
   // delete messages associated with channel
   await Message.deleteMany({ channel: this });
 

@@ -8,7 +8,7 @@ import {
 
 export function FlashMessageWrapper(props) {
   return (
-    <div className="absolute top-0 right-0 h-full scrollbar-none overflow-y-scroll">
+    <div className="absolute top-0 right-0 h-full scrollbar-none overflow-y-scroll pointer-events-none">
       {props.children}
     </div>
   );
