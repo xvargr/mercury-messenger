@@ -23,6 +23,10 @@ export function DataStateProvider(props) {
     setChatData(workingChatData);
   }
 
+  function getGroupIndex(idString) {
+    return groupData.findIndex((group) => group.id === idString);
+  }
+
   const dataState = {
     groupData,
     setGroupData,
@@ -32,6 +36,7 @@ export function DataStateProvider(props) {
     setIsLoggedIn,
     chatData,
     setChatData,
+    getGroupIndex,
   };
 
   return (

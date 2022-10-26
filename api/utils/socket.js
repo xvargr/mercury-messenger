@@ -13,20 +13,51 @@ const DOMAIN = process.env.APP_DOMAIN;
 const socketUsers = {
   connectedUsers: [],
   connect(socket) {
-    this.connectedUsers.push({
-      userId: socket.request.user.id,
-      socketId: socket.id,
-    });
+    const userIndex = this.connectedUsers.findIndex(
+      (user) => user.userId === socket.request.user.id
+    );
+    if (userIndex === -1) {
+      this.connectedUsers.push({
+        name: socket.request.user.username,
+        userId: socket.request.user.id,
+        socketId: [socket.id],
+      });
+    } else {
+      this.connectedUsers[userIndex].socketId.push(socket.id);
+    }
   },
   disconnect(socket) {
-    this.connectedUsers = this.connectedUsers.filter(
-      (user) => user.socketId !== socket.id
+    const index = this.connectedUsers.findIndex((user) =>
+      user.socketId.some((id) => id === socket.id)
     );
+
+    if (this.connectedUsers[index].socketId.length === 1) {
+      this.connectedUsers.splice(index, 1);
+    } else {
+      const newSocketIds = this.connectedUsers[index].socketId.filter(
+        (id) => id !== socket.id
+      );
+      this.connectedUsers[index].socketId = [...newSocketIds];
+    }
   },
   isConnected(socket) {
     return this.connectedUsers.some(
       (user) => user.userId === socket.request.user.id
     );
+  },
+  getSocketIds(idArray) {
+    const result = [];
+
+    idArray.forEach((id) => {
+      const index = this.connectedUsers.findIndex((user) => user.userId === id);
+      if (index !== -1) {
+        this.connectedUsers[index].socketId.forEach((socket) =>
+          result.push(socket)
+        );
+      }
+    });
+
+    return result;
   },
 };
 
@@ -240,9 +271,13 @@ const socketSync = {
     const io = socketInstance.io;
     const { target, change } = args;
     const roomType = target.type === "channel" ? "c:" : "g:";
-    const socketsAffected = [];
 
-    console.log("args: ", args);
+    // console.log(currChannel);
+    // console.log(parentGroup); // ! parent can no longer be found if on delete
+
+    // ? need parent to get sockets to update
+
+    // ? sockets are unknown, but we can close the room without knowing the socketIds
 
     if (change.type === "create") {
       const currChannel = await Channel.findById(target.id).lean();
@@ -257,46 +292,30 @@ const socketSync = {
 
       const idsAffected = parentGroup.members.map((member) =>
         member._id.toString()
-      ); // ? get ids of affected users
+      );
+      const socketsAffected = socketUsers.getSocketIds(idsAffected);
 
-      socketsAffected = socketUsers.connectedUsers.filter(
-        (user) => user.userId
-      ); // ? get socketId from mongoose id
+      socketsAffected.forEach((socketId) => {
+        const userSocket = io.sockets.sockets.get(socketId);
+        userSocket.join(`${roomType}${target.id}`);
+      });
 
-      console.log(idsAffected);
+      io.in(`${roomType}${target.id}`).emit("structureChange", {
+        target: { ...target, parent: parentGroup._id },
+        change: { ...change },
+      });
+    } else if (change.type === "delete") {
+      io.in(`${roomType}${target.id}`).emit("structureChange", {
+        target: { ...target },
+        change: { ...change },
+      });
 
-      // const parentGroup = await Group.find({
-      //   channels: {
-      //     text: change.data,
-      //   },
-      // });
+      // io.sockets
+      //   .clients(`${roomType}${target.id}`) // ! clients is not a a function
+      //   .forEach((client) => client.leave(`${roomType}${target.id}`));
 
-      console.log(parentGroup); // ! not found
-      // console.log(parentGroup.channels); // ! not found
-      // console.log(parentGroup.channels.text); // ! not found
-      io.emit("structureChange", parentGroup);
+      io.in(`${roomType}${target.id}`).socketsLeave(`${roomType}${target.id}`);
     }
-
-    // socketSync.emitChanges({
-    //   target: { type: "channel", id: this.id },
-    //   change: { type: "create", data: this },
-    // });
-
-    // ? if create, add users in g to new c room
-    // if (change.type === "create") {
-
-    // }
-
-    // if (change.type==="create") socket.join()
-    // console.log(io.sockets.sockets.get("LXfkW10QwoXolGHmAAAD"));
-
-    // ? if edit or del, remove users from room, emut at parent g?
-
-    // ? on join with link too
-
-    // ! need to add user to new room before emit
-
-    io.in(`${roomType}${target.id}`).emit("structureChange", change); // ! <== working here
   },
 };
 

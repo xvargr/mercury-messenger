@@ -41,7 +41,6 @@ async function validateGroup(req, res, next) {
 }
 
 async function validateChannel(req, res, next) {
-  console.log("validating chan");
   const { name, type, group } = req.body;
   let validation = channelSchema.validate({ name, type });
 
