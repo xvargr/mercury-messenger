@@ -80,7 +80,7 @@ export function FlashMessage(props) {
     >
       <div className="w-full h-full absolute -z-10 rounded-xl bg-gray-500 opacity-70"></div>
       <XIcon
-        className="w-6 absolute top-0 right-0 p-1 text-gray-800 bg-mexican-red-500 hover:bg-mexican-red-400 hover:cursor-pointer rounded-tr-xl rounded-bl-md"
+        className="w-6 absolute top-0 right-0 p-1 text-gray-800 bg-mexican-red-500 hover:bg-mexican-red-400 hover:cursor-pointer rounded-tr-xl rounded-bl-md pointer-events-auto"
         onClick={unmountThis}
       />
       {charm}

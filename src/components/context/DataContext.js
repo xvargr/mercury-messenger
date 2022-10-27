@@ -24,7 +24,24 @@ export function DataStateProvider(props) {
   }
 
   function getGroupIndex(idString) {
-    return groupData.findIndex((group) => group.id === idString);
+    let result;
+    result = groupData.findIndex((group) => group.id === idString);
+    if (result === -1) {
+      result = groupData.findIndex((group) =>
+        group.channels.text.some((channel) => channel._id === idString)
+      );
+    }
+    return result;
+  }
+
+  function getGroupId(idString) {
+    let group = groupData.find((group) => group.id === idString);
+    if (!group) {
+      group = groupData.find((group) =>
+        group.channels.text.some((channel) => channel._id === idString)
+      );
+    }
+    return group._id;
   }
 
   const dataState = {
@@ -37,6 +54,7 @@ export function DataStateProvider(props) {
     chatData,
     setChatData,
     getGroupIndex,
+    getGroupId,
   };
 
   return (

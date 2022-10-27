@@ -18,7 +18,7 @@ const socketUsers = {
     );
     if (userIndex === -1) {
       this.connectedUsers.push({
-        name: socket.request.user.username,
+        // name: socket.request.user.username,
         userId: socket.request.user.id,
         socketId: [socket.id],
       });
@@ -269,9 +269,10 @@ const socketInstance = {
 const socketSync = {
   async emitChanges(args) {
     const io = socketInstance.io;
-    const { target, change } = args;
+    const { target, change, initiator } = args;
     const roomType = target.type === "channel" ? "c:" : "g:";
 
+    console.log("change Signal!");
     // console.log(currChannel);
     // console.log(parentGroup); // ! parent can no longer be found if on delete
 
@@ -281,27 +282,34 @@ const socketSync = {
 
     if (change.type === "create") {
       const currChannel = await Channel.findById(target.id).lean();
-      const parentGroup = await Group.findOne({
-        "channels.text": currChannel,
-      })
-        .populate({
-          path: "members",
-          select: ["_id", "username"],
-        })
-        .lean();
+      // const parentGroup = await Group.findOne({
+      //   "channels.text": currChannel,
+      // })
+      //   .populate({
+      //     path: "members",
+      //     select: ["_id", "username"],
+      //   })
+      //   .lean();
 
-      const idsAffected = parentGroup.members.map((member) =>
-        member._id.toString()
-      );
-      const socketsAffected = socketUsers.getSocketIds(idsAffected);
+      // const idsAffected = parentGroup.members.map((member) =>
+      //   member._id.toString()
+      // );
+      // const socketsAffected = socketUsers.getSocketIds(idsAffected);
 
-      socketsAffected.forEach((socketId) => {
-        const userSocket = io.sockets.sockets.get(socketId);
-        userSocket.join(`${roomType}${target.id}`);
-      });
+      // socketsAffected.forEach((socketId) => {
+      //   const userSocket = io.sockets.sockets.get(socketId);
+      //   userSocket.join(`${roomType}${target.id}`);
+      // });
+
+      // console.log(parentGroup._id.toString());
+      console.log("sender", initiator);
+
+      // ! this does not work, rmtyp needs to be dynamic, in new c case, get in g and join c
+      // ! if delete c, etc
+      io.in(`g:${target.parent}`).socketsJoin(`${roomType}${target.id}`);
 
       io.in(`${roomType}${target.id}`).emit("structureChange", {
-        target: { ...target, parent: parentGroup._id },
+        target: { ...target },
         change: { ...change },
       });
     } else if (change.type === "delete") {
@@ -309,10 +317,6 @@ const socketSync = {
         target: { ...target },
         change: { ...change },
       });
-
-      // io.sockets
-      //   .clients(`${roomType}${target.id}`) // ! clients is not a a function
-      //   .forEach((client) => client.leave(`${roomType}${target.id}`));
 
       io.in(`${roomType}${target.id}`).socketsLeave(`${roomType}${target.id}`);
     }

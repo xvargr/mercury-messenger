@@ -2,6 +2,7 @@ import Group from "../models/Group.js";
 import Channel from "../models/Channel.js";
 
 import ExpressError from "../utils/ExpressError.js";
+import { socketSync } from "../utils/socket.js";
 
 export async function newChannel(req, res) {
   const parentGroup = await Group.findById({ _id: req.body.group });
@@ -17,6 +18,16 @@ export async function newChannel(req, res) {
 
   await newChannel.save();
   await parentGroup.save();
+
+  // !
+  // ? moving from middleware to here, change "this"
+  // ? send parent too, can avoid doing it on the frontend
+  // !
+  socketSync.emitChanges({
+    target: { type: "channel", id: newChannel._id, parent: parentGroup._id },
+    change: { type: "create", data: newChannel },
+    initiator: res.user,
+  });
 
   res.status(201).json({
     newChannel,
@@ -76,6 +87,11 @@ export async function deleteChannel(req, res) {
 
   await parentGroup.save();
   channel.remove();
+
+  // socketSync.emitChanges({
+  //   target: { type: "channel", id: this.id },
+  //   change: { type: "delete" },
+  // });
 
   res.json({
     groupData: parentGroup,

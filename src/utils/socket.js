@@ -183,8 +183,6 @@ export default function useSocket() {
     }
 
     function appendTimedOut() {
-      console.log("appendTimedOut");
-      // console.log(res)
       setChatData((prevStack) => {
         const dataCopy = { ...prevStack };
         const stackCopy = [...prevStack[target.group][target.channel]];
