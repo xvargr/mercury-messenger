@@ -1,8 +1,6 @@
 import mongoose from "mongoose";
 import Message from "./Message.js";
 
-import { socketSync } from "../utils/socket.js";
-
 const ChannelSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -12,19 +10,7 @@ const ChannelSchema = new mongoose.Schema({
   type: { type: String, enum: ["text", "task"], required: true },
 });
 
-ChannelSchema.post("save", async function (next) {
-  socketSync.emitChanges({
-    target: { type: "channel", id: this.id },
-    change: { type: "create", data: this },
-  });
-});
-
 ChannelSchema.pre("remove", async function (next) {
-  socketSync.emitChanges({
-    target: { type: "channel", id: this.id },
-    change: { type: "delete" },
-  });
-
   // delete messages associated with channel
   await Message.deleteMany({ channel: this });
 
