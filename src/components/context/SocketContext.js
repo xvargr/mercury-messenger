@@ -11,14 +11,8 @@ export function SocketStateProvider(props) {
   const [socket, setSocket] = useState(null);
   const [socketIsConnected, setSocketIsConnected] = useState(false);
 
-  const {
-    groupData,
-    setGroupData,
-    chatData,
-    setChatData,
-    getGroupIndex,
-    getGroupId,
-  } = useContext(DataContext);
+  const { setGroupData, setChatData, getGroupIndex, getChannelIndex } =
+    useContext(DataContext);
 
   const { windowIsFocused, selectedChannel, selectedGroup } =
     useContext(UiContext);
@@ -27,7 +21,6 @@ export function SocketStateProvider(props) {
   const notification = new Audio("/beep.mp3");
 
   function connectSocket() {
-    console.log("connecting socket");
     setSocket(
       io(`${window.location.protocol}//${window.location.hostname}:3100`, {
         withCredentials: true,
@@ -50,7 +43,6 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("connect_error", (err) => {
-      console.log("socket connect err");
       setSocketIsConnected(false);
     });
 
@@ -92,86 +84,40 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("structureChange", function (res) {
-      const { target, change, initiator } = res;
+      const { target, change } = res;
 
       console.log("Struct change signal received");
       console.count(res.change.type);
       console.log(res);
+      console.log("selectedChannel", selectedChannel?._id);
 
-      // * deleting
-      // find in gdt and cdt // 1
-      // ! BUG CENTRAL //
-      // ! KEEP  CLEAR //
-      // ! BUG CENTRAL //
       if (target.type === "channel" && change.type === "delete") {
-        console.log("deleting channel");
-        // console.log("selectedChannel._id", selectedChannel._id);
-        // console.log("target.id", target.id);
+        setChatData((currentData) => {
+          const dataCopy = { ...currentData };
+          delete dataCopy[target.parent][target.id];
+          return dataCopy;
+        });
 
-        // setChatData((currentData) => {
-        //   const dataCopy = { ...currentData };
-        //   const parentId = getGroupId(target.parent ?? target.id);
+        setGroupData((currentData) => {
+          const dataCopy = [...currentData];
+          const parentIndex = getGroupIndex(target.parent ?? target.id);
+          const channelIndex = getChannelIndex(target.parent, target.id);
 
-        //   delete dataCopy[parentId][target.id];
-        //   console.log(dataCopy)
-        //   return dataCopy;
-        // });
-        // setGroupData((currentData) => {
-        //   const dataCopy = [...currentData];
-        //   const parentIndex = getGroupIndex(target.parent ?? target.id);
-        //   const channelIndex = dataCopy[parentIndex].channels.text.findIndex(
-        //     (channel) => channel._id === target.id
-        //   );
+          dataCopy[parentIndex].channels.text.splice(channelIndex, 1);
+          return dataCopy;
+        });
 
-        //   delete dataCopy[parentIndex].channels.text[channelIndex];
-        //   console.log(dataCopy)
-        //   return dataCopy;
-        // });
+        // ! BUG -  SELECTED CHANNEL IS UNDEFINED , BUT SELcH === UNDEF : FALSE
+        // ! SELCH NULL IN DEBUG !!!
 
-        const parentId = getGroupId(target.parent ?? target.id);
-        const updatedChatData = { ...chatData };
+        // console.log("SECO");
+        // console.log("selectedChannel", selectedChannel?._id);
+        // console.log("undef", selectedChannel === undefined);
+        // console.log("inv", !selectedChannel);
+        // debugger;
 
-        delete updatedChatData[parentId][target.id];
-        console.log("CDT", updatedChatData);
-
-        const updatedGroupData = [...groupData];
-        const parentIndex = getGroupIndex(target.parent ?? target.id);
-        const channelIndex = updatedGroupData[
-          parentIndex
-        ].channels.text.findIndex((channel) => channel._id === target.id);
-        delete updatedGroupData[parentIndex].channels.text[channelIndex];
-        // ! fails before here if is not delete-e and in deleted channel
-        console.log("GDT", updatedGroupData);
-
-        // debugger; // ! didn't get here reliably
-        console.log("selectedChannel", selectedChannel);
-        try {
-          // ! this fails sometimes // selectedChannel is null possibly from axios .then()
-          console.log(
-            "selectedChannel._id",
-            selectedChannel?.name,
-            selectedChannel?._id
-          );
-        } catch {
-          console.log("failed 1");
-        }
-        try {
-          console.log("target.id", target.id);
-        } catch {
-          console.log("failed 2");
-        }
-
-        // ! BUGS
-        // ! socket keeps adding connections
-        // ! does not reliably respond to this struct change
-        // ! other channel's chatData gets emptied!
-
-        //! THIS IS CONFLICT WITH AXIOS .THEN() !//
-
-        setChatData(updatedChatData);
-        setGroupData(updatedGroupData);
-
-        if (selectedChannel?._id === target.id) {
+        // ! cannot reliably reroute
+        if (!selectedChannel || selectedChannel?._id === target.id) {
           console.log("rerouting");
           navigate(`/g/${selectedGroup.name}`);
         }
@@ -183,6 +129,16 @@ export function SocketStateProvider(props) {
 
       // * editing
       // find in gdt and cdt // 1
+      if (target.type === "channel" && change.type === "edit") {
+        setGroupData((currentData) => {
+          const dataCopy = [...currentData];
+          const parentIndex = getGroupIndex(target.parent);
+          const channelIndex = getChannelIndex(target.parent, target.id);
+          dataCopy[parentIndex].channels.text[channelIndex] = change.data;
+          return dataCopy;
+        });
+        // setChatData((currentData) => { }
+      }
 
       // append edit content
 

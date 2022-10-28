@@ -27,9 +27,9 @@ module.exports = {
         },
       },
       animation: {
-        pulseIndefinitely0: "slowPulse 3s ease-in-out infinite",
-        pulseIndefinitely1: "slowPulse 3s ease-in-out infinite 1s",
-        pulseIndefinitely2: "slowPulse 3s ease-in-out infinite 2s",
+        pulseIndefinitely0: "slowPulse 4s ease-in-out infinite 1s",
+        pulseIndefinitely1: "slowPulse 4s ease-in-out infinite 2s",
+        pulseIndefinitely2: "slowPulse 4s ease-in-out infinite 3s",
       },
       keyframes: {
         slowPulse: {
