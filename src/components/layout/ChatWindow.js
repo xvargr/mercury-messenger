@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 // components
 import ChatInputBox from "../chat/ChatInputBox";
@@ -27,6 +27,15 @@ function ChatWindow() {
       ? chatData[selectedGroup._id][selectedChannel._id]
       : null;
   }, [chatData, selectedGroup, selectedChannel]);
+  // const navigate = useNavigate();
+
+  // console.log(selectedChannel); // ! WHEN THIS LINE IS UNCOMMENTED, SELCH IN NO LONGER NULL IN DELETE SOCKET CONTXT???
+
+  // useEffect(() => {
+  //   if (!selectedGroup) navigate("/");
+  //   else if (!selectedChannel) navigate(`/g/${selectedGroup.name}`);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   // scroll to bottom on every new message
   useEffect(() => {

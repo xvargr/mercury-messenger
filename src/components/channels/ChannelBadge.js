@@ -13,7 +13,8 @@ function ChannelBadge(props) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDialogue, setShowDialogue] = useState(false);
   const [nameField, setNameField] = useState(props.data.name);
-  const { groupData, setGroupData } = useContext(DataContext);
+  const { setGroupData, setChatData, getChannelIndex } =
+    useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
   const { setFlashMessages } = useContext(FlashContext);
   const navigate = useNavigate();
@@ -39,13 +40,23 @@ function ChannelBadge(props) {
       userChannels
         .delete(props.data._id)
         .then((res) => {
-          const tempGroupData = groupData;
-          const updatedGroupData = res.data.groupData;
+          setGroupData((prevData) => {
+            const dataCopy = [...prevData];
+            const channelIndex = getChannelIndex(
+              res.data.groupId,
+              res.data.channelId
+            );
+            dataCopy[props.groupIndex].channels.text.splice(channelIndex, 1);
+            return dataCopy; // ? admin bug fixed
+          });
 
-          tempGroupData[props.groupIndex] = updatedGroupData;
-          setGroupData(tempGroupData);
+          setChatData((prevData) => {
+            const dataCopy = { ...prevData };
+            delete dataCopy[res.data.groupId][res.data.channelId];
+            return dataCopy;
+          });
+
           setFlashMessages(res.data.messages);
-
           navigate(`/g/${selectedGroup.name}`);
         })
         .catch((err) => {
@@ -63,15 +74,17 @@ function ChannelBadge(props) {
     userChannels
       .edit(props.data._id, channelData)
       .then((res) => {
-        const tempGroupData = groupData;
-        const channelIndex = tempGroupData[
-          props.groupIndex
-        ].channels.text.findIndex((ch) => ch._id === res.data.channelData._id);
+        setGroupData((currData) => {
+          const dataCopy = [...currData];
+          const channelIndex = getChannelIndex(
+            selectedGroup.id,
+            res.data.channelData._id
+          );
+          dataCopy[props.groupIndex].channels.text[channelIndex] =
+            res.data.channelData;
+          return dataCopy;
+        });
 
-        tempGroupData[props.groupIndex].channels.text[channelIndex] =
-          res.data.channelData;
-
-        setGroupData(tempGroupData);
         setIsEditing(false);
         setShowDialogue(false);
         setFlashMessages(res.data.messages);

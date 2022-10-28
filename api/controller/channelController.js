@@ -26,11 +26,12 @@ export async function newChannel(req, res) {
   socketSync.emitChanges({
     target: { type: "channel", id: newChannel._id, parent: parentGroup._id },
     change: { type: "create", data: newChannel },
-    initiator: res.user,
+    initiator: req.user,
   });
 
   res.status(201).json({
-    newChannel,
+    channelData: newChannel,
+    groupId: parentGroup._id,
     messages: [
       { message: "Successfully created new channel", type: "success" },
     ],
@@ -56,6 +57,12 @@ export async function editChannel(req, res) {
   }
   channel.name = req.body.name.substring(0, 20); // limit20char
   await channel.save();
+
+  socketSync.emitChanges({
+    target: { type: "channel", id: channel._id, parent: group._id },
+    change: { type: "edit", data: channel },
+    initiator: req.user,
+  });
 
   res.json({
     channelData: channel,
@@ -88,13 +95,15 @@ export async function deleteChannel(req, res) {
   await parentGroup.save();
   channel.remove();
 
-  // socketSync.emitChanges({
-  //   target: { type: "channel", id: this.id },
-  //   change: { type: "delete" },
-  // });
+  socketSync.emitChanges({
+    target: { type: "channel", id: req.params.cid, parent: parentGroup._id },
+    change: { type: "delete" },
+    initiator: req.user,
+  });
 
   res.json({
-    groupData: parentGroup,
+    groupId: parentGroup._id,
+    channelId: req.params.cid,
     messages: [{ message: "Successfully deleted channel", type: "success" }],
   });
 }

@@ -34,14 +34,12 @@ export function DataStateProvider(props) {
     return result;
   }
 
-  function getGroupId(idString) {
-    let group = groupData.find((group) => group.id === idString);
-    if (!group) {
-      group = groupData.find((group) =>
-        group.channels.text.some((channel) => channel._id === idString)
-      );
-    }
-    return group._id;
+  function getChannelIndex(parentId, channelId) {
+    const parentIndex = getGroupIndex(parentId);
+    const result = groupData[parentIndex].channels.text.findIndex(
+      (channel) => channel._id === channelId
+    );
+    return result;
   }
 
   const dataState = {
@@ -54,7 +52,7 @@ export function DataStateProvider(props) {
     chatData,
     setChatData,
     getGroupIndex,
-    getGroupId,
+    getChannelIndex,
   };
 
   return (

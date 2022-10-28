@@ -272,7 +272,10 @@ const socketSync = {
     const { target, change, initiator } = args;
     const roomType = target.type === "channel" ? "c:" : "g:";
 
-    console.log("change Signal!");
+    // ? get initiator socket
+    const initiatorSockets = socketUsers.getSocketIds([initiator.id]);
+
+    // console.log("change Signal!");
     // console.log(currChannel);
     // console.log(parentGroup); // ! parent can no longer be found if on delete
 
@@ -281,43 +284,31 @@ const socketSync = {
     // ? sockets are unknown, but we can close the room without knowing the socketIds
 
     if (change.type === "create") {
-      const currChannel = await Channel.findById(target.id).lean();
-      // const parentGroup = await Group.findOne({
-      //   "channels.text": currChannel,
-      // })
-      //   .populate({
-      //     path: "members",
-      //     select: ["_id", "username"],
-      //   })
-      //   .lean();
-
-      // const idsAffected = parentGroup.members.map((member) =>
-      //   member._id.toString()
-      // );
-      // const socketsAffected = socketUsers.getSocketIds(idsAffected);
-
-      // socketsAffected.forEach((socketId) => {
-      //   const userSocket = io.sockets.sockets.get(socketId);
-      //   userSocket.join(`${roomType}${target.id}`);
-      // });
-
-      // console.log(parentGroup._id.toString());
-      console.log("sender", initiator);
-
-      // ! this does not work, rmtyp needs to be dynamic, in new c case, get in g and join c
-      // ! if delete c, etc
+      // get relevant sockets to join new room
       io.in(`g:${target.parent}`).socketsJoin(`${roomType}${target.id}`);
 
-      io.in(`${roomType}${target.id}`).emit("structureChange", {
-        target: { ...target },
-        change: { ...change },
-      });
+      io.in(`${roomType}${target.id}`)
+        .except(initiatorSockets)
+        .emit("structureChange", {
+          target: { ...target },
+          change: { ...change },
+        });
+    } else if (change.type === "edit") {
+      io.in(`${roomType}${target.id}`)
+        .except(initiatorSockets)
+        .emit("structureChange", {
+          target: { ...target },
+          change: { ...change },
+        });
     } else if (change.type === "delete") {
-      io.in(`${roomType}${target.id}`).emit("structureChange", {
-        target: { ...target },
-        change: { ...change },
-      });
+      io.in(`${roomType}${target.id}`)
+        .except(initiatorSockets)
+        .emit("structureChange", {
+          target: { ...target },
+          change: { ...change },
+        });
 
+      // leave all socket from room, thus deleting it
       io.in(`${roomType}${target.id}`).socketsLeave(`${roomType}${target.id}`);
     }
   },
