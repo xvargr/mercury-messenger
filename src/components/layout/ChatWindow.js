@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 // components
 import ChatInputBox from "../chat/ChatInputBox";
@@ -17,7 +17,7 @@ import useSocket from "../../utils/socket";
 
 function ChatWindow() {
   const { channel } = useParams();
-  const { groupMounted, chatData } = useContext(DataContext);
+  const { groupMounted, chatData, groupData } = useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
   const { sendMessage, appendMessage } = useSocket();
   const [lastUpdate, setLastUpdate] = useState(Date.now());
@@ -29,7 +29,9 @@ function ChatWindow() {
   }, [chatData, selectedGroup, selectedChannel]);
   // const navigate = useNavigate();
 
-  // console.log(selectedChannel); // ! WHEN THIS LINE IS UNCOMMENTED, SELCH IN NO LONGER NULL IN DELETE SOCKET CONTXT???
+  // console.log(selectedChannel?.name);
+  // console.log(chatData);
+  console.log("groupdata in app", groupData);
 
   // useEffect(() => {
   //   if (!selectedGroup) navigate("/");
@@ -43,6 +45,8 @@ function ChatWindow() {
       endStopRef.current.scrollIntoView();
     }
   }, [chatData]);
+
+  // console.count("rerendered");
 
   // rerender every 30 sec, for updating timestamps
   useEffect(() => {
