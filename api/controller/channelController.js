@@ -93,7 +93,7 @@ export async function deleteChannel(req, res) {
   parentGroup.channels.text.splice(chIndex, 1);
 
   await parentGroup.save();
-  channel.remove();
+  await channel.remove();
 
   socketSync.emitChanges({
     target: { type: "channel", id: req.params.cid, parent: parentGroup._id },

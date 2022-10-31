@@ -23,8 +23,10 @@ export function DataStateProvider(props) {
     setChatData(workingChatData);
   }
 
+  // ! stale closure here as well // C01
   function getGroupIndex(idString) {
     let result;
+    console.log("groupdata in context", groupData);
     result = groupData.findIndex((group) => group.id === idString);
     if (result === -1) {
       result = groupData.findIndex((group) =>

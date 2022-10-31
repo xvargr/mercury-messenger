@@ -1,5 +1,5 @@
 import { React, useContext, useEffect, useState } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import { useNavigate, Outlet, useParams } from "react-router-dom";
 
 // components
 import GroupsBar from "../components/layout/GroupsBar";
@@ -17,13 +17,31 @@ import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
 import { SocketContext } from "../components/context/SocketContext";
 
+// utility hooks
+import axiosInstance from "../utils/axios";
+
 function MainWindow() {
   const navigate = useNavigate();
-  const { socketIsConnected } = useContext(SocketContext);
-  const { setWindowIsFocused } = useContext(UiContext);
-  const { isLoggedIn, setIsLoggedIn } = useContext(DataContext);
+  const { socketIsConnected, connectSocket } = useContext(SocketContext);
+  const {
+    setWindowIsFocused,
+    setSelectedGroup,
+    setSelectedChannel,
+    selectedChannel,
+    clearSelected,
+  } = useContext(UiContext);
+  const {
+    isLoggedIn,
+    setIsLoggedIn,
+    // groupData,
+    groupMounted,
+    setGroupData,
+    setGroupMounted,
+  } = useContext(DataContext);
   const { flashMessages, setFlashMessages } = useContext(FlashContext);
   const [messageStack, setMessageStack] = useState([]);
+  const { group, channel } = useParams();
+  const { userGroups } = axiosInstance();
 
   // redirect to login if not logged in
   useEffect(() => {
@@ -32,11 +50,12 @@ function MainWindow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   });
 
+  // console.log("selectedChannel in main", selectedChannel?.name);
+
   // load flash messages if any
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // if the local message stack is not the same as in context, copy it
-    // todo better comparison conditions
     if (flashMessages.length > 0) {
       if (
         flashMessages[0] !== messageStack[0] ||
@@ -47,6 +66,45 @@ function MainWindow() {
       }
     }
   });
+
+  // useEffect(() => { // !
+  //   if (groupMounted && isLoggedIn && socketIsConnected === false) {
+  //     connectSocket();
+  //   } // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [groupMounted]);
+
+  useEffect(() => {
+    // if (!groupMounted && isLoggedIn) {
+    // console.log("refetch");
+    userGroups
+      .fetch()
+      .then((res) => {
+        // console.log("refetch successful");
+        const groupData = res.data;
+
+        setGroupData(() => groupData);
+
+        if (group) {
+          const currentGroup = groupData.find((grp) => grp.name === group);
+          setSelectedGroup(() => currentGroup);
+          if (channel) {
+            setSelectedChannel(() =>
+              currentGroup.channels.text.find((chn) => chn.name === channel)
+            );
+          }
+        }
+
+        setGroupMounted(true);
+      })
+      .catch((e) => e); // axios abort throws error unless it's caught here
+    // }
+    return () => {
+      // console.log("cleanup");
+      userGroups.abortFetch(); // abort fetch on unmount
+      clearSelected();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // abort axios request on unmount
 
   // window is focused detection used for notification sounds
   useEffect(() => {

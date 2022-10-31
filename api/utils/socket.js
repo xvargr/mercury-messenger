@@ -272,7 +272,7 @@ const socketSync = {
     const { target, change, initiator } = args;
     const roomType = target.type === "channel" ? "c:" : "g:";
 
-    // ? get initiator socket
+    // get initiator socket, used for ignoring
     const initiatorSockets = socketUsers.getSocketIds([initiator.id]);
 
     // console.log("change Signal!");
@@ -301,6 +301,7 @@ const socketSync = {
           change: { ...change },
         });
     } else if (change.type === "delete") {
+      console.count("delete");
       io.in(`${roomType}${target.id}`)
         .except(initiatorSockets)
         .emit("structureChange", {
