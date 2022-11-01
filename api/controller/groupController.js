@@ -19,6 +19,7 @@ export async function fetchGroups(req, res) {
       select: ["_id", "username", "userImage"],
     },
   ]);
+
   res.json(result);
 }
 

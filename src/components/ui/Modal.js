@@ -57,7 +57,7 @@ export function DeleteUserModal(props) {
 }
 
 export function ReconnectingModal(params) {
-  const { isReconnecting } = params;
+  const { isReconnecting, error } = params;
   const [transform, setTransform] = useState("-translate-y-12");
 
   useEffect(() => {

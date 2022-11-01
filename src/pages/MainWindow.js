@@ -22,22 +22,15 @@ import axiosInstance from "../utils/axios";
 
 function MainWindow() {
   const navigate = useNavigate();
-  const { socketIsConnected, connectSocket } = useContext(SocketContext);
+  const { socketIsConnected } = useContext(SocketContext);
   const {
     setWindowIsFocused,
     setSelectedGroup,
     setSelectedChannel,
-    selectedChannel,
     clearSelected,
   } = useContext(UiContext);
-  const {
-    isLoggedIn,
-    setIsLoggedIn,
-    // groupData,
-    groupMounted,
-    setGroupData,
-    setGroupMounted,
-  } = useContext(DataContext);
+  const { isLoggedIn, setIsLoggedIn, setGroupData, setGroupMounted } =
+    useContext(DataContext);
   const { flashMessages, setFlashMessages } = useContext(FlashContext);
   const [messageStack, setMessageStack] = useState([]);
   const { group, channel } = useParams();
@@ -49,8 +42,6 @@ function MainWindow() {
     else setIsLoggedIn(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   });
-
-  // console.log("selectedChannel in main", selectedChannel?.name);
 
   // load flash messages if any
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -67,19 +58,10 @@ function MainWindow() {
     }
   });
 
-  // useEffect(() => { // !
-  //   if (groupMounted && isLoggedIn && socketIsConnected === false) {
-  //     connectSocket();
-  //   } // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [groupMounted]);
-
   useEffect(() => {
-    // if (!groupMounted && isLoggedIn) {
-    // console.log("refetch");
     userGroups
       .fetch()
       .then((res) => {
-        // console.log("refetch successful");
         const groupData = res.data;
 
         setGroupData(() => groupData);
@@ -97,9 +79,7 @@ function MainWindow() {
         setGroupMounted(true);
       })
       .catch((e) => e); // axios abort throws error unless it's caught here
-    // }
     return () => {
-      // console.log("cleanup");
       userGroups.abortFetch(); // abort fetch on unmount
       clearSelected();
     };

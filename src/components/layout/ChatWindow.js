@@ -27,17 +27,6 @@ function ChatWindow() {
       ? chatData[selectedGroup._id][selectedChannel._id]
       : null;
   }, [chatData, selectedGroup, selectedChannel]);
-  // const navigate = useNavigate();
-
-  // console.log(selectedChannel?.name);
-  // console.log(chatData);
-  console.log("groupdata in app", groupData);
-
-  // useEffect(() => {
-  //   if (!selectedGroup) navigate("/");
-  //   else if (!selectedChannel) navigate(`/g/${selectedGroup.name}`);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
 
   // scroll to bottom on every new message
   useEffect(() => {
@@ -45,8 +34,6 @@ function ChatWindow() {
       endStopRef.current.scrollIntoView();
     }
   }, [chatData]);
-
-  // console.count("rerendered");
 
   // rerender every 30 sec, for updating timestamps
   useEffect(() => {
