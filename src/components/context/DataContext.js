@@ -1,4 +1,4 @@
-import { useState, createContext } from "react";
+import { useState, createContext, useRef, useEffect } from "react";
 
 export const DataContext = createContext(); // use this to access the values here
 
@@ -8,6 +8,12 @@ export function DataStateProvider(props) {
   const [groupData, setGroupData] = useState(null);
   const [chatData, setChatData] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // this ref is used to prevent stale closure in the helper functions below
+  const groupDataRef = useRef(groupData);
+  useEffect(() => {
+    groupDataRef.current = groupData;
+  }, [groupData]);
 
   // initialize chat data structure
   if (groupData && chatData === null) {
@@ -23,13 +29,12 @@ export function DataStateProvider(props) {
     setChatData(workingChatData);
   }
 
-  // ! stale closure here as well // C01
+  //  stale closure here as well // C01
   function getGroupIndex(idString) {
     let result;
-    console.log("groupdata in context", groupData);
-    result = groupData.findIndex((group) => group.id === idString);
+    result = groupDataRef.current.findIndex((group) => group.id === idString);
     if (result === -1) {
-      result = groupData.findIndex((group) =>
+      result = groupDataRef.current.findIndex((group) =>
         group.channels.text.some((channel) => channel._id === idString)
       );
     }
@@ -38,7 +43,7 @@ export function DataStateProvider(props) {
 
   function getChannelIndex(parentId, channelId) {
     const parentIndex = getGroupIndex(parentId);
-    const result = groupData[parentIndex].channels.text.findIndex(
+    const result = groupDataRef.current[parentIndex].channels.text.findIndex(
       (channel) => channel._id === channelId
     );
     return result;

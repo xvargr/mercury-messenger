@@ -19,14 +19,11 @@ export async function newChannel(req, res) {
   await newChannel.save();
   await parentGroup.save();
 
-  // !
-  // ? moving from middleware to here, change "this"
-  // ? send parent too, can avoid doing it on the frontend
-  // !
   socketSync.emitChanges({
     target: { type: "channel", id: newChannel._id, parent: parentGroup._id },
     change: { type: "create", data: newChannel },
     initiator: req.user,
+    origin: req.ip,
   });
 
   res.status(201).json({
@@ -62,6 +59,7 @@ export async function editChannel(req, res) {
     target: { type: "channel", id: channel._id, parent: group._id },
     change: { type: "edit", data: channel },
     initiator: req.user,
+    origin: req.ip,
   });
 
   res.json({
@@ -99,6 +97,7 @@ export async function deleteChannel(req, res) {
     target: { type: "channel", id: req.params.cid, parent: parentGroup._id },
     change: { type: "delete" },
     initiator: req.user,
+    origin: req.ip,
   });
 
   res.json({

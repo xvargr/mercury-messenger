@@ -53,6 +53,7 @@ app.use(
     credentials: true,
   })
 );
+app.set("trust proxy", true); // for passing IP addresses if express is behind a reverse proxy
 
 const sessionSettings = session({
   secret: process.env.SECRET,

@@ -18,43 +18,54 @@ const socketUsers = {
     );
     if (userIndex === -1) {
       this.connectedUsers.push({
-        // name: socket.request.user.username,
+        // address: socket.request.connection.remoteAddress // request.connection.remotePort // request.connection._peername // handshake.address are alternatives
         userId: socket.request.user.id,
-        socketId: [socket.id],
+        instances: [
+          { id: socket.id, address: socket.request.connection.remoteAddress },
+        ],
       });
     } else {
-      this.connectedUsers[userIndex].socketId.push(socket.id);
+      this.connectedUsers[userIndex].instances.push({
+        id: socket.id,
+        address: socket.request.connection.remoteAddress,
+      });
     }
   },
   disconnect(socket) {
     const index = this.connectedUsers.findIndex((user) =>
-      user.socketId.some((id) => id === socket.id)
+      user.instances.some((instance) => instance.id === socket.id)
     );
 
-    if (this.connectedUsers[index].socketId.length === 1) {
+    if (this.connectedUsers[index].instances.length === 1) {
       this.connectedUsers.splice(index, 1);
     } else {
-      const newSocketIds = this.connectedUsers[index].socketId.filter(
-        (id) => id !== socket.id
+      const instanceIndex = this.connectedUsers[index].instances.findIndex(
+        (instance) => instance.id === socket.id
       );
-      this.connectedUsers[index].socketId = [...newSocketIds];
+
+      this.connectedUsers[index].instances.splice(instanceIndex, 1);
     }
   },
   isConnected(socket) {
     return this.connectedUsers.some(
-      (user) => user.userId === socket.request.user.id
+      (user) =>
+        user.userId === socket.request.user.id &&
+        user.instances.some(
+          (instance) =>
+            instance.address === socket.request.connection.remoteAddress
+        )
     );
   },
-  getSocketIds(idArray) {
+  getInstances(idArray) {
     const result = [];
 
     idArray.forEach((id) => {
       const index = this.connectedUsers.findIndex((user) => user.userId === id);
       if (index !== -1) {
-        this.connectedUsers[index].socketId.forEach((socket) =>
-          result.push(socket)
+        this.connectedUsers[index].instances.forEach((instance) =>
+          result.push(instance)
         );
-      }
+      } else return null;
     });
 
     return result;
@@ -221,14 +232,17 @@ const socketInstance = {
   initialize() {
     // refuse connection if not authenticated or user already has a connection
     this.io.use(async function (socket, next) {
-      if (socket.request.isAuthenticated()) {
+      if (
+        socket.request.isAuthenticated() &&
+        !socketUsers.isConnected(socket)
+      ) {
         socketUsers.connect(socket);
         next();
       } else {
         const err = new ExpressError("Unauthorized", 401);
-        // err.data = {
-        //   message: "Another device, click to use here instead",
-        // }; // feature not necessary, api and app can handle multiple instances
+        err.data = {
+          message: "Another device, click to use here instead",
+        }; // feature not necessary, api and app can handle multiple instances
         next(err); // refuse connection
       }
     });
@@ -269,46 +283,35 @@ const socketInstance = {
 const socketSync = {
   async emitChanges(args) {
     const io = socketInstance.io;
-    const { target, change, initiator } = args;
+    const { target, change, initiator, origin } = args;
     const roomType = target.type === "channel" ? "c:" : "g:";
 
-    // get initiator socket, used for ignoring
-    const initiatorSockets = socketUsers.getSocketIds([initiator.id]);
+    // get initiator socket, used for ignoring sender
+    const userInstances = socketUsers.getInstances([initiator.id]);
 
-    // console.log("change Signal!");
-    // console.log(currChannel);
-    // console.log(parentGroup); // ! parent can no longer be found if on delete
+    const senderSocket = userInstances.find(
+      (instance) => instance.address === origin
+    );
 
-    // ? need parent to get sockets to update
-
-    // ? sockets are unknown, but we can close the room without knowing the socketIds
-
+    // pre
     if (change.type === "create") {
       // get relevant sockets to join new room
       io.in(`g:${target.parent}`).socketsJoin(`${roomType}${target.id}`);
-
-      io.in(`${roomType}${target.id}`)
-        .except(initiatorSockets)
-        .emit("structureChange", {
-          target: { ...target },
-          change: { ...change },
-        });
     } else if (change.type === "edit") {
-      io.in(`${roomType}${target.id}`)
-        .except(initiatorSockets)
-        .emit("structureChange", {
-          target: { ...target },
-          change: { ...change },
-        });
     } else if (change.type === "delete") {
-      console.count("delete");
-      io.in(`${roomType}${target.id}`)
-        .except(initiatorSockets)
-        .emit("structureChange", {
-          target: { ...target },
-          change: { ...change },
-        });
+    }
 
+    io.in(`${roomType}${target.id}`)
+      .except(senderSocket.id)
+      .emit("structureChange", {
+        target: { ...target },
+        change: { ...change },
+      });
+
+    // post
+    if (change.type === "create") {
+    } else if (change.type === "edit") {
+    } else if (change.type === "delete") {
       // leave all socket from room, thus deleting it
       io.in(`${roomType}${target.id}`).socketsLeave(`${roomType}${target.id}`);
     }
