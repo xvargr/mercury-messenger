@@ -241,7 +241,7 @@ const socketInstance = {
       } else {
         const err = new ExpressError("Unauthorized", 401);
         err.data = {
-          message: "Another device, click to use here instead",
+          message: "App already open on this device, click to use here instead",
         }; // feature not necessary, api and app can handle multiple instances
         next(err); // refuse connection
       }
@@ -281,14 +281,12 @@ const socketInstance = {
 };
 
 const socketSync = {
-  async emitChanges(args) {
+  async channelEmit(args) {
     const io = socketInstance.io;
     const { target, change, initiator, origin } = args;
-    const roomType = target.type === "channel" ? "c:" : "g:";
 
     // get initiator socket, used for ignoring sender
     const userInstances = socketUsers.getInstances([initiator.id]);
-
     const senderSocket = userInstances.find(
       (instance) => instance.address === origin
     );
@@ -296,24 +294,51 @@ const socketSync = {
     // pre
     if (change.type === "create") {
       // get relevant sockets to join new room
-      io.in(`g:${target.parent}`).socketsJoin(`${roomType}${target.id}`);
-    } else if (change.type === "edit") {
-    } else if (change.type === "delete") {
+      io.in(`g:${target.parent}`).socketsJoin(`c:${target.id}`);
     }
 
-    io.in(`${roomType}${target.id}`)
+    io.in(`c:${target.id}`)
       .except(senderSocket.id)
       .emit("structureChange", {
         target: { ...target },
         change: { ...change },
       });
 
-    // post
-    if (change.type === "create") {
-    } else if (change.type === "edit") {
-    } else if (change.type === "delete") {
+    if (change.type === "delete") {
       // leave all socket from room, thus deleting it
-      io.in(`${roomType}${target.id}`).socketsLeave(`${roomType}${target.id}`);
+      io.in(`c:${target.id}`).socketsLeave(`c:${target.id}`);
+    }
+  },
+  groupEmit(args) {
+    const io = socketInstance.io;
+    const { target, change, initiator, origin } = args;
+
+    const userInstances = socketUsers.getInstances([initiator.id]);
+    const senderSocket = userInstances.find(
+      (instance) => instance.address === origin
+    );
+
+    const userSockets = userInstances.map((instance) =>
+      io.sockets.sockets.get(instance.id)
+    );
+
+    // console.log(userInstances);
+    // console.log(senderSocket);
+    // console.log(userSockets);
+
+    if (change.type === "create") {
+      // initiator join room
+      userSockets.forEach((socket) => socket.join(`g:${target.id}`));
+
+      // socket.join(`g:${group.id}`);
+
+      // emit to user's other socket if exist
+      io.in(`c:${target.id}`)
+        .except(senderSocket.id)
+        .emit("structureChange", {
+          target: { ...target },
+          change: { ...change },
+        });
     }
   },
 };

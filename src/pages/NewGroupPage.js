@@ -33,6 +33,7 @@ function NewGroupPage() {
     userGroups
       .new(newGroupData)
       .then((res) => {
+        console.log("in new group"); //!
         setSelectedGroup(res.data.newGroup);
         setSelectedChannel(null);
         setGroupMounted(false);

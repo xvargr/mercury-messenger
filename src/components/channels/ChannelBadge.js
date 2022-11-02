@@ -15,7 +15,8 @@ function ChannelBadge(props) {
   const [nameField, setNameField] = useState(props.data.name);
   const { setGroupData, setChatData, getChannelIndex } =
     useContext(DataContext);
-  const { selectedGroup, selectedChannel } = useContext(UiContext);
+  const { selectedGroup, selectedChannel, setSelectedChannel } =
+    useContext(UiContext);
   const { setFlashMessages } = useContext(FlashContext);
   const navigate = useNavigate();
   const { userChannels } = axiosInstance();
@@ -88,8 +89,9 @@ function ChannelBadge(props) {
         setIsEditing(false);
         setShowDialogue(false);
         setFlashMessages(res.data.messages);
+        setSelectedChannel(res.data.channelData);
 
-        navigate(`/g/${selectedGroup.name}`);
+        navigate(`/g/${selectedGroup.name}/c/${res.data.channelData.name}`);
       })
       .catch((err) => {
         setIsEditing(false);

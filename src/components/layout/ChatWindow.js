@@ -17,7 +17,7 @@ import useSocket from "../../utils/socket";
 
 function ChatWindow() {
   const { channel } = useParams();
-  const { groupMounted, chatData, groupData } = useContext(DataContext);
+  const { groupMounted, chatData } = useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
   const { sendMessage, appendMessage } = useSocket();
   const [lastUpdate, setLastUpdate] = useState(Date.now());
@@ -27,6 +27,8 @@ function ChatWindow() {
       ? chatData[selectedGroup._id][selectedChannel._id]
       : null;
   }, [chatData, selectedGroup, selectedChannel]);
+
+  console.log("selectedChannel", selectedChannel?.name); // todo chat reload selected channel and 404 re-router
 
   // scroll to bottom on every new message
   useEffect(() => {
@@ -150,7 +152,6 @@ function ChatWindow() {
   // todo fetch more if scroll up
 
   // todo back to current button
-
   if (!groupMounted || !thisChatStack) {
     return (
       <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">

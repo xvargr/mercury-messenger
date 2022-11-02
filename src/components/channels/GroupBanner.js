@@ -58,6 +58,7 @@ function GroupBanner(props) {
     userGroups
       .delete(selectedGroup._id)
       .then((res) => {
+        console.log("in then delete group");
         clearSelected();
         setGroupMounted(false);
         setFlashMessages(res.data.messages);

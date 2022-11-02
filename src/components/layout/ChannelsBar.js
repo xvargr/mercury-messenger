@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 // components
 import ChannelBadge from "../channels/ChannelBadge";
@@ -12,14 +12,29 @@ import { SkeletonChannel } from "../ui/SkeletonLoaders";
 function ChannelsBar() {
   const { group } = useParams();
   const { groupData, groupMounted } = useContext(DataContext);
-  const { selectedChannel, selectedGroup, setSelectedChannel } =
-    useContext(UiContext);
+  const {
+    selectedChannel,
+    selectedGroup,
+    setSelectedChannel,
+    setSelectedGroup,
+  } = useContext(UiContext);
+  const groupExists = useMemo(
+    () => groupData?.find((grp) => grp.name === group),
+    [group, groupData]
+  );
   const navigate = useNavigate();
 
   // redirect 404 if group not found
-  if (groupMounted && !groupData.find((grp) => grp.name === group)) {
-    navigate("/404");
-  }
+  // todo reloads while in group or channel must result in the same location
+  useEffect(() => {
+    if (groupMounted) {
+      if (!groupExists) navigate("/404");
+      else {
+        setSelectedGroup(groupExists);
+      }
+      if (!selectedGroup) navigate("/");
+    }
+  }, [groupMounted]);
 
   let isAdmin;
   if (groupMounted && selectedGroup) {
@@ -36,7 +51,8 @@ function ChannelsBar() {
       : null;
 
   function channelChangeHandler(channel) {
-    setSelectedChannel(channel);
+    if (!channel) setSelectedChannel(null);
+    else setSelectedChannel(channel);
   }
 
   if (!groupMounted || !selectedGroup) {
@@ -78,7 +94,12 @@ function ChannelsBar() {
               />
             );
           })}
-          {isAdmin ? <NewChannelButton for={selectedGroup} /> : null}
+          {isAdmin ? (
+            <NewChannelButton
+              for={selectedGroup}
+              onClick={channelChangeHandler}
+            />
+          ) : null}
           <hr className="w-1/3 mb-2 mt-2 border-gray-800" />
           {/* {groupData[groupIndex].channels.text.map((channel) => {
             let selected = selectedChannel === channel.name ? true : false;

@@ -119,7 +119,37 @@ export function SocketStateProvider(props) {
       console.log(`${change.type} signal received for `);
       // console.log(res);
 
-      if (target.type === "channel" && change.type === "delete") {
+      function createChannel() {}
+      setGroupData((currentData) => {
+        const dataCopy = [...currentData];
+        const parentIndex = getGroupIndex(target.parent);
+
+        dataCopy[parentIndex].channels.text.push(change.data);
+        return dataCopy;
+      });
+
+      setChatData((currentData) => {
+        const dataCopy = { ...currentData };
+        dataCopy[target.parent][target.id] = [];
+        return dataCopy;
+      });
+
+      function editChannel() {
+        setGroupData((currentData) => {
+          const dataCopy = [...currentData];
+          const parentIndex = getGroupIndex(target.parent);
+          const channelIndex = getChannelIndex(target.parent, target.id);
+          dataCopy[parentIndex].channels.text[channelIndex] = change.data;
+          return dataCopy;
+        });
+
+        if (selectedChannelRef.current?._id === target.id) {
+          setSelectedChannel(change.data);
+          navigate(`/g/${selectedGroupRef.current.name}/c/${change.data.name}`);
+        }
+      }
+
+      function deleteChannel() {
         setChatData((currentData) => {
           const dataCopy = { ...currentData };
           delete dataCopy[target.parent][target.id];
@@ -141,45 +171,40 @@ export function SocketStateProvider(props) {
         }
       }
 
-      // remove
-
-      // update gdt & cdt // 2
-
-      // * editing
-      // find in gdt and cdt // 1
-      if (target.type === "channel" && change.type === "edit") {
+      // ! to test
+      function createGroup() {
+        console.log("in create");
         setGroupData((currentData) => {
           const dataCopy = [...currentData];
-          const parentIndex = getGroupIndex(target.parent);
-          const channelIndex = getChannelIndex(target.parent, target.id);
-          dataCopy[parentIndex].channels.text[channelIndex] = change.data;
-          return dataCopy;
-        });
-      }
-
-      // append edit content
-
-      // update gdt & cdt // 2
-
-      // * create
-      // create item in gdt and cdt
-      if (target.type === "channel" && change.type === "create") {
-        setGroupData((currentData) => {
-          const dataCopy = [...currentData];
-          const parentIndex = getGroupIndex(target.parent);
-
-          dataCopy[parentIndex].channels.text.push(change.data);
+          dataCopy.push(change.data);
           return dataCopy;
         });
 
         setChatData((currentData) => {
           const dataCopy = { ...currentData };
+          dataCopy[target.parent] = {};
           dataCopy[target.parent][target.id] = [];
           return dataCopy;
         });
       }
 
-      // update gdt & cdt // 2
+      function editGroup() {}
+      function deleteGroup() {}
+      function editMessage() {}
+      function deleteMessage() {}
+
+      if (target.type === "channel") {
+        if (change.type === "create") createChannel();
+        else if (change.type === "edit") editChannel();
+        else if (change.type === "delete") deleteChannel();
+      } else if (target.type === "group") {
+        if (change.type === "create") createGroup();
+        else if (change.type === "edit") editGroup();
+        else if (change.type === "delete") deleteGroup();
+      } else if (target.type === "message") {
+        if (change.type === "edit") editMessage();
+        else if (change.type === "delete") deleteMessage();
+      }
     });
   }
 
