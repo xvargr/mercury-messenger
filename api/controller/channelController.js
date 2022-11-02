@@ -19,7 +19,7 @@ export async function newChannel(req, res) {
   await newChannel.save();
   await parentGroup.save();
 
-  socketSync.emitChanges({
+  socketSync.channelEmit({
     target: { type: "channel", id: newChannel._id, parent: parentGroup._id },
     change: { type: "create", data: newChannel },
     initiator: req.user,
@@ -55,7 +55,7 @@ export async function editChannel(req, res) {
   channel.name = req.body.name.substring(0, 20); // limit20char
   await channel.save();
 
-  socketSync.emitChanges({
+  socketSync.channelEmit({
     target: { type: "channel", id: channel._id, parent: group._id },
     change: { type: "edit", data: channel },
     initiator: req.user,
@@ -93,7 +93,7 @@ export async function deleteChannel(req, res) {
   await parentGroup.save();
   await channel.remove();
 
-  socketSync.emitChanges({
+  socketSync.channelEmit({
     target: { type: "channel", id: req.params.cid, parent: parentGroup._id },
     change: { type: "delete" },
     initiator: req.user,

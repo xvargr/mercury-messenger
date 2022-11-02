@@ -29,8 +29,15 @@ function MainWindow() {
     setSelectedChannel,
     clearSelected,
   } = useContext(UiContext);
-  const { isLoggedIn, setIsLoggedIn, setGroupData, setGroupMounted } =
-    useContext(DataContext);
+  const {
+    isLoggedIn,
+    setIsLoggedIn,
+    setGroupData,
+    setGroupMounted,
+    groupMounted,
+    groupData,
+    chatData,
+  } = useContext(DataContext);
   const { flashMessages, setFlashMessages } = useContext(FlashContext);
   const [messageStack, setMessageStack] = useState([]);
   const { group, channel } = useParams();
@@ -59,32 +66,34 @@ function MainWindow() {
   });
 
   useEffect(() => {
-    userGroups
-      .fetch()
-      .then((res) => {
-        const groupData = res.data;
+    if (!groupMounted) {
+      userGroups
+        .fetch()
+        .then((res) => {
+          const groupData = res.data;
 
-        setGroupData(() => groupData);
+          setGroupData(() => groupData);
 
-        if (group) {
-          const currentGroup = groupData.find((grp) => grp.name === group);
-          setSelectedGroup(() => currentGroup);
-          if (channel) {
-            setSelectedChannel(() =>
-              currentGroup.channels.text.find((chn) => chn.name === channel)
-            );
+          if (group) {
+            const currentGroup = groupData.find((grp) => grp.name === group);
+            setSelectedGroup(() => currentGroup);
+            if (channel) {
+              setSelectedChannel(() =>
+                currentGroup.channels.text.find((chn) => chn.name === channel)
+              );
+            }
           }
-        }
 
-        setGroupMounted(true);
-      })
-      .catch((e) => e); // axios abort throws error unless it's caught here
+          setGroupMounted(true);
+        })
+        .catch((e) => e); // axios abort throws error unless it's caught here
+    }
     return () => {
       userGroups.abortFetch(); // abort fetch on unmount
       clearSelected();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // abort axios request on unmount
+  }, [groupMounted]);
 
   // window is focused detection used for notification sounds
   useEffect(() => {

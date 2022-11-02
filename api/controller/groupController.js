@@ -2,7 +2,9 @@ import Group from "../models/Group.js";
 import User from "../models/User.js";
 import Channel from "../models/Channel.js";
 
+// utils
 import ExpressError from "../utils/ExpressError.js";
+import { socketSync } from "../utils/socket.js";
 
 export async function fetchGroups(req, res) {
   const result = await Group.find({ members: req.user }).populate([
@@ -44,6 +46,13 @@ export async function newGroup(req, res) {
 
   await newChannel.save();
   await newGroup.save();
+
+  socketSync.groupEmit({
+    target: { type: "group", id: newGroup._id },
+    change: { type: "create", data: newGroup },
+    initiator: req.user,
+    origin: req.ip,
+  });
 
   res.status(201).json({
     newGroup: newGroup,
