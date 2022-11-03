@@ -119,23 +119,25 @@ export function SocketStateProvider(props) {
       console.log(`${change.type} signal received for `);
       // console.log(res);
 
-      function createChannel() {}
-      setGroupData((currentData) => {
-        const dataCopy = [...currentData];
-        const parentIndex = getGroupIndex(target.parent);
+      function createChannel() {
+        setGroupData((currentData) => {
+          const dataCopy = [...currentData];
+          const parentIndex = getGroupIndex(target.parent);
 
-        dataCopy[parentIndex].channels.text.push(change.data);
-        return dataCopy;
-      });
+          dataCopy[parentIndex].channels.text.push(change.data);
+          return dataCopy;
+        });
 
-      setChatData((currentData) => {
-        const dataCopy = { ...currentData };
-        dataCopy[target.parent][target.id] = [];
-        return dataCopy;
-      });
+        setChatData((currentData) => {
+          const dataCopy = { ...currentData };
+          dataCopy[target.parent][target.id] = [];
+          return dataCopy;
+        });
+      }
 
       function editChannel() {
         setGroupData((currentData) => {
+          debugger;
           const dataCopy = [...currentData];
           const parentIndex = getGroupIndex(target.parent);
           const channelIndex = getChannelIndex(target.parent, target.id);
@@ -166,14 +168,13 @@ export function SocketStateProvider(props) {
         });
 
         if (selectedChannelRef.current?._id === target.id) {
+          console.log("rerouting");
           setSelectedChannel(null);
           navigate(`/g/${selectedGroupRef.current.name}`);
         }
       }
 
-      // ! to test
       function createGroup() {
-        console.log("in create");
         setGroupData((currentData) => {
           const dataCopy = [...currentData];
           dataCopy.push(change.data);
@@ -188,7 +189,7 @@ export function SocketStateProvider(props) {
         });
       }
 
-      function editGroup() {}
+      function editGroup() {} // todo
       function deleteGroup() {}
       function editMessage() {}
       function deleteMessage() {}

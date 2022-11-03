@@ -14,13 +14,14 @@ function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { setFlashMessages } = useContext(FlashContext);
   const { groupMounted, setGroupMounted } = useContext(DataContext);
-  const { selectedGroup, clearSelected } = useContext(UiContext);
+  const { selectedGroup, clearSelected, setSelectedChannel } =
+    useContext(UiContext);
   const navigate = useNavigate();
   const { userGroups } = axiosInstance();
 
   let inviteLink;
   let isAdmin;
-  if (groupMounted && selectedGroup !== null) {
+  if (groupMounted && selectedGroup) {
     inviteLink = selectedGroup.inviteLink;
 
     isAdmin = selectedGroup.administrators.some(
@@ -37,6 +38,12 @@ function GroupBanner(props) {
 
   function expandHandler() {
     isExpanded ? setIsExpanded(false) : setIsExpanded(true);
+  }
+
+  function gotoGroupSettings() {
+    setIsExpanded(false);
+    setSelectedChannel(null);
+    navigate(`/g/${selectedGroup.name}/settings`);
   }
 
   function leaveGroup() {
@@ -73,7 +80,10 @@ function GroupBanner(props) {
   function AdminOptions() {
     return (
       <>
-        <button className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-gray-700">
+        <button
+          className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-gray-700"
+          onClick={gotoGroupSettings}
+        >
           SETTINGS
         </button>
         <button

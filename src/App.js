@@ -6,6 +6,8 @@ import NewGroupPage from "./pages/NewGroupPage";
 import NewChannelPage from "./pages/NewChannelPage";
 import UserPage from "./pages/UserPage";
 import LoginPage from "./pages/LoginPage";
+import GroupSettingsPage from "./pages/GroupSettings";
+import PageNotFound from "./pages/PageNotFound";
 
 // import components
 import ChatWindow from "./components/layout/ChatWindow";
@@ -43,14 +45,19 @@ function App() {
                       }
                     >
                       <Route index element={<ChannelIndex />} />
+                      <Route
+                        path="settings"
+                        element={<GroupSettingsPage />}
+                      />{" "}
+                      !
                       <Route path="c">
                         <Route path="new" element={<NewChannelPage />} />
                         <Route path=":channel" element={<ChatWindow />} />
                       </Route>
                     </Route>
                   </Route>
-                  <Route path="404" element={<div>404</div>} />
-                  <Route path="*" element={<div>404</div>} />
+                  <Route path="404" element={<PageNotFound />} />
+                  <Route path="*" element={<PageNotFound />} />
                 </Route>
               </Routes>
             </SocketStateProvider>
