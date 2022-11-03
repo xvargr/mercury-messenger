@@ -322,23 +322,24 @@ const socketSync = {
       io.sockets.sockets.get(instance.id)
     );
 
-    // console.log(userInstances);
-    // console.log(senderSocket);
+    console.log(userInstances);
+    console.log(senderSocket);
     // console.log(userSockets);
 
     if (change.type === "create") {
       // initiator join room
       userSockets.forEach((socket) => socket.join(`g:${target.id}`));
 
-      // socket.join(`g:${group.id}`);
-
       // emit to user's other socket if exist
-      io.in(`c:${target.id}`)
-        .except(senderSocket.id)
-        .emit("structureChange", {
-          target: { ...target },
-          change: { ...change },
-        });
+      if (userInstances.length > 1) {
+        io.in(`g:${target.id}`)
+          .except(senderSocket.id)
+          .emit("structureChange", {
+            target: { ...target },
+            change: { ...change },
+          });
+      }
+    } else if (change.type === "delete") {
     }
   },
 };

@@ -1,4 +1,4 @@
-import { useState, createContext, useRef, useEffect } from "react";
+import { useState, createContext, useEffect, useRef } from "react";
 
 export const DataContext = createContext(); // use this to access the values here
 
@@ -31,10 +31,10 @@ export function DataStateProvider(props) {
 
   //  stale closure here as well // C01
   function getGroupIndex(idString) {
-    let result;
-    result = groupDataRef.current.findIndex((group) => group.id === idString);
+    const dataArray = groupDataRef.current ?? groupData;
+    let result = dataArray.findIndex((group) => group.id === idString);
     if (result === -1) {
-      result = groupDataRef.current.findIndex((group) =>
+      result = dataArray.findIndex((group) =>
         group.channels.text.some((channel) => channel._id === idString)
       );
     }
@@ -42,8 +42,9 @@ export function DataStateProvider(props) {
   }
 
   function getChannelIndex(parentId, channelId) {
+    const dataArray = groupDataRef.current ?? groupData;
     const parentIndex = getGroupIndex(parentId);
-    const result = groupDataRef.current[parentIndex].channels.text.findIndex(
+    const result = dataArray[parentIndex].channels.text.findIndex(
       (channel) => channel._id === channelId
     );
     return result;

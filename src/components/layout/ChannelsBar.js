@@ -18,23 +18,22 @@ function ChannelsBar() {
     setSelectedChannel,
     setSelectedGroup,
   } = useContext(UiContext);
-  const groupExists = useMemo(
-    () => groupData?.find((grp) => grp.name === group),
-    [group, groupData]
-  );
   const navigate = useNavigate();
 
-  // redirect 404 if group not found
-  // todo reloads while in group or channel must result in the same location
+  const groupFound = useMemo(
+    () => groupData?.find((grp) => grp.name === group) ?? false,
+    [group, groupData]
+  );
+
+  // redirect and refresh position preservation
   useEffect(() => {
     if (groupMounted) {
-      if (!groupExists) navigate("/404");
-      else {
-        setSelectedGroup(groupExists);
-      }
-      if (!selectedGroup) navigate("/");
+      if (!groupFound) navigate("/404");
+      else if (groupFound) setSelectedGroup(groupFound);
+      else if (!selectedGroup) navigate("/");
     }
-  }, [groupMounted]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupMounted, groupFound]);
 
   let isAdmin;
   if (groupMounted && selectedGroup) {

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 // components
 import ChatInputBox from "../chat/ChatInputBox";
@@ -17,18 +17,41 @@ import useSocket from "../../utils/socket";
 
 function ChatWindow() {
   const { channel } = useParams();
-  const { groupMounted, chatData } = useContext(DataContext);
-  const { selectedGroup, selectedChannel } = useContext(UiContext);
+  const { groupMounted, groupData, chatData, getGroupIndex } =
+    useContext(DataContext);
+  const { selectedGroup, selectedChannel, setSelectedChannel } =
+    useContext(UiContext);
   const { sendMessage, appendMessage } = useSocket();
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const endStopRef = useRef();
+  const navigate = useNavigate();
+
   const thisChatStack = useMemo(() => {
     return chatData && selectedGroup && selectedChannel
       ? chatData[selectedGroup._id][selectedChannel._id]
       : null;
   }, [chatData, selectedGroup, selectedChannel]);
 
-  console.log("selectedChannel", selectedChannel?.name); // todo chat reload selected channel and 404 re-router
+  const channelFound = useMemo(() => {
+    const groupIndex = groupData ? getGroupIndex(selectedGroup?._id) : null;
+    if (groupData && groupIndex >= 0)
+      return groupData[groupIndex].channels.text.find(
+        (grp) => grp.name === channel
+      );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channel, groupData]);
+
+  // redirect and refresh position preservation
+  useEffect(() => {
+    if (groupMounted) {
+      if (!channelFound) navigate("/404");
+      else {
+        setSelectedChannel(channelFound);
+      }
+      if (!selectedGroup) navigate("/");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupMounted]);
 
   // scroll to bottom on every new message
   useEffect(() => {
