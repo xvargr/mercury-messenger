@@ -24,6 +24,7 @@ export function SocketStateProvider(props) {
     selectedChannel,
     selectedGroup,
     setSelectedChannel,
+    clearSelected,
   } = useContext(UiContext);
 
   // these refs are used to provide the latest values and fix stale closures in socket events
@@ -116,7 +117,7 @@ export function SocketStateProvider(props) {
     socket.on("structureChange", function (res) {
       const { target, change } = res;
 
-      console.log(`${change.type} signal received for `);
+      // console.log(`${change.type} signal received for `);
       // console.log(res);
 
       function createChannel() {
@@ -137,7 +138,6 @@ export function SocketStateProvider(props) {
 
       function editChannel() {
         setGroupData((currentData) => {
-          debugger;
           const dataCopy = [...currentData];
           const parentIndex = getGroupIndex(target.parent);
           const channelIndex = getChannelIndex(target.parent, target.id);
@@ -168,7 +168,6 @@ export function SocketStateProvider(props) {
         });
 
         if (selectedChannelRef.current?._id === target.id) {
-          console.log("rerouting");
           setSelectedChannel(null);
           navigate(`/g/${selectedGroupRef.current.name}`);
         }
@@ -190,7 +189,25 @@ export function SocketStateProvider(props) {
       }
 
       function editGroup() {} // todo
-      function deleteGroup() {}
+      function deleteGroup() {
+        setChatData((currentData) => {
+          const dataCopy = { ...currentData };
+          delete dataCopy[target.id];
+          return dataCopy;
+        });
+
+        setGroupData((currentData) => {
+          const dataCopy = [...currentData];
+          const groupIndex = getGroupIndex(target.id);
+          dataCopy.splice(groupIndex, 1);
+          return dataCopy;
+        });
+
+        if (selectedGroupRef.current?._id === target.id) {
+          clearSelected();
+          navigate(`/`);
+        }
+      }
       function editMessage() {}
       function deleteMessage() {}
 

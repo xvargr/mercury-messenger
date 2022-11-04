@@ -29,7 +29,6 @@ export function DataStateProvider(props) {
     setChatData(workingChatData);
   }
 
-  //  stale closure here as well // C01
   function getGroupIndex(idString) {
     const dataArray = groupDataRef.current ?? groupData;
     let result = dataArray.findIndex((group) => group.id === idString);
