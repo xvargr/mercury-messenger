@@ -250,10 +250,8 @@ const socketInstance = {
     this.io.on("connection", async function (socket) {
       console.log("currently connected: ", socketUsers.connectedUsers);
 
-      // todo add socket to room on new create
-      // * can use connectedUsers array to show if user is online
-      // ! todo broadcast changes to group and channels
-      // ! todo on new channel update chatData
+      // todo use connectedUsers array to show if user is online
+      // todo private messages and friends
 
       const sender = await User.findById(socket.request.user.id).lean();
 
@@ -280,6 +278,7 @@ const socketInstance = {
   },
 };
 
+// todo join group emit ChatData
 const socketSync = {
   async channelEmit(args) {
     const io = socketInstance.io;
@@ -340,6 +339,14 @@ const socketSync = {
           });
       }
     } else if (change.type === "delete") {
+      io.in(`g:${target.id}`)
+        .except(senderSocket.id)
+        .emit("structureChange", {
+          target: { ...target },
+          change: { ...change },
+        });
+
+      io.in(`g:${target.id}`).socketsLeave(`g:${target.id}`);
     }
   },
 };

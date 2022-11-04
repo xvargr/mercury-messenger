@@ -1,17 +1,22 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 // context
 import { DataContext } from "../context/DataContext";
 import { UiContext } from "../context/UiContext";
 import { FlashContext } from "../context/FlashContext";
+
 // components
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
 import InviteButton from "../ui/InviteButton";
+import TextHighlightButton from "../ui/TextHighlightButton";
+
 // utility hooks
 import axiosInstance from "../../utils/axios";
 
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
   const { setFlashMessages } = useContext(FlashContext);
   const { groupMounted, setGroupMounted } = useContext(DataContext);
   const { selectedGroup, clearSelected, setSelectedChannel } =
@@ -33,17 +38,26 @@ function GroupBanner(props) {
   useEffect(() => {
     return () => {
       setIsExpanded(false);
+      setSettingsExpanded(false);
     };
   }, [selectedGroup]);
 
   function expandHandler() {
     isExpanded ? setIsExpanded(false) : setIsExpanded(true);
+    if (settingsExpanded) {
+      setSettingsExpanded(false);
+      navigate(`/g/${selectedGroup.name}`);
+    }
   }
 
-  function gotoGroupSettings() {
-    setIsExpanded(false);
-    setSelectedChannel(null);
-    navigate(`/g/${selectedGroup.name}/settings`);
+  function toggleGroupSettings() {
+    if (settingsExpanded) {
+      setSettingsExpanded(false);
+      navigate(`/g/${selectedGroup.name}`);
+    } else {
+      setSelectedChannel(null);
+      setSettingsExpanded(true);
+    }
   }
 
   function leaveGroup() {
@@ -81,13 +95,18 @@ function GroupBanner(props) {
     return (
       <>
         <button
-          className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-gray-700"
-          onClick={gotoGroupSettings}
+          className={`w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg shadow-md ${
+            settingsExpanded
+              ? "bg-mexican-red-700 hover:bg-mexican-red-600"
+              : "bg-gray-700 hover:bg-gray-600"
+          } transition-colors ease-in duration-75`}
+          onClick={toggleGroupSettings}
         >
           SETTINGS
         </button>
+        {settingsExpanded ? <GroupSettingsMenu /> : null}
         <button
-          className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-gray-700"
+          className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg shadow-md bg-gray-700 hover:bg-gray-600 transition-colors ease-in duration-75"
           onClick={deleteGroup}
         >
           DELETE GROUP
@@ -98,17 +117,17 @@ function GroupBanner(props) {
 
   function TrayExpanded() {
     return (
-      <div className="w-1/5 px-2 py-4 bg-gray-900 text-gray-400 rounded-b-lg fixed top-10 flex flex-col justify-center items-center">
+      <div className="w-1/5 px-2 py-4 bg-gray-900 text-gray-400 rounded-b-md shadow-md fixed top-10 flex flex-col justify-center items-center">
         <InviteButton inviteLink={inviteLink} />
         {isAdmin ? <AdminOptions /> : null}
         <button
-          className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg bg-gray-700"
+          className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg shadow-md bg-gray-700 hover:bg-gray-600 transition-colors ease-in duration-75"
           onClick={leaveGroup}
         >
           LEAVE
         </button>
         <div
-          className="w-12 h-3 bg-gray-900 rounded-b-lg flex items-center justify-center absolute -bottom-3  hover:h-4 hover:translate-y-1 transition-all cursor-pointer group"
+          className="w-12 h-3 bg-gray-900 rounded-b-lg shadow-md flex items-center justify-center absolute -bottom-3 hover:h-4 hover:translate-y-1 transition-all cursor-pointer group"
           onClick={expandHandler}
         >
           <ChevronUpIcon className="h-4 w-3 text-gray-700 group-hover:text-gray-500 transition-colors" />
@@ -120,7 +139,7 @@ function GroupBanner(props) {
   function TrayCollapsed() {
     return (
       <div
-        className="w-12 h-3 bg-gray-800 rounded-b-lg fixed top-10 flex justify-center items-center hover:h-4 transition-all cursor-pointer group"
+        className="w-12 h-3 bg-gray-800 rounded-b-lg fixed top-10 flex justify-center items-center shadow-md hover:h-4 transition-all cursor-pointer group"
         onClick={expandHandler}
       >
         <ChevronDownIcon className="h-3 w-3 text-gray-700 group-hover:text-gray-500 transition-colors" />
@@ -128,8 +147,30 @@ function GroupBanner(props) {
     );
   }
 
+  function GroupSettingsMenu() {
+    return (
+      <div className="bg-gray-700 w-5/6 mx-4 -mt-2.5 mb-1 px-4 py-1 pt-2 text-center rounded-b-lg shadow-md -z-10">
+        <TextHighlightButton
+          text="General"
+          goto={`/g/${selectedGroup.name}/settings#general`}
+          hash="#general"
+        />
+        <TextHighlightButton
+          text="Channels"
+          goto={`/g/${selectedGroup.name}/settings#channels`}
+          hash="#channels"
+        />
+        <TextHighlightButton
+          text="Members"
+          goto={`/g/${selectedGroup.name}/settings#members`}
+          hash="#members"
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-10 bg-gray-800 flex justify-center items-center">
+    <div className="w-full h-10 bg-gray-800 flex justify-center shadow-md items-center">
       <div className="m-2 text-gray-400 truncate font-montserrat">
         {props.name}
       </div>

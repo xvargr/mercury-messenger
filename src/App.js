@@ -45,11 +45,7 @@ function App() {
                       }
                     >
                       <Route index element={<ChannelIndex />} />
-                      <Route
-                        path="settings"
-                        element={<GroupSettingsPage />}
-                      />{" "}
-                      !
+                      <Route path="settings" element={<GroupSettingsPage />} />
                       <Route path="c">
                         <Route path="new" element={<NewChannelPage />} />
                         <Route path=":channel" element={<ChatWindow />} />

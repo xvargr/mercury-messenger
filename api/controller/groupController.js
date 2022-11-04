@@ -74,7 +74,16 @@ export async function deleteGroup(req, res) {
     throw new ExpressError("Forbidden", 403);
   }
 
+  socketSync.groupEmit({
+    target: { type: "group", id: group._id },
+    change: { type: "delete" },
+    initiator: req.user,
+    origin: req.ip,
+  });
+
   await group.remove();
+
+  console.log(group);
 
   res.json({
     messages: [{ message: "successfully deleted group", type: "success" }],

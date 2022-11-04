@@ -33,7 +33,6 @@ function NewGroupPage() {
     userGroups
       .new(newGroupData)
       .then((res) => {
-        console.log("in new group"); //!
         setSelectedGroup(res.data.newGroup);
         setSelectedChannel(null);
         setGroupMounted(false);
@@ -57,6 +56,7 @@ function NewGroupPage() {
         setSelectedChannel(null);
         setFlashMessages(res.data.messages);
         setGroupMounted(false);
+        // ! chatData is undefined for this new group
 
         navigate(`/g/${res.data.joinedGroup.name}`);
       })
