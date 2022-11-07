@@ -1,15 +1,17 @@
 import { useState, useContext, useEffect } from "react";
-// import ui
+
+// ui
 import CardFloat from "../ui/CardFloat";
-// import InputBox from "../components/ui/InputBox";
 import CircleButton from "../ui/CircleButton";
+
 // context
 import { UiContext } from "../context/UiContext";
-// import { DataContext } from "../context/DataContext";
+
 // SVG
 import { ArrowRightIcon } from "@heroicons/react/solid";
+
 // vars
-let channelNameInput; // todo this could be a state
+let channelNameInput;
 let channelTypeInput;
 
 function NewChannelForm(props) {

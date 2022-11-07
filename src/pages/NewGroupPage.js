@@ -37,8 +37,6 @@ function NewGroupPage() {
         setSelectedChannel(null);
         setGroupMounted(false);
         setFlashMessages(res.data.messages);
-        // addGroup(res.data.newGroup);
-
         navigate(`/g/${res.data.newGroup.name}`);
       })
       .catch((err) => {
@@ -56,7 +54,6 @@ function NewGroupPage() {
         setSelectedChannel(null);
         setFlashMessages(res.data.messages);
         setGroupMounted(false);
-        // ! chatData is undefined for this new group
 
         navigate(`/g/${res.data.joinedGroup.name}`);
       })

@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // context
 import { DataContext } from "../context/DataContext";
@@ -9,17 +9,15 @@ import { FlashContext } from "../context/FlashContext";
 // components
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
 import InviteButton from "../ui/InviteButton";
-import TextHighlightButton from "../ui/TextHighlightButton";
 
 // utility hooks
 import axiosInstance from "../../utils/axios";
 
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [settingsExpanded, setSettingsExpanded] = useState(false);
   const { setFlashMessages } = useContext(FlashContext);
   const { groupMounted, setGroupMounted } = useContext(DataContext);
-  const { selectedGroup, clearSelected, setSelectedChannel } =
+  const { selectedGroup, setSelectedChannel, clearSelected } =
     useContext(UiContext);
   const navigate = useNavigate();
   const { userGroups } = axiosInstance();
@@ -38,26 +36,12 @@ function GroupBanner(props) {
   useEffect(() => {
     return () => {
       setIsExpanded(false);
-      setSettingsExpanded(false);
     };
   }, [selectedGroup]);
 
-  function expandHandler() {
+  function expandHandler(e) {
     isExpanded ? setIsExpanded(false) : setIsExpanded(true);
-    if (settingsExpanded) {
-      setSettingsExpanded(false);
-      navigate(`/g/${selectedGroup.name}`);
-    }
-  }
-
-  function toggleGroupSettings() {
-    if (settingsExpanded) {
-      setSettingsExpanded(false);
-      navigate(`/g/${selectedGroup.name}`);
-    } else {
-      setSelectedChannel(null);
-      setSettingsExpanded(true);
-    }
+    if (e.target.id === "settingsButton") setSelectedChannel(null);
   }
 
   function leaveGroup() {
@@ -94,17 +78,14 @@ function GroupBanner(props) {
   function AdminOptions() {
     return (
       <>
-        <button
-          className={`w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg shadow-md ${
-            settingsExpanded
-              ? "bg-mexican-red-700 hover:bg-mexican-red-600"
-              : "bg-gray-700 hover:bg-gray-600"
-          } transition-colors ease-in duration-75`}
-          onClick={toggleGroupSettings}
+        <Link
+          id="settingsButton"
+          className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg shadow-md bg-gray-700 hover:bg-gray-600 transition-colors ease-in duration-75"
+          to={`/g/${selectedGroup.name}/settings`}
+          onClick={expandHandler}
         >
           SETTINGS
-        </button>
-        {settingsExpanded ? <GroupSettingsMenu /> : null}
+        </Link>
         <button
           className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg shadow-md bg-gray-700 hover:bg-gray-600 transition-colors ease-in duration-75"
           onClick={deleteGroup}
@@ -143,28 +124,6 @@ function GroupBanner(props) {
         onClick={expandHandler}
       >
         <ChevronDownIcon className="h-3 w-3 text-gray-700 group-hover:text-gray-500 transition-colors" />
-      </div>
-    );
-  }
-
-  function GroupSettingsMenu() {
-    return (
-      <div className="bg-gray-700 w-5/6 mx-4 -mt-2.5 mb-1 px-4 py-1 pt-2 text-center rounded-b-lg shadow-md -z-10">
-        <TextHighlightButton
-          text="General"
-          goto={`/g/${selectedGroup.name}/settings#general`}
-          hash="#general"
-        />
-        <TextHighlightButton
-          text="Channels"
-          goto={`/g/${selectedGroup.name}/settings#channels`}
-          hash="#channels"
-        />
-        <TextHighlightButton
-          text="Members"
-          goto={`/g/${selectedGroup.name}/settings#members`}
-          hash="#members"
-        />
       </div>
     );
   }

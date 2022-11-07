@@ -1,15 +1,19 @@
 import { useContext, useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PhotographIcon } from "@heroicons/react/outline";
+
+// Ui
+import InputBox from "../components/ui/InputBox";
+import CircleButton from "../components/ui/CircleButton";
+import TextButton from "../components/ui/TextButton";
+import ImageSelectorPreview from "../components/ui/ImageSelectorPreview";
+import { DeleteUserModal } from "../components/ui/Modal";
+
 // context
 import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
 import { SocketContext } from "../components/context/SocketContext";
-// components
-import InputBox from "../components/ui/InputBox";
-import CircleButton from "../components/ui/CircleButton";
-import TextButton from "../components/ui/TextButton";
-import { DeleteUserModal } from "../components/ui/Modal";
+
 // utility hooks
 import axiosInstance from "../utils/axios";
 
@@ -30,12 +34,11 @@ function UserPage() {
   const [feedback, setFeedback] = useState("");
   const [passwordFeedback, setPasswordFeedback] = useState(null);
   const [passwordInput, setPasswordInput] = useState("");
-  const imageRef = useRef();
-  const imageInputRef = useRef();
+  const nameInputRef = useRef();
   const { userAccount } = axiosInstance();
 
   useEffect(() => {
-    imageInputRef.current.value = localStorage.username;
+    nameInputRef.current.value = localStorage.username;
   }, []);
 
   function logOutUser() {
@@ -110,23 +113,8 @@ function UserPage() {
       .catch((err) => {
         setButtonText("Keep changes");
         setInpErr(false);
-        // setFeedback(err.response.data.messages[0].message);
         setFlashMessages(err.response.data.messages);
       });
-  }
-
-  function imagePreview(e) {
-    const selectedImage = e.target.files[0];
-    if (selectedImage) {
-      const fileReader = new FileReader();
-      fileReader.onload = (e) => {
-        imageRef.current.attributes.src.value = e.target.result;
-      };
-      fileReader.readAsDataURL(e.target.files[0]);
-      userObject.image = e.target.files[0];
-    }
-    setInpErr(false);
-    setButtonText("Keep changes");
   }
 
   function onUsernameChange(e) {
@@ -138,6 +126,12 @@ function UserPage() {
       setFeedback("");
       setInpErr(false);
     }
+    setButtonText("Keep changes");
+  }
+
+  function updateImage(data) {
+    userObject.image = data;
+    setInpErr(false);
     setButtonText("Keep changes");
   }
 
@@ -177,24 +171,9 @@ function UserPage() {
           className="w-4/5 h-4/5 flex flex-col justify-center items-center"
           onSubmit={modifyUser}
         >
-          <label htmlFor="userImage" className="group hover:cursor-pointer">
-            <PhotographIcon className="relative -mt-[6rem] top-[12rem] left-[6rem] text-gray-400 h-[6rem] opacity-0 hover:cursor-pointer group-hover:opacity-100 transition-all duration-100 z-10" />
-            <div className="group-hover:brightness-[0.4] group-hover:cursor-pointer transition-all duration-100">
-              <img
-                src={localStorage.userImage}
-                alt="profile"
-                className="w-72 h-72 rounded-full"
-                ref={imageRef}
-              />
-            </div>
-          </label>
-          <input
-            type="file"
-            name="userImage"
-            id="userImage"
-            className="sr-only"
-            accept=".jpg, .jpeg, .png, .gif"
-            onChange={imagePreview}
+          <ImageSelectorPreview
+            imageSrc={localStorage.userImage}
+            passData={updateImage}
           />
           <label htmlFor="username" className="sr-only">
             username
@@ -206,7 +185,7 @@ function UserPage() {
               id="username"
               className="block w-full bg-gray-600 focus:outline-none text-center font-semibold text-gray-300"
               onChange={onUsernameChange}
-              ref={imageInputRef}
+              ref={nameInputRef}
               autoComplete="off"
             />
           </InputBox>
