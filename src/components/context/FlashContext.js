@@ -3,7 +3,12 @@ export const FlashContext = createContext();
 
 export function FlashStateProvider(props) {
   const [flashMessages, setFlashMessages] = useState([]);
-  const flashState = { flashMessages, setFlashMessages };
+
+  function pushFlashMessage(params) {
+    setFlashMessages((prevMessages) => [...prevMessages, ...params]);
+  }
+
+  const flashState = { flashMessages, setFlashMessages, pushFlashMessage };
 
   return (
     <FlashContext.Provider value={flashState}>

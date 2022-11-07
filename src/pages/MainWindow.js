@@ -35,8 +35,6 @@ function MainWindow() {
     setGroupData,
     setGroupMounted,
     groupMounted,
-    groupData,
-    chatData,
   } = useContext(DataContext);
   const { flashMessages, setFlashMessages } = useContext(FlashContext);
   const [messageStack, setMessageStack] = useState([]);

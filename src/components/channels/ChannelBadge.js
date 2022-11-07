@@ -48,7 +48,7 @@ function ChannelBadge(props) {
               res.data.channelId
             );
             dataCopy[props.groupIndex].channels.text.splice(channelIndex, 1);
-            return dataCopy; // ? admin bug fixed
+            return dataCopy;
           });
 
           setChatData((prevData) => {

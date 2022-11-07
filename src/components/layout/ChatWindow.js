@@ -175,6 +175,7 @@ function ChatWindow() {
   // todo fetch more if scroll up
 
   // todo back to current button
+
   if (!groupMounted || !thisChatStack) {
     return (
       <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">
