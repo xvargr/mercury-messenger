@@ -1,6 +1,5 @@
 import { useContext, useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PhotographIcon } from "@heroicons/react/outline";
 
 // Ui
 import InputBox from "../components/ui/InputBox";
@@ -178,12 +177,15 @@ function UserPage() {
           <label htmlFor="username" className="sr-only">
             username
           </label>
-          <InputBox className="w-60 mt-4 bg-gray-600">
+          <InputBox
+            className="w-60 mt-4 bg-gray-600 group hover:bg-gray-500"
+            transferFocus={(e) => e.target.children.username?.focus()}
+          >
             <input
               type="text"
               name="username"
               id="username"
-              className="block w-full bg-gray-600 focus:outline-none text-center font-semibold text-gray-300"
+              className="block w-full bg-gray-600 focus:outline-none text-center font-semibold text-gray-300 group-hover:bg-gray-500 transition-colors duration-75 ease-in"
               onChange={onUsernameChange}
               ref={nameInputRef}
               autoComplete="off"
