@@ -156,13 +156,16 @@ function LoginPage() {
             <label htmlFor="username" className="sr-only">
               username
             </label>
-            <InputBox className="bg-gray-700 w-5/6 m-3">
+            <InputBox
+              className="bg-gray-700 w-5/6 m-3 group hover:bg-gray-600"
+              transferFocus={(e) => e.target.children.username?.focus()}
+            >
               <input
                 type="text"
                 name="username"
                 id="username"
                 placeholder="Username"
-                className="block bg-gray-700 w-full focus:outline-none"
+                className="block bg-gray-700 w-full group-hover:bg-gray-600 transition-colors duration-75 ease-in focus:outline-none"
                 autoComplete="off"
                 onChange={onChangeHandler}
               />
@@ -170,13 +173,16 @@ function LoginPage() {
             <label htmlFor="password" className="sr-only">
               password
             </label>
-            <InputBox className="bg-gray-700 w-5/6 m-3">
+            <InputBox
+              className="bg-gray-700 w-5/6 m-3 group hover:bg-gray-600"
+              transferFocus={(e) => e.target.children.password?.focus()}
+            >
               <input
                 type="password"
                 name="password"
                 id="password"
                 placeholder="Password"
-                className="block bg-gray-700 w-full focus:outline-none"
+                className="block bg-gray-700 w-full group-hover:bg-gray-600 transition-colors duration-75 ease-in focus:outline-none"
                 autoComplete="off"
                 maxLength="200"
                 onChange={onChangeHandler}
@@ -185,13 +191,16 @@ function LoginPage() {
             {formState === "login" ? (
               ""
             ) : (
-              <InputBox className="bg-gray-700 w-5/6 m-3">
+              <InputBox
+                className="bg-gray-700 w-5/6 m-3 group hover:bg-gray-600"
+                transferFocus={(e) => e.target.children.passwordCheck?.focus()}
+              >
                 <input
                   type="password"
                   name="passwordCheck"
                   id="passwordCheck"
                   placeholder="Confirm password"
-                  className="block bg-gray-700 w-full focus:outline-none"
+                  className="block bg-gray-700 w-full group-hover:bg-gray-600 transition-colors duration-75 ease-in focus:outline-none"
                   autoComplete="off"
                   onChange={onChangeHandler}
                 />

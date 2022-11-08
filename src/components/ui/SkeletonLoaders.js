@@ -78,6 +78,4 @@ function ChatSkeletonLoader(props) {
   return <>{clusterArray.map((cluster) => cluster)}</>;
 }
 
-function SkeletonImageSelecter(params) {}
-
 export { SkeletonChannel, SkeletonGroup, ChatSkeletonLoader };

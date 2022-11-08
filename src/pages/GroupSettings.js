@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 // context
@@ -10,6 +10,7 @@ import { FlashContext } from "../components/context/FlashContext";
 import ChannelBanner from "../components/chat/ChatBanner";
 import InputBox from "../components/ui/InputBox";
 import ImageSelectorPreview from "../components/ui/ImageSelectorPreview";
+import MemberOptions from "../components/ui/MemberOptions";
 
 function GroupSettingsPage() {
   const { selectedGroup } = useContext(UiContext);
@@ -19,8 +20,10 @@ function GroupSettingsPage() {
     name: "",
     image: "",
   });
+  const nameRef = useRef();
   const navigate = useNavigate();
 
+  // reroute on unauthorized
   useEffect(() => {
     if (
       groupMounted &&
@@ -34,17 +37,32 @@ function GroupSettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGroup]);
 
+  const updateForm = {
+    name() {
+      setFormData({ ...formData, name: nameRef.current.value });
+    },
+    image(data) {
+      setFormData({ ...formData, image: data });
+    },
+  };
+
+  const renderCards = {
+    memberCards() {
+      const adminIds = selectedGroup.administrators.map((admin) => admin._id);
+      const reducedMembers = selectedGroup.members.filter(
+        (member) => !adminIds.includes(member._id)
+      );
+      // console.log(adminIds);
+      // console.log(reducedMembers);
+      return reducedMembers.map((member) => (
+        <MemberOptions memberData={member} isAdmin={false} />
+      ));
+    },
+    adminCards() {},
+  };
+
+  // console.log(formData);
   // console.log(selectedGroup);
-
-  // !
-  function updateFormData(data, type) {
-    if (type === "name") setFormData({ ...formData, image: data });
-    else if (type === "image") setFormData({ ...formData, name: data });
-    console.log(data);
-    console.log(type);
-  }
-
-  // console.log(groupObject);
 
   if (!groupMounted) {
     return null;
@@ -52,30 +70,48 @@ function GroupSettingsPage() {
     return (
       <div className="w-full bg-gray-600 items-center">
         <ChannelBanner name={"settings"} />
-        <div className="w-full h-screen bg-cyan-500 flex flex-col items-center overflow-y-auto scrollbar-dark">
-          <div className="flex max-w-4xl w-full h-80 bg-red-500 justify-evenly items-center m-2 shrink-0">
+        <form className="w-full h-screen flex flex-col items-center overflow-y-auto scrollbar-dark">
+          <div className="flex max-w-4xl w-full h-80 justify-evenly items-center mt-2 shrink-0">
             <ImageSelectorPreview
               imageSrc={selectedGroup.image.url}
-              passData={updateFormData}
+              passData={updateForm.image}
             />
-            <label className="text-lg font-medium text-gray-900 dark:text-gray-400">
+            <label className="text-lg font-medium text-gray-400">
               Group Name:
-              <InputBox className="bg-gray-700 p-4">
+              <InputBox
+                className="bg-gray-800 p-4 group hover:bg-gray-700"
+                transferFocus={(e) => e.target.children.name?.focus()}
+              >
                 <input
                   type="text"
-                  className="w-80 bg-gray-700 text-gray-300 font-normal focus:outline-none"
+                  name="name"
+                  className="w-80 bg-gray-800 text-gray-300 group-hover:bg-gray-700 transition-colors duration-75 ease-in font-normal focus:outline-none"
                   placeholder="..."
                   defaultValue={selectedGroup.name}
-                  onChange={() => updateFormData(null, this)}
+                  onChange={updateForm.name}
+                  ref={nameRef}
                 />
               </InputBox>
             </label>
           </div>
 
-          <div className="flex max-w-4xl w-full h-80 bg-red-500 m-2 shrink-0">
-            <div>Members</div>
+          <div className="flex flex-col items-center max-w-4xl w-11/12 h-80 my-4 shrink-0">
+            <div className="text-lg font-medium text-gray-400">Members</div>
+            <div className="bg-gray-700 rounded-md w-full p-2">
+              <div className="text-lg font-medium text-gray-400">
+                Administrators
+              </div>
+              <div className="w-full flex">{renderCards.adminCards()}</div>
+              <div className="text-lg font-medium text-gray-400">Members</div>
+              <div className="w-full flex justify-around flex-wrap">
+                {renderCards.memberCards()}
+                {renderCards.memberCards()}
+                {renderCards.memberCards()}
+                {renderCards.memberCards()}
+              </div>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     );
   }
