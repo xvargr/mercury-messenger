@@ -110,6 +110,13 @@ function ChatWindow() {
   // renders every cluster in the current chat
   function renderClusters(stack) {
     const clusterStack = [];
+    const isUserAdmin = {};
+    selectedGroup.members.forEach((member) => {
+      const isAdmin = selectedGroup.administrators.some(
+        (admin) => admin._id === member._id
+      );
+      isUserAdmin[member._id] = isAdmin ? true : false;
+    });
 
     // renders the sender/cluster wrapper
     function renderMessages(cluster) {
@@ -164,6 +171,7 @@ function ChatWindow() {
           timestamp={cluster.clusterTimestamp}
           key={cluster.clusterTimestamp}
           pending={cluster._id ? false : true}
+          isAdmin={isUserAdmin[cluster.sender._id]}
         >
           {renderMessages(cluster)}
         </Sender>

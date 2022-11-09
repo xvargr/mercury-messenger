@@ -119,6 +119,7 @@ function LoginPage() {
             "userImageMedium",
             res.data.userData.userImageMedium
           );
+          localStorage.setItem("userColor", res.data.userData.userColor);
 
           navigate("/");
         })

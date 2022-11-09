@@ -43,7 +43,7 @@ export default function useAxiosInstance() {
   // retry conditions
   function toLoginOnUnauthorized(err) {
     // if retry condition is not specified, by default idempotent requests are retried
-    const noRetryCodes = [400, 403, 404];
+    const noRetryCodes = [400, 403, 404, 406];
 
     if (err.response.status === 401) navigate("/login");
     else if (noRetryCodes.includes(err.response.status)) return false;
