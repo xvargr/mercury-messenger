@@ -93,7 +93,10 @@ async function constructChatData(args) {
         .sort({
           clusterTimestamp: "desc",
         })
-        .populate({ path: "sender", select: ["userImage", "username"] })
+        .populate({
+          path: "sender",
+          select: ["userImage", "username", "userColor"],
+        })
         .limit(20);
 
       for (const cluster of await clusters) {
@@ -122,7 +125,7 @@ async function newCluster(args) {
   const populatedCluster = await newMessageCluster.populate([
     {
       path: "sender",
-      select: ["username"],
+      select: ["username", "userColor"],
       populate: { path: "userImage" },
     },
     { path: "group", select: ["name"] },
@@ -252,6 +255,8 @@ const socketInstance = {
 
       // todo use connectedUsers array to show if user is online
       // todo private messages and friends
+
+      // todo on reconnect reload data
 
       const sender = await User.findById(socket.request.user.id).lean();
 

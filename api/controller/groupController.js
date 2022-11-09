@@ -18,7 +18,7 @@ export async function fetchGroups(req, res) {
     { path: "administrators", select: ["_id", "username"] },
     {
       path: "members",
-      select: ["_id", "username", "userImage"],
+      select: ["_id", "username", "userImage", "userColor"],
     },
   ]);
 

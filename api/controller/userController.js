@@ -21,6 +21,7 @@ export async function newUser(req, res) {
       url: undefined,
       fileName: undefined,
     },
+    userColor: "#83232A",
   });
   await newUser.save();
 
@@ -35,6 +36,7 @@ export async function newUser(req, res) {
         userImage: user.userImage.url,
         userImageSmall: user.userImage.thumbnailSmall,
         userImageMedium: user.userImage.thumbnailMedium,
+        userColor: user.userColor,
       },
     });
   });
@@ -43,20 +45,16 @@ export async function newUser(req, res) {
 export function logOutUser(req, res) {
   // console.log(`logged out ${req.user.username}`);
   req.logOut((err) => err);
-  res.status(200).send("ok"); // ! Check that api is not sending unnecessary info like user hashed pw
+  res.status(200).send("ok");
 }
 
 export function logInUser(req, res, next) {
   passport.authenticate("local", (err, user, info) => {
     if (err) throw new ExpressError(err, 500);
-    // if (!user)
-    // res.send("hi"); // ? is passport just not compatible with ExErr specCase
     if (!user)
       res.status(401).json({
         messages: [{ message: "Wrong username or password", type: "error" }],
       });
-    // if (!user) throw new ExpressError("Wrong username or password", 401);
-    // ! 500 Cannot read properties of undefined (reading 'catch')
     else {
       req.logIn(user, (err) => {
         if (err) throw new ExpressError(err, 500);
@@ -68,18 +66,16 @@ export function logInUser(req, res, next) {
             userImage: user.userImage.url,
             userImageSmall: user.userImage.thumbnailSmall,
             userImageMedium: user.userImage.thumbnailMedium,
+            userColor: user.userColor,
           },
-          messages: [
-            { message: "successfully deleted channel", type: "success" },
-          ],
         });
       });
     }
-  })(req, res, next); // ! <= this for some reason is required, no idea why
+  })(req, res, next);
 }
 
 export async function editUser(req, res) {
-  const { name } = req.body;
+  const { name, color } = req.body;
   const { uid } = req.params;
   const image = req.file;
   const update = {};
@@ -91,6 +87,7 @@ export async function editUser(req, res) {
       filename: image.filename,
     };
   }
+  if (color) update.userColor = color;
 
   const updateQuery = await User.findOneAndUpdate({ _id: uid }, update, {
     new: true,
@@ -103,8 +100,11 @@ export async function editUser(req, res) {
       userImage: updateQuery.userImage.url,
       userImageSmall: updateQuery.userImage.thumbnailSmall,
       userImageMedium: updateQuery.userImage.thumbnailMedium,
+      userColor: updateQuery.userColor,
     },
-    messages: [{ message: "successfully edited user", type: "success" }],
+    messages: [
+      { message: "successfully edited your profile", type: "success" },
+    ],
   });
 }
 

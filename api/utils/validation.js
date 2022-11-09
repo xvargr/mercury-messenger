@@ -110,7 +110,8 @@ function validateUser(req, res, next) {
 }
 
 async function validateUserEdit(req, res, next) {
-  const { name } = req.body;
+  console.log("req.body", req.body);
+  const { name, color } = req.body;
   const { uid } = req.params;
   const image = req.file;
 
@@ -125,7 +126,17 @@ async function validateUserEdit(req, res, next) {
     } // else console.log("Username available");
   } else if (name === "null") {
     if (image) cloudinary.uploader.destroy(image.filename);
-    return next(new ExpressError("Username cannot be null", 400));
+    return next(new ExpressError("Invalid username", 400));
+  }
+
+  if (color) {
+    try {
+      if (!/^#[0-9a-f]{3,6}$/i.test(color)) {
+        return next(new ExpressError("Invalid color", 400));
+      }
+    } catch {
+      return next(new ExpressError("Invalid color", 400));
+    }
   }
 
   const idQuery = await User.findById(uid);
@@ -133,7 +144,7 @@ async function validateUserEdit(req, res, next) {
     if (image) cloudinary.uploader.destroy(image.filename);
     return next(new ExpressError("Invalid userId", 400));
   } // console.log("UserId valid");
-  else if (!name && !image) next(new ExpressError("No changes", 400));
+  else if (!name && !image && !color) next(new ExpressError("No changes", 400));
 
   if (image) cloudinary.uploader.destroy(req.user.userImage.filename);
 

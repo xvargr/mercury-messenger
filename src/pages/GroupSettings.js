@@ -46,37 +46,48 @@ function GroupSettingsPage() {
     },
   };
 
+  function submitGroupEdit(e) {
+    e.preventDefault();
+  }
+
   const renderCards = {
     memberCards() {
       const adminIds = selectedGroup.administrators.map((admin) => admin._id);
       const reducedMembers = selectedGroup.members.filter(
         (member) => !adminIds.includes(member._id)
       );
-      // console.log(adminIds);
-      // console.log(reducedMembers);
       return reducedMembers.map((member) => (
         <MemberOptions memberData={member} isAdmin={false} />
       ));
     },
-    adminCards() {},
+    adminCards() {
+      const adminIds = selectedGroup.administrators.map((admin) => admin._id);
+      const reducedMembers = selectedGroup.members.filter((member) =>
+        adminIds.includes(member._id)
+      );
+      return reducedMembers.map((member) => (
+        <MemberOptions memberData={member} isAdmin={true} />
+      ));
+    },
   };
-
-  // console.log(formData);
-  // console.log(selectedGroup);
 
   if (!groupMounted) {
     return null;
   } else {
     return (
-      <div className="w-full bg-gray-600 items-center">
+      <div className="w-full flex flex-col bg-gray-600 items-center">
         <ChannelBanner name={"settings"} />
-        <form className="w-full h-screen flex flex-col items-center overflow-y-auto scrollbar-dark">
-          <div className="flex max-w-4xl w-full h-80 justify-evenly items-center mt-2 shrink-0">
+        <form
+          className="w-full h-screen flex flex-col items-center overflow-y-auto scrollbar-dark"
+          onSubmit={submitGroupEdit}
+        >
+          {/* <div className="flex max-w-4xl w-full h-80 justify-evenly items-center mt-2 shrink-0"> */}
+          <div className="flex flex-col lg:flex-row max-w-4xl w-full h-80 justify-evenly items-center mb-6 mt-12 shrink-0">
             <ImageSelectorPreview
               imageSrc={selectedGroup.image.url}
               passData={updateForm.image}
             />
-            <label className="text-lg font-medium text-gray-400">
+            <label className="text-lg mt-2 lg:mt-0 font-medium text-gray-400">
               Group Name:
               <InputBox
                 className="bg-gray-800 p-4 group hover:bg-gray-700"
@@ -95,18 +106,17 @@ function GroupSettingsPage() {
             </label>
           </div>
 
-          <div className="flex flex-col items-center max-w-4xl w-11/12 h-80 my-4 shrink-0">
+          <div className="flex flex-col items-center max-w-4xl w-11/12 h-80 m-4 shrink-0">
             <div className="text-lg font-medium text-gray-400">Members</div>
-            <div className="bg-gray-700 rounded-md w-full p-2">
+            <div className="bg-gray-800 rounded-md w-full p-2">
               <div className="text-lg font-medium text-gray-400">
                 Administrators
               </div>
-              <div className="w-full flex">{renderCards.adminCards()}</div>
+              <div className="w-full flex flex-col items-center lg:flex-row lg:flex-wrap lg:justify-evenly">
+                {renderCards.adminCards()}
+              </div>
               <div className="text-lg font-medium text-gray-400">Members</div>
-              <div className="w-full flex justify-around flex-wrap">
-                {renderCards.memberCards()}
-                {renderCards.memberCards()}
-                {renderCards.memberCards()}
+              <div className="w-full flex flex-col items-center lg:flex-row lg:flex-wrap lg:justify-evenly">
                 {renderCards.memberCards()}
               </div>
             </div>

@@ -37,13 +37,13 @@ export function DeleteUserModal(props) {
           <label htmlFor="password" className="block font-bold">
             Confirm account deletion
           </label>
-          <InputBox className="w-3/5">
+          <InputBox className="w-3/5 bg-gray-700 p-4 group hover:bg-gray-600">
             <input
               type="password"
               name="password"
               id="password"
               onChange={sendBack}
-              className="w-full bg-gray-700 font-normal focus:outline-none"
+              className="w-full text-gray-400 bg-gray-700 group-hover:bg-gray-600 transition-colors ease-in duration-75 font-normal focus:outline-none"
               placeholder="Enter your password..."
             />
           </InputBox>
@@ -57,7 +57,7 @@ export function DeleteUserModal(props) {
 }
 
 export function ReconnectingModal(params) {
-  const { isReconnecting, error } = params;
+  const { isReconnecting } = params;
   const [transform, setTransform] = useState("-translate-y-12");
 
   useEffect(() => {

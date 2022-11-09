@@ -1,7 +1,7 @@
 import moment from "moment/moment";
 
 function Sender(props) {
-  const { sender, children, timestamp, pending } = props;
+  const { sender, children, timestamp, pending, isAdmin } = props;
   let timeText;
   if (timestamp > Date.now() || Date.now() - timestamp < 30000) {
     timeText = "just now";
@@ -30,11 +30,13 @@ function Sender(props) {
         <span className="flex flex-col w-full">
           <div className="flex justify-between items-center">
             <span
-              className={`text-mexican-red-700 font-kanit ${
-                pending ? "opacity-50" : null
-              }`}
+              className={`font-kanit ${pending ? "opacity-50" : null}`}
+              style={{ color: sender.userColor }}
             >
               {sender.username}
+              <span className="text-gray-900 text-sm opacity-40">
+                {!isAdmin || " (admin)"}
+              </span>
             </span>
             <span className="text-sm opacity-60">{timeText}</span>
           </div>

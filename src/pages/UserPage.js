@@ -1,5 +1,6 @@
 import { useContext, useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { TwitterPicker } from "react-color";
 
 // Ui
 import InputBox from "../components/ui/InputBox";
@@ -19,6 +20,7 @@ import axiosInstance from "../utils/axios";
 const userObject = {
   name: null,
   image: null,
+  color: null,
 };
 
 function UserPage() {
@@ -34,6 +36,7 @@ function UserPage() {
   const [passwordFeedback, setPasswordFeedback] = useState(null);
   const [passwordInput, setPasswordInput] = useState("");
   const nameInputRef = useRef();
+  const colorPreviewRef = useRef();
   const { userAccount } = axiosInstance();
 
   useEffect(() => {
@@ -90,6 +93,7 @@ function UserPage() {
 
     let userData = new FormData();
     if (userObject.name) userData.append("name", userObject.name);
+    if (userObject.color) userData.append("color", userObject.color);
     if (userObject.image) userData.append("file", userObject.image);
 
     userAccount
@@ -105,6 +109,7 @@ function UserPage() {
           "userImageMedium",
           res.data.userData.userImageMedium
         );
+        localStorage.setItem("userColor", res.data.userData.userColor);
         setFlashMessages(res.data.messages);
 
         navigate("/");
@@ -125,6 +130,13 @@ function UserPage() {
       setFeedback("");
       setInpErr(false);
     }
+    setButtonText("Keep changes");
+  }
+
+  function onColorChange(color, e) {
+    userObject.color = color.hex;
+    colorPreviewRef.current.style.backgroundColor = color.hex;
+    setInpErr(false);
     setButtonText("Keep changes");
   }
 
@@ -178,7 +190,7 @@ function UserPage() {
             username
           </label>
           <InputBox
-            className="w-60 mt-4 bg-gray-600 group hover:bg-gray-500"
+            className="w-[16.9rem] mt-4 bg-gray-600 group hover:bg-gray-500 relative"
             transferFocus={(e) => e.target.children.username?.focus()}
           >
             <input
@@ -190,7 +202,32 @@ function UserPage() {
               ref={nameInputRef}
               autoComplete="off"
             />
+            <span
+              className={
+                "w-7 h-7 rounded-full border-2 border-gray-400 absolute right-0 top-0 m-1 hover:cursor-pointer"
+              }
+              style={{ backgroundColor: `${localStorage.userColor}` }}
+              ref={colorPreviewRef}
+            ></span>
           </InputBox>
+          <TwitterPicker
+            color={localStorage.userColor}
+            colors={[
+              "#e74645",
+              "#fb7756",
+              "#facd60",
+              "#fdfa66",
+              "#1ac0c6",
+              "#072448",
+              "#309975",
+              "#bbd4ce",
+              "#f9b4ab",
+              "#d527b7",
+            ]}
+            className="mt-1"
+            triangle="top-right"
+            onChange={(color, e) => onColorChange(color, e)}
+          />
           <TextButton className="mt-4" text={buttonText} disabled={inpErr} />
           <div className=" h-4 mt-4 -mb-16 text-mexican-red-500 font-bold">
             {feedback}

@@ -34,6 +34,7 @@ const UserSchema = new mongoose.Schema({
   username: { type: String, required: true },
   password: { type: String, required: true },
   userImage: UserImageSchema,
+  userColor: { type: String, required: true },
 });
 
 // user pre remove cleanup,
