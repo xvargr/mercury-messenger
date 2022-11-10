@@ -57,7 +57,7 @@ function GroupSettingsPage() {
         (member) => !adminIds.includes(member._id)
       );
       return reducedMembers.map((member) => (
-        <MemberOptions memberData={member} isAdmin={false} />
+        <MemberOptions memberData={member} isAdmin={false} key={member._id} />
       ));
     },
     adminCards() {
@@ -66,7 +66,7 @@ function GroupSettingsPage() {
         adminIds.includes(member._id)
       );
       return reducedMembers.map((member) => (
-        <MemberOptions memberData={member} isAdmin={true} />
+        <MemberOptions memberData={member} isAdmin={true} key={member._id} />
       ));
     },
   };
@@ -108,7 +108,7 @@ function GroupSettingsPage() {
 
           <div className="flex flex-col items-center max-w-4xl w-11/12 h-80 m-4 shrink-0">
             <div className="text-lg font-medium text-gray-400">Members</div>
-            <div className="bg-gray-800 rounded-md w-full p-2">
+            <div className="bg-gray-800 rounded-md w-full p-2 pb-6">
               <div className="text-lg font-medium text-gray-400">
                 Administrators
               </div>
