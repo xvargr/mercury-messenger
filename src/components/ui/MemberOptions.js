@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { BanIcon, UserAddIcon } from "@heroicons/react/outline";
 
 function ExpandContextButton(props) {
@@ -10,69 +10,53 @@ function ExpandContextButton(props) {
     // add dynamic classes on mouse enter
     // remove them on mouse leave
     if (e.type === "mouseenter") {
-      // textRef.current.style.transition = "all 100ms ease-out";
-      // ! wonky, first time always no transition, sometimes text visible
-      // ! after mouse leave transition if triggered quickly
       textRef.current.style.width =
         props.type === "promote" ? "4.5rem" : "2.5rem";
-      // textRef.current.innerText = props.type;
+      textRef.current.innerText = props.type;
+      textRef.current.style.marginLeft = "1rem";
       setTimeout(() => {
         textRef.current.style.opacity = "1";
-        console.log(textRef.current.style);
-        // textRef.current.style.paddingLeft = "0.5rem";
       }, delay);
     } else if (e.type === "mouseleave") {
       textRef.current.style.opacity = "0";
       setTimeout(() => {
-        // textRef.current.style.paddingLeft = "0";
+        textRef.current.style.marginLeft = "0";
         textRef.current.style.width = "0";
-        // textRef.current.innerText = null;
+        textRef.current.innerText = null;
       }, delay);
     }
   }
 
-  //   if (e.type === "mouseenter") {
-  //     textRef.current.style.width = props.type === "promote" ? "4rem" : "2rem";
-  //     textRef.current.innerText = props.type;
-  //     setTimeout(() => {
-  //       textRef.current.style.opacity = "1";
-  //     }, delay);
-  //   } else if (e.type === "mouseleave") {
-  //     textRef.current.style.opacity = "0";
-  //     textRef.current.innerText = null;
-  //     setTimeout(() => {
-  //       textRef.current.style.width = "0";
-  //     }, delay);
-  //   }
-  // }
-
   return (
     <div
-      className="bg-red-500 p-0.5 rounded-full flex relative"
+      className={`${
+        props.type === "promote"
+          ? "hover:bg-yellow-500"
+          : "hover:bg-mexican-red-500"
+      } transition-colors duration-75 ease-out p-0.5 rounded-full flex relative cursor-pointer`}
       onMouseEnter={expandOnHover}
       onMouseLeave={expandOnHover}
+      onClick={props.onClick}
       ref={expandRef}
     >
       {props.type === "promote" ? (
         <>
           <span
-            // className="transition-all ease-out duration-100 pointer-events-none"
+            className="transition-all ease-out duration-100 pointer-events-none"
             style={{ opacity: 0, width: 0, pointerEvents: "none" }}
             ref={textRef}
-          >
-            {props.type}
-          </span>
+          ></span>
           <UserAddIcon className="text-gray-900 w-6 shrink-0 pointer-events-none" />
         </>
       ) : null}
       {props.type === "kick" ? (
         <>
           <span
-            // className="transition-all ease-out duration-100 pointer-events-none"
-            style={{ opacity: 0, pointerEvents: "none" }}
+            className="transition-all ease-out duration-100 pointer-events-none"
+            style={{ opacity: 0, width: 0, pointerEvents: "none" }}
             ref={textRef}
           ></span>
-          <BanIcon className="text-gray-900 w-6 shrink-0" />
+          <BanIcon className="text-gray-900 w-6 shrink-0 pointer-events-none" />
         </>
       ) : null}
     </div>
@@ -80,10 +64,24 @@ function ExpandContextButton(props) {
 }
 
 function MemberOptions(props) {
-  const { memberData, isAdmin } = props;
+  const { memberData, isAdmin, promoteEvent, kickEvent } = props;
+  const [isSelectedToPromote, setIsSelectedToPromote] = useState(false);
+  const [isSelectedToKick, setIsSelectedToKick] = useState(false);
+  const dynamicPromoteStyle = "border-yellow-500";
+  const dynamicKickStyle = "border-mexican-red-500";
+
+  // ! working on conditions, logic here or parent?
 
   return (
-    <div className="w-4/5 lg:w-5/12 min-w-max bg-gray-600 hover:bg-gray-500 transition-colors ease-in duration-75 p-2 m-2 rounded-md flex justify-between shrink-0">
+    <div
+      className={`w-4/5 lg:w-5/12 min-w-max ${
+        isSelectedToKick
+          ? dynamicKickStyle
+          : isSelectedToPromote
+          ? dynamicPromoteStyle
+          : "border-transparent"
+      } bg-gray-600 border-2 box-content hover:bg-gray-500 transition-colors ease-in duration-75 p-2 m-2 rounded-md flex justify-between shrink-0`}
+    >
       <div className="w-3/4 flex">
         <div className="w-18 mr-2 shrink-0">
           <img
@@ -104,8 +102,24 @@ function MemberOptions(props) {
       </div>
       {isAdmin || (
         <div className="w-10 flex flex-col justify-between items-end">
-          <ExpandContextButton type="promote" />
-          <ExpandContextButton type="kick" />
+          <ExpandContextButton
+            type="promote"
+            onClick={() => {
+              isSelectedToPromote
+                ? setIsSelectedToPromote(false)
+                : setIsSelectedToPromote(true);
+              promoteEvent(memberData._id);
+            }}
+          />
+          <ExpandContextButton
+            type="kick"
+            onClick={() => {
+              isSelectedToKick
+                ? setIsSelectedToKick(false)
+                : setIsSelectedToKick(true);
+              kickEvent(memberData._id);
+            }}
+          />
         </div>
       )}
     </div>

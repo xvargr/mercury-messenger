@@ -18,7 +18,11 @@ function GroupSettingsPage() {
   const { pushFlashMessage } = useContext(FlashContext);
   const [formData, setFormData] = useState({
     name: "",
-    image: "",
+    image: null,
+    users: {
+      toPromote: [],
+      toKick: [],
+    },
   });
   const nameRef = useRef();
   const navigate = useNavigate();
@@ -44,7 +48,38 @@ function GroupSettingsPage() {
     image(data) {
       setFormData({ ...formData, image: data });
     },
+    toKick(userId) {
+      if (!formData.users.toKick.includes(userId)) {
+        setFormData((prevData) => {
+          prevData.users.toKick.push(userId);
+          return { ...prevData };
+        });
+      }
+    },
+    toPromote(userId) {
+      if (!formData.users.toPromote.includes(userId)) {
+        setFormData((prevData) => {
+          prevData.users.toPromote.push(userId);
+          return { ...prevData };
+        });
+      }
+    },
   };
+
+  // detect if changes are made, show confirmation modal if true
+  useEffect(() => {
+    const nameChanged =
+      formData.name.length > 0 && formData.name !== selectedGroup.name;
+    const imageChanged = formData.image !== null;
+    const usersChanged =
+      formData.users.toKick.length > 0 || formData.users.toPromote.length > 0;
+
+    if (nameChanged || imageChanged || usersChanged) {
+      console.log("changes");
+    } else {
+      console.log("no changes");
+    }
+  });
 
   function submitGroupEdit(e) {
     e.preventDefault();
@@ -57,7 +92,13 @@ function GroupSettingsPage() {
         (member) => !adminIds.includes(member._id)
       );
       return reducedMembers.map((member) => (
-        <MemberOptions memberData={member} isAdmin={false} key={member._id} />
+        <MemberOptions
+          memberData={member}
+          isAdmin={false}
+          promoteEvent={updateForm.toPromote}
+          kickEvent={updateForm.toKick}
+          key={member._id}
+        />
       ));
     },
     adminCards() {
@@ -81,7 +122,6 @@ function GroupSettingsPage() {
           className="w-full h-screen flex flex-col items-center overflow-y-auto scrollbar-dark"
           onSubmit={submitGroupEdit}
         >
-          {/* <div className="flex max-w-4xl w-full h-80 justify-evenly items-center mt-2 shrink-0"> */}
           <div className="flex flex-col lg:flex-row max-w-4xl w-full h-80 justify-evenly items-center mb-6 mt-12 shrink-0">
             <ImageSelectorPreview
               imageSrc={selectedGroup.image.url}
