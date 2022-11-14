@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { BanIcon, UserAddIcon } from "@heroicons/react/outline";
 
 function ExpandContextButton(props) {
@@ -64,20 +64,16 @@ function ExpandContextButton(props) {
 }
 
 function MemberOptions(props) {
-  const { memberData, isAdmin, promoteEvent, kickEvent } = props;
-  const [isSelectedToPromote, setIsSelectedToPromote] = useState(false);
-  const [isSelectedToKick, setIsSelectedToKick] = useState(false);
+  const { memberData, isAdmin, promoteEvent, kickEvent, selected } = props;
   const dynamicPromoteStyle = "border-yellow-500";
   const dynamicKickStyle = "border-mexican-red-500";
-
-  // ! working on conditions, logic here or parent?
 
   return (
     <div
       className={`w-4/5 lg:w-5/12 min-w-max ${
-        isSelectedToKick
+        selected === "kick"
           ? dynamicKickStyle
-          : isSelectedToPromote
+          : selected === "promote"
           ? dynamicPromoteStyle
           : "border-transparent"
       } bg-gray-600 border-2 box-content hover:bg-gray-500 transition-colors ease-in duration-75 p-2 m-2 rounded-md flex justify-between shrink-0`}
@@ -104,21 +100,11 @@ function MemberOptions(props) {
         <div className="w-10 flex flex-col justify-between items-end">
           <ExpandContextButton
             type="promote"
-            onClick={() => {
-              isSelectedToPromote
-                ? setIsSelectedToPromote(false)
-                : setIsSelectedToPromote(true);
-              promoteEvent(memberData._id);
-            }}
+            onClick={() => promoteEvent(memberData._id)}
           />
           <ExpandContextButton
             type="kick"
-            onClick={() => {
-              isSelectedToKick
-                ? setIsSelectedToKick(false)
-                : setIsSelectedToKick(true);
-              kickEvent(memberData._id);
-            }}
+            onClick={() => kickEvent(memberData._id)}
           />
         </div>
       )}

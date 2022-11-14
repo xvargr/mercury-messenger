@@ -11,6 +11,8 @@ import ChannelBanner from "../components/chat/ChatBanner";
 import InputBox from "../components/ui/InputBox";
 import ImageSelectorPreview from "../components/ui/ImageSelectorPreview";
 import MemberOptions from "../components/ui/MemberOptions";
+import { ConfirmChangesModal } from "../components/ui/Modal";
+import { SkeletonMemberOptions } from "../components/ui/SkeletonLoaders";
 
 function GroupSettingsPage() {
   const { selectedGroup } = useContext(UiContext);
@@ -24,6 +26,7 @@ function GroupSettingsPage() {
       toKick: [],
     },
   });
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const nameRef = useRef();
   const navigate = useNavigate();
 
@@ -37,6 +40,14 @@ function GroupSettingsPage() {
     ) {
       pushFlashMessage([{ message: "Unauthorized", type: "error" }]);
       navigate(`/g/${selectedGroup.name}`);
+    } else if (selectedGroup) {
+      setFormData((prevData) => {
+        return {
+          ...prevData,
+          name: selectedGroup.name,
+          image: null,
+        };
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGroup]);
@@ -49,40 +60,84 @@ function GroupSettingsPage() {
       setFormData({ ...formData, image: data });
     },
     toKick(userId) {
-      if (!formData.users.toKick.includes(userId)) {
+      // if user already in other action array, remove from that arr
+      if (formData.users.toPromote.includes(userId)) {
         setFormData((prevData) => {
-          prevData.users.toKick.push(userId);
+          prevData.users.toPromote = prevData.users.toPromote.filter(
+            (user) => user !== userId
+          );
           return { ...prevData };
         });
       }
+      // then if not in this action's array, add them.
+      // if already in this action's arr, remove them, basically a toggle
+      setFormData((prevData) => {
+        if (!formData.users.toKick.includes(userId)) {
+          prevData.users.toKick.push(userId);
+        } else {
+          prevData.users.toKick = prevData.users.toKick.filter(
+            (id) => id !== userId
+          );
+        }
+        return { ...prevData };
+      });
     },
     toPromote(userId) {
-      if (!formData.users.toPromote.includes(userId)) {
+      if (formData.users.toKick.includes(userId)) {
         setFormData((prevData) => {
-          prevData.users.toPromote.push(userId);
+          prevData.users.toKick = prevData.users.toKick.filter(
+            (user) => user !== userId
+          );
           return { ...prevData };
         });
       }
+      setFormData((prevData) => {
+        if (!formData.users.toPromote.includes(userId)) {
+          prevData.users.toPromote.push(userId);
+        } else {
+          prevData.users.toPromote = prevData.users.toPromote.filter(
+            (id) => id !== userId
+          );
+        }
+        return { ...prevData };
+      });
+    },
+    revertFields() {
+      nameRef.current.value = selectedGroup.name;
+      setFormData({
+        name: selectedGroup.name,
+        image: null,
+        users: {
+          toPromote: [],
+          toKick: [],
+        },
+      });
     },
   };
+  console.log(formData);
 
   // detect if changes are made, show confirmation modal if true
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const nameChanged =
-      formData.name.length > 0 && formData.name !== selectedGroup.name;
-    const imageChanged = formData.image !== null;
-    const usersChanged =
-      formData.users.toKick.length > 0 || formData.users.toPromote.length > 0;
+    if (selectedGroup) {
+      const nameChanged =
+        formData.name.length > 0 && formData.name !== selectedGroup.name;
+      const imageChanged = formData.image !== null;
+      const usersChanged =
+        formData.users.toKick.length > 0 || formData.users.toPromote.length > 0;
 
-    if (nameChanged || imageChanged || usersChanged) {
-      console.log("changes");
-    } else {
-      console.log("no changes");
+      if (nameChanged || imageChanged || usersChanged) {
+        setShowConfirmation(true);
+      } else {
+        setShowConfirmation(false);
+      }
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData]);
 
   function submitGroupEdit(e) {
     e.preventDefault();
+    console.log("accept");
   }
 
   const renderCards = {
@@ -97,6 +152,13 @@ function GroupSettingsPage() {
           isAdmin={false}
           promoteEvent={updateForm.toPromote}
           kickEvent={updateForm.toKick}
+          selected={
+            formData.users.toKick.includes(member._id)
+              ? "kick"
+              : formData.users.toPromote.includes(member._id)
+              ? "promote"
+              : false
+          }
           key={member._id}
         />
       ));
@@ -112,12 +174,50 @@ function GroupSettingsPage() {
     },
   };
 
-  if (!groupMounted) {
-    return null;
+  if (!selectedGroup) {
+    return (
+      <div className="w-full flex flex-col bg-gray-600 items-center relative">
+        <ChannelBanner />
+        <div className="w-full h-screen flex flex-col items-center overflow-y-auto scrollbar-dark">
+          <div className="flex flex-col lg:flex-row max-w-4xl w-full h-80 justify-evenly items-center mb-6 mt-12 shrink-0">
+            <ImageSelectorPreview loading />
+            <label className="text-lg mt-2 lg:mt-0 font-medium text-gray-400">
+              Group Name:
+              <InputBox className="bg-gray-800 p-4 group hover:bg-gray-700 animate-pulse">
+                <div className="w-80 bg-gray-800 text-gray-300 group-hover:bg-gray-700 transition-colors duration-75 ease-in font-normal focus:outline-none animate-pulse"></div>
+              </InputBox>
+            </label>
+          </div>
+
+          <div className="flex flex-col items-center max-w-4xl w-11/12 h-80 m-4 shrink-0">
+            <div className="text-lg font-medium text-gray-400">Members</div>
+            <div className="bg-gray-800 rounded-md w-full p-2 pb-6">
+              <div className="text-lg font-medium text-gray-400">
+                Administrators
+              </div>
+              <div className="w-full flex flex-col items-center lg:flex-row lg:flex-wrap lg:justify-evenly">
+                <SkeletonMemberOptions />
+                <SkeletonMemberOptions />
+              </div>
+              <div className="text-lg font-medium text-gray-400">Members</div>
+              <div className="w-full flex flex-col items-center lg:flex-row lg:flex-wrap lg:justify-evenly">
+                <SkeletonMemberOptions />
+                <SkeletonMemberOptions />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   } else {
     return (
-      <div className="w-full flex flex-col bg-gray-600 items-center">
+      <div className="w-full flex flex-col bg-gray-600 items-center relative">
         <ChannelBanner name={"settings"} />
+        <ConfirmChangesModal
+          show={showConfirmation}
+          onAccept={submitGroupEdit}
+          onReject={updateForm.revertFields}
+        />
         <form
           className="w-full h-screen flex flex-col items-center overflow-y-auto scrollbar-dark"
           onSubmit={submitGroupEdit}
@@ -126,6 +226,7 @@ function GroupSettingsPage() {
             <ImageSelectorPreview
               imageSrc={selectedGroup.image.url}
               passData={updateForm.image}
+              showOriginal={formData.image === null}
             />
             <label className="text-lg mt-2 lg:mt-0 font-medium text-gray-400">
               Group Name:
