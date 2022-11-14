@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { XIcon } from "@heroicons/react/outline";
+import { XIcon, CheckIcon } from "@heroicons/react/outline";
 import InputBox from "./InputBox";
 import Dots from "../ui/Dots";
 
@@ -79,6 +79,30 @@ export function ReconnectingModal(params) {
       <span className="h-full w-full flex justify-center items-center">
         reconnecting
         <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-700" />
+      </span>
+    </div>
+  );
+}
+
+export function ConfirmChangesModal(props) {
+  const { show, onAccept, onReject } = props;
+
+  return (
+    <div
+      className={`absolute ${
+        show ? "translate-y-16" : "translate-y-0"
+      } -top-4 w-5/6 h-11 bg-gray-500 shadow-md rounded-lg px-4 transition-transform ease duration-200 flex items-center justify-between z-20`}
+    >
+      <span>Save changes?</span>
+      <span className="flex">
+        <CheckIcon
+          className="w-16 h-8 bg-green-600 text-gray-800 p-1 m-1 rounded-full"
+          onClick={onAccept}
+        />
+        <XIcon
+          className="w-8 h-8 bg-mexican-red-500 text-gray-800 p-1 m-1 rounded-full"
+          onClick={onReject}
+        />
       </span>
     </div>
   );

@@ -10,6 +10,12 @@ function SkeletonChannel(props) {
   );
 }
 
+function SkeletonMemberOptions(params) {
+  return (
+    <div className="w-4/5 h-16 lg:w-5/12 min-w-max border-transparent bg-gray-600 border-2 box-content hover:bg-gray-500 transition-colors ease-in duration-75 p-2 m-2 rounded-md flex justify-between shrink-0 animate-pulse"></div>
+  );
+}
+
 function ChatSkeletonLoader(props) {
   function SkeletonMessage() {
     const widthRand = Math.floor(Math.random() * 5) + 1;
@@ -78,4 +84,9 @@ function ChatSkeletonLoader(props) {
   return <>{clusterArray.map((cluster) => cluster)}</>;
 }
 
-export { SkeletonChannel, SkeletonGroup, ChatSkeletonLoader };
+export {
+  SkeletonChannel,
+  SkeletonGroup,
+  ChatSkeletonLoader,
+  SkeletonMemberOptions,
+};
