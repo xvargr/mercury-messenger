@@ -1,10 +1,9 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { PhotographIcon } from "@heroicons/react/outline";
 
 export default function ImageSelectorPreview(props) {
   const { imageSrc, passData, loading, showOriginal } = props;
   const [readerSrc, setReaderSrc] = useState(null);
-  const imageRef = useRef();
 
   function imagePreview(e) {
     const selectedImage = e.target.files[0];
@@ -17,6 +16,13 @@ export default function ImageSelectorPreview(props) {
       fileReader.readAsDataURL(e.target.files[0]);
       passData(e.target.files[0]);
     }
+  }
+
+  function previewConditions() {
+    if (showOriginal && !readerSrc) return imageSrc;
+    else if (showOriginal) return imageSrc;
+    else if (readerSrc) return readerSrc;
+    else return imageSrc;
   }
 
   if (loading || !imageSrc) {
@@ -32,10 +38,9 @@ export default function ImageSelectorPreview(props) {
           />
           <div className="group-hover:brightness-[0.4] group-hover:cursor-pointer transition-all duration-100">
             <img
-              src={showOriginal ? imageSrc : readerSrc}
+              src={previewConditions()}
               alt="profile"
               className="w-72 h-72 rounded-full object-cover"
-              ref={imageRef}
             />
           </div>
         </label>

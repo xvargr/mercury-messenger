@@ -81,6 +81,7 @@ passport.deserializeUser((id, done) => {
 app.use("/u", userRouter);
 app.use("/g", groupRouter);
 app.use("/c", channelRouter);
+// todo some more validations esp for edits
 
 // socket.io middleware
 const wrap = (middleware) => (socket, next) => {

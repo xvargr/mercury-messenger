@@ -83,10 +83,41 @@ export async function deleteGroup(req, res) {
 
   await group.remove();
 
-  console.log(group);
-
   res.json({
     messages: [{ message: "successfully deleted group", type: "success" }],
+  });
+}
+
+export async function editGroup(req, res) {
+  // const id = req.params.gid;
+  // const group = await Group.findById(id).populate({
+  //   path: "channels",
+  //   populate: [
+  //     { path: "text", model: "Channel" },
+  //     { path: "task", model: "Channel" },
+  //   ],
+  // });
+
+  // if (!group.administrators.some((admin) => admin._id.equals(req.user._id))) {
+  //   throw new ExpressError("Forbidden", 403);
+  // }
+
+  // socketSync.groupEmit({
+  //   target: { type: "group", id: group._id },
+  //   change: { type: "delete" },
+  //   initiator: req.user,
+  //   origin: req.ip,
+  // });
+
+  // await group.remove();
+
+  console.log(req);
+  console.log("req.params", req.params);
+  console.log("req.body", req.body);
+  console.log("req.file", req.file);
+
+  res.json({
+    messages: [{ message: "successfully edited group", type: "success" }],
   });
 }
 

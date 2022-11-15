@@ -17,8 +17,8 @@ import { SocketContext } from "../components/context/SocketContext";
 // utility hooks
 import axiosInstance from "../utils/axios";
 
-const userObject = {
-  name: null,
+const userForm = {
+  name: "",
   image: null,
   color: null,
 };
@@ -30,7 +30,7 @@ function UserPage() {
   const { setFlashMessages } = useContext(FlashContext);
   const { socketClear } = useContext(SocketContext);
   const [inpErr, setInpErr] = useState(true);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
   const [buttonText, setButtonText] = useState("Keep changes");
   const [feedback, setFeedback] = useState("");
   const [passwordFeedback, setPasswordFeedback] = useState(null);
@@ -92,9 +92,9 @@ function UserPage() {
     setInpErr(true);
 
     let userData = new FormData();
-    if (userObject.name) userData.append("name", userObject.name);
-    if (userObject.color) userData.append("color", userObject.color);
-    if (userObject.image) userData.append("file", userObject.image);
+    if (userForm.name) userData.append("name", userForm.name);
+    if (userForm.color) userData.append("color", userForm.color);
+    if (userForm.image) userData.append("file", userForm.image);
 
     userAccount
       .edit(localStorage.userId, userData)
@@ -122,7 +122,7 @@ function UserPage() {
   }
 
   function onUsernameChange(e) {
-    userObject.name = e.target.value;
+    userForm.name = e.target.value;
     if (e.target.value.length < 3 || e.target.value.length > 20) {
       setFeedback("username must be 3 to 20 characters");
       setInpErr(true);
@@ -134,22 +134,22 @@ function UserPage() {
   }
 
   function onColorChange(color, e) {
-    userObject.color = color.hex;
+    userForm.color = color.hex;
     colorPreviewRef.current.style.backgroundColor = color.hex;
     setInpErr(false);
     setButtonText("Keep changes");
   }
 
   function updateImage(data) {
-    userObject.image = data;
+    userForm.image = data;
     setInpErr(false);
     setButtonText("Keep changes");
   }
 
-  function toggleModal(e) {
-    if (!modalIsOpen) setModalIsOpen(true);
+  function toggleDeleteModal(e) {
+    if (!deleteModalIsOpen) setDeleteModalIsOpen(true);
     if (e.type === "keydown" && e.key === "Escape") {
-      setModalIsOpen(false);
+      setDeleteModalIsOpen(false);
       setPasswordFeedback(null);
     } else if (
       e.type === "click" &&
@@ -157,7 +157,7 @@ function UserPage() {
         e.target.id === "modalCloseButton" ||
         e.target.parentElement.id === "modalCloseButton")
     ) {
-      setModalIsOpen(false);
+      setDeleteModalIsOpen(false);
       setPasswordFeedback(null);
     }
   }
@@ -168,9 +168,9 @@ function UserPage() {
 
   return (
     <>
-      {modalIsOpen ? (
+      {deleteModalIsOpen ? (
         <DeleteUserModal
-          toggle={toggleModal}
+          toggle={toggleDeleteModal}
           onSubmit={deleteUser}
           sendBack={passwordOnChange}
           feedback={passwordFeedback}
@@ -242,7 +242,7 @@ function UserPage() {
         />
         <div
           className="text-gray-900 hover:cursor-pointer"
-          onClick={toggleModal}
+          onClick={toggleDeleteModal}
         >
           delete account
         </div>

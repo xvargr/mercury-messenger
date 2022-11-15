@@ -25,6 +25,7 @@ export default function useAxiosInstance() {
   const deleteGroupController = new AbortController();
   const signUserController = new AbortController();
   const newGroupController = new AbortController();
+  const editGroupController = new AbortController();
   const joinGroupController = new AbortController();
   const logOutController = new AbortController();
   const deleteUserController = new AbortController();
@@ -43,7 +44,7 @@ export default function useAxiosInstance() {
   // retry conditions
   function toLoginOnUnauthorized(err) {
     // if retry condition is not specified, by default idempotent requests are retried
-    const noRetryCodes = [400, 403, 404, 406];
+    const noRetryCodes = [400, 403, 404, 406, 500];
 
     if (err.response.status === 401) navigate("/login");
     else if (noRetryCodes.includes(err.response.status)) return false;
@@ -157,6 +158,19 @@ export default function useAxiosInstance() {
     return newGroupInstance.post("/g", data, config);
   }
 
+  function editGroup(idString, data) {
+    const editGroupInstance = axios.create(instanceConfig);
+    const config = { ...requestConfig };
+    config.signal = editChannelController.signal;
+
+    axiosRetry(editGroupInstance, {
+      ...threeRetries,
+      retryCondition: (err) => toLoginOnUnauthorized(err),
+    });
+
+    return editGroupInstance.put(`/g/${idString}`, data, config);
+  }
+
   function joinGroup(code) {
     const joinGroupInstance = axios.create(instanceConfig);
     const config = { ...requestConfig };
@@ -234,6 +248,9 @@ export default function useAxiosInstance() {
   function abortGroupCreate() {
     newGroupController.abort();
   }
+  function abortGroupEdit() {
+    editGroupController.abort();
+  }
   function abortGroupJoin() {
     joinGroupController.abort();
   }
@@ -261,11 +278,13 @@ export default function useAxiosInstance() {
     userGroups: {
       fetch: fetchGroups,
       new: newGroup,
+      edit: editGroup,
       join: joinGroup,
       leave: leaveGroup,
       delete: deleteGroup,
       abortFetch,
       abortNew: abortGroupCreate,
+      abortEdit: abortGroupEdit,
       abortJoin: abortGroupJoin,
       abortLeave: abortGroupLeave,
       abortDelete: abortGroupDelete,

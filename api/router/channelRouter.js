@@ -25,7 +25,12 @@ router.post(
 
 router
   .route("/:cid")
-  .patch(isLoggedIn, upload.none(), asyncErrorWrapper(editChannel))
+  .patch(
+    isLoggedIn,
+    upload.none(),
+    validateChannel,
+    asyncErrorWrapper(editChannel)
+  )
   .delete(isLoggedIn, asyncErrorWrapper(deleteChannel));
 
 export default router;

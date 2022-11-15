@@ -27,8 +27,8 @@ router.post("/login", upload.none(), logInUser);
 router
   .route("/:uid")
   .patch(
-    upload.single("file"),
     isLoggedIn,
+    upload.single("file"),
     validateUserEdit,
     asyncErrorWrapper(editUser)
   )

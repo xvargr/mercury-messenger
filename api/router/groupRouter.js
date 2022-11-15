@@ -4,7 +4,11 @@ import multer from "multer";
 import storage from "../utils/cloudinary.js";
 import isLoggedIn from "../utils/isLoggedIn.js";
 import asyncErrorWrapper from "../utils/asyncErrorWrapper.js";
-import { validateGroup, validateImage } from "../utils/validation.js";
+import {
+  validateGroup,
+  validateGroupEdit,
+  validateImage,
+} from "../utils/validation.js";
 // controller
 import {
   deleteGroup,
@@ -12,6 +16,7 @@ import {
   groupRemoveUser,
   joinWithCode,
   newGroup,
+  editGroup,
 } from "../controller/groupController.js";
 
 const router = express.Router();
@@ -21,8 +26,8 @@ router
   .route("/")
   .get(isLoggedIn, asyncErrorWrapper(fetchGroups))
   .post(
-    upload.single("file"),
     isLoggedIn,
+    upload.single("file"),
     validateGroup,
     validateImage,
     asyncErrorWrapper(newGroup)
@@ -30,12 +35,15 @@ router
 
 router.post("/:gid/join", isLoggedIn, asyncErrorWrapper(joinWithCode));
 
-// remove member from group
 router
   .route("/:gid")
+  .put(
+    isLoggedIn,
+    upload.single("file"),
+    validateGroupEdit,
+    asyncErrorWrapper(editGroup)
+  )
   .patch(isLoggedIn, asyncErrorWrapper(groupRemoveUser))
   .delete(isLoggedIn, asyncErrorWrapper(deleteGroup));
-
-// router.patch("/:gid", );
 
 export default router;
