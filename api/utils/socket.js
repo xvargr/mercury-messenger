@@ -313,6 +313,7 @@ const socketSync = {
       io.in(`c:${target.id}`).socketsLeave(`c:${target.id}`);
     }
   },
+  // todo group edit emit
   groupEmit(args) {
     const io = socketInstance.io;
     const { target, change, initiator, origin } = args;
@@ -326,8 +327,8 @@ const socketSync = {
       io.sockets.sockets.get(instance.id)
     );
 
-    console.log(userInstances);
-    console.log(senderSocket);
+    console.log("userInstances", userInstances);
+    console.log("senderSocket", senderSocket);
     // console.log(userSockets);
 
     if (change.type === "create") {

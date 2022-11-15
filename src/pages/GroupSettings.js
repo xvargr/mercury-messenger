@@ -14,11 +14,16 @@ import MemberOptions from "../components/ui/MemberOptions";
 import { ConfirmChangesModal } from "../components/ui/Modal";
 import { SkeletonMemberOptions } from "../components/ui/SkeletonLoaders";
 
+// utility hooks
+import axiosInstance from "../utils/axios";
+
 function GroupSettingsPage() {
   const { selectedGroup } = useContext(UiContext);
   const { groupMounted } = useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
-  const [formData, setFormData] = useState({
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [formIsPending, setFormIsPending] = useState(false);
+  const [editForm, setFormData] = useState({
     name: "",
     image: null,
     users: {
@@ -26,9 +31,9 @@ function GroupSettingsPage() {
       toKick: [],
     },
   });
-  const [showConfirmation, setShowConfirmation] = useState(false);
   const nameRef = useRef();
   const navigate = useNavigate();
+  const { userGroups } = axiosInstance();
 
   // reroute on unauthorized
   useEffect(() => {
@@ -54,14 +59,14 @@ function GroupSettingsPage() {
 
   const updateForm = {
     name() {
-      setFormData({ ...formData, name: nameRef.current.value });
+      setFormData({ ...editForm, name: nameRef.current.value });
     },
     image(data) {
-      setFormData({ ...formData, image: data });
+      setFormData({ ...editForm, image: data });
     },
     toKick(userId) {
       // if user already in other action array, remove from that arr
-      if (formData.users.toPromote.includes(userId)) {
+      if (editForm.users.toPromote.includes(userId)) {
         setFormData((prevData) => {
           prevData.users.toPromote = prevData.users.toPromote.filter(
             (user) => user !== userId
@@ -72,7 +77,7 @@ function GroupSettingsPage() {
       // then if not in this action's array, add them.
       // if already in this action's arr, remove them, basically a toggle
       setFormData((prevData) => {
-        if (!formData.users.toKick.includes(userId)) {
+        if (!editForm.users.toKick.includes(userId)) {
           prevData.users.toKick.push(userId);
         } else {
           prevData.users.toKick = prevData.users.toKick.filter(
@@ -83,7 +88,7 @@ function GroupSettingsPage() {
       });
     },
     toPromote(userId) {
-      if (formData.users.toKick.includes(userId)) {
+      if (editForm.users.toKick.includes(userId)) {
         setFormData((prevData) => {
           prevData.users.toKick = prevData.users.toKick.filter(
             (user) => user !== userId
@@ -92,7 +97,7 @@ function GroupSettingsPage() {
         });
       }
       setFormData((prevData) => {
-        if (!formData.users.toPromote.includes(userId)) {
+        if (!editForm.users.toPromote.includes(userId)) {
           prevData.users.toPromote.push(userId);
         } else {
           prevData.users.toPromote = prevData.users.toPromote.filter(
@@ -113,31 +118,68 @@ function GroupSettingsPage() {
         },
       });
     },
+    nameChanged() {
+      return editForm.name.length > 0 && editForm.name !== selectedGroup.name;
+    },
+    imageChanged() {
+      return editForm.image !== null;
+    },
+    usersChanged() {
+      return (
+        editForm.users.toKick.length > 0 || editForm.users.toPromote.length > 0
+      );
+    },
+    hasChanges() {
+      return (
+        updateForm.nameChanged() ||
+        updateForm.imageChanged() ||
+        updateForm.usersChanged()
+      );
+    },
   };
-  console.log(formData);
 
   // detect if changes are made, show confirmation modal if true
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (selectedGroup) {
-      const nameChanged =
-        formData.name.length > 0 && formData.name !== selectedGroup.name;
-      const imageChanged = formData.image !== null;
-      const usersChanged =
-        formData.users.toKick.length > 0 || formData.users.toPromote.length > 0;
-
-      if (nameChanged || imageChanged || usersChanged) {
+      if (updateForm.hasChanges()) {
         setShowConfirmation(true);
       } else {
         setShowConfirmation(false);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData]);
+  }, [editForm]);
 
   function submitGroupEdit(e) {
     e.preventDefault();
-    console.log("accept");
+    if (updateForm.hasChanges()) {
+      setFormIsPending(true);
+      console.log(editForm);
+      // console.log(updateForm.hasChanges());
+      // console.log(updateForm.nameChanged());
+      // console.log(updateForm.usersChanged());
+      // console.log(updateForm.imageChanged());
+      console.log(updateForm.imageChanged());
+
+      let formData = new FormData();
+      formData.append("id", selectedGroup._id);
+      if (updateForm.nameChanged()) formData.append("name", editForm.name);
+      if (updateForm.usersChanged())
+        formData.append("users", JSON.stringify(editForm.users)); // ! working here
+      if (updateForm.imageChanged()) formData.append("file", editForm.image);
+
+      userGroups
+        .edit(selectedGroup._id, formData)
+        .then((res) => {
+          console.log("sent innit");
+          console.log(res);
+          // setShowConfirmation(false)
+          setFormIsPending(false);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   }
 
   const renderCards = {
@@ -153,9 +195,9 @@ function GroupSettingsPage() {
           promoteEvent={updateForm.toPromote}
           kickEvent={updateForm.toKick}
           selected={
-            formData.users.toKick.includes(member._id)
+            editForm.users.toKick.includes(member._id)
               ? "kick"
-              : formData.users.toPromote.includes(member._id)
+              : editForm.users.toPromote.includes(member._id)
               ? "promote"
               : false
           }
@@ -184,7 +226,7 @@ function GroupSettingsPage() {
             <label className="text-lg mt-2 lg:mt-0 font-medium text-gray-400">
               Group Name:
               <InputBox className="bg-gray-800 p-4 group hover:bg-gray-700 animate-pulse">
-                <div className="w-80 bg-gray-800 text-gray-300 group-hover:bg-gray-700 transition-colors duration-75 ease-in font-normal focus:outline-none animate-pulse"></div>
+                <div className="w-80 h-4 bg-gray-800 text-gray-300 group-hover:bg-gray-700 transition-colors duration-75 ease-in font-normal focus:outline-none animate-pulse"></div>
               </InputBox>
             </label>
           </div>
@@ -217,6 +259,7 @@ function GroupSettingsPage() {
           show={showConfirmation}
           onAccept={submitGroupEdit}
           onReject={updateForm.revertFields}
+          pending={formIsPending}
         />
         <form
           className="w-full h-screen flex flex-col items-center overflow-y-auto scrollbar-dark"
@@ -226,7 +269,7 @@ function GroupSettingsPage() {
             <ImageSelectorPreview
               imageSrc={selectedGroup.image.url}
               passData={updateForm.image}
-              showOriginal={formData.image === null}
+              showOriginal={editForm.image === null}
             />
             <label className="text-lg mt-2 lg:mt-0 font-medium text-gray-400">
               Group Name:

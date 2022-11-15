@@ -71,6 +71,8 @@ function ChannelBadge(props) {
 
     const channelData = new FormData();
     channelData.append("name", nameField);
+    channelData.append("type", props.data.type);
+    channelData.append("group", selectedGroup._id);
 
     userChannels
       .edit(props.data._id, channelData)

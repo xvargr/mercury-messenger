@@ -11,6 +11,23 @@ import Group from "../models/Group.js";
 // import Channel from "../models/Channel.js";
 import User from "../models/User.js";
 
+function validateImage(req, res, next) {
+  const image = req.file;
+  const accepted = /image\/(png|jpg|jpeg)/;
+
+  if (!accepted.test(image.mimetype)) {
+    // console.log("VALIDATION ERROR : ", "Image in wrong format");
+    next(new ExpressError("Image in wrong format", 400));
+  } else if (image.size > 3145728) {
+    // console.log("VALIDATION ERROR : ", "Image is too large");
+    cloudinary.uploader.destroy(req.file.filename);
+    next(new ExpressError("Image is too large", 400));
+  } else {
+    // console.log("VALIDATION PASSED");
+    next();
+  }
+}
+
 async function validateGroup(req, res, next) {
   const { name } = req.body;
   const validation = groupSchema.validate({
@@ -38,6 +55,30 @@ async function validateGroup(req, res, next) {
     // console.log("VALIDATION PASSED");
     next();
   }
+}
+
+async function validateGroupEdit(req, res, next) {
+  console.log(req.body);
+  console.log(req.file);
+  console.log(req.body.users);
+  console.log(req.body.users.toPromote);
+  console.log(req.body.users.toKick);
+  if (req.body.name) {
+    const result = await Group.findOne({ name: req.body.name });
+    if (result) {
+      cloudinary.uploader.destroy(req.file.filename);
+      next(new ExpressError("That name is unavailable", 400));
+    }
+  }
+  if (req.body.users) {
+    console.log(JSON.parse(req.body.users)); // ! working here
+    // const result = await Group.findById(req.body.id);
+    // const userArray = [...req.body.users.toPromote, ...req.body.users.toKick];
+  }
+  if (req.file) {
+    validateImage();
+  }
+  // next();
 }
 
 async function validateChannel(req, res, next) {
@@ -81,23 +122,6 @@ async function validateChannel(req, res, next) {
   }
 }
 
-function validateImage(req, res, next) {
-  const image = req.file;
-  const accepted = /image\/(png|jpg|jpeg)/;
-
-  if (!accepted.test(image.mimetype)) {
-    // console.log("VALIDATION ERROR : ", "Image in wrong format");
-    next(new ExpressError("Image in wrong format", 400));
-  } else if (image.size > 3145728) {
-    // console.log("VALIDATION ERROR : ", "Image is too large");
-    cloudinary.uploader.destroy(req.file.filename);
-    next(new ExpressError("Image is too large", 400));
-  } else {
-    // console.log("VALIDATION PASSED");
-    next();
-  }
-}
-
 function validateUser(req, res, next) {
   const { username, password } = req.body;
   const validation = userSchema.validate({ username, password });
@@ -110,10 +134,10 @@ function validateUser(req, res, next) {
 }
 
 async function validateUserEdit(req, res, next) {
-  console.log("req.body", req.body);
   const { name, color } = req.body;
   const { uid } = req.params;
   const image = req.file;
+  // console.log("req.body", req.body);
 
   if (name) {
     const nameQuery = await User.findOne({ username: name });
@@ -151,24 +175,11 @@ async function validateUserEdit(req, res, next) {
   next();
 }
 
-// async function validateNewCluster(cluster) {
-//   console.log("cluster validating");
-//   console.log(typeof cluster.content);
-//   const validation = messageSchema.validate(cluster);
-//   // console.log(validation);
-//   if (validation.error) {
-//     console.log(validation.error.details[0].message);
-//     console.log(validation.error);
-//   }
-
-//   return;
-// }
-
 export {
   validateGroup,
+  validateGroupEdit,
   validateChannel,
   validateImage,
   validateUser,
   validateUserEdit,
-  // validateNewCluster,
 };

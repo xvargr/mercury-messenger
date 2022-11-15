@@ -4,6 +4,29 @@ import { XIcon, CheckIcon } from "@heroicons/react/outline";
 import InputBox from "./InputBox";
 import Dots from "../ui/Dots";
 
+const spinnerSvg = (
+  <svg
+    className="animate-spin h-6 w-6 text-gray-300"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <circle
+      className="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="4"
+    ></circle>
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+    ></path>
+  </svg>
+);
+
 export function DeleteUserModal(props) {
   const { toggle, onSubmit, feedback } = props;
   const modalRef = useRef();
@@ -85,23 +108,33 @@ export function ReconnectingModal(params) {
 }
 
 export function ConfirmChangesModal(props) {
-  const { show, onAccept, onReject } = props;
+  const { show, onAccept, onReject, pending } = props;
 
   return (
     <div
       className={`absolute ${
         show ? "translate-y-16" : "translate-y-0"
-      } -top-4 w-5/6 h-11 bg-gray-500 shadow-md rounded-lg px-4 transition-transform ease duration-200 flex items-center justify-between z-20`}
+      } -top-4 w-5/6 h-11 bg-gray-500 shadow-md rounded-lg px-4 transition-transform ease-in-out duration-200 flex items-center justify-between z-20`}
     >
-      <span>Save changes?</span>
+      <span>{pending ? "Saving changes..." : "Save changes?"}</span>
       <span className="flex">
-        <CheckIcon
-          className="w-16 h-8 bg-green-600 text-gray-800 p-1 m-1 rounded-full"
-          onClick={onAccept}
-        />
+        {pending ? (
+          <div className="w-16 h-8 bg-green-600 opacity-70 p-1 m-1 rounded-full flex justify-center">
+            {spinnerSvg}
+          </div>
+        ) : (
+          <CheckIcon
+            className="w-16 h-8 bg-green-600 hover:bg-green-400 text-gray-800 p-1 m-1 rounded-full transition-colors ease-in duration-75 hover:cursor-pointer"
+            onClick={onAccept}
+          />
+        )}
         <XIcon
-          className="w-8 h-8 bg-mexican-red-500 text-gray-800 p-1 m-1 rounded-full"
-          onClick={onReject}
+          className={`w-8 h-8 bg-mexican-red-500 ${
+            pending
+              ? "opacity-70"
+              : "hover:bg-mexican-red-400  transition-colors ease-in duration-75 hover:cursor-pointer"
+          } text-gray-800 p-1 m-1 rounded-full`}
+          onClick={pending ? null : onReject}
         />
       </span>
     </div>
