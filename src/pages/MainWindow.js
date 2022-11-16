@@ -36,7 +36,8 @@ function MainWindow() {
     setGroupMounted,
     groupMounted,
   } = useContext(DataContext);
-  const { flashMessages, setFlashMessages } = useContext(FlashContext);
+  const { flashMessages, setFlashMessages, pushFlashMessage } =
+    useContext(FlashContext);
   const [messageStack, setMessageStack] = useState([]);
   const { group, channel } = useParams();
   const { userGroups } = axiosInstance();
@@ -69,20 +70,34 @@ function MainWindow() {
         .fetch()
         .then((res) => {
           const groupData = res.data;
-
           setGroupData(() => groupData);
+          setGroupMounted(true);
 
           if (group) {
             const currentGroup = groupData.find((grp) => grp.name === group);
-            setSelectedGroup(() => currentGroup);
+            if (!currentGroup) {
+              pushFlashMessage([
+                { message: "Group does not exist", type: "error" },
+              ]);
+              setSelectedGroup(null);
+              setSelectedChannel(null);
+            } else setSelectedGroup(() => currentGroup);
+
             if (channel) {
-              setSelectedChannel(() =>
-                currentGroup.channels.text.find((chn) => chn.name === channel)
+              const currentChannel = currentGroup.find(
+                (chn) => chn.name === channel
               );
+              if (!currentChannel) {
+                pushFlashMessage([
+                  { message: "Channel does not exist", type: "error" },
+                ]);
+                setSelectedChannel(null);
+                navigate(`/g/${setSelectedGroup.name}`);
+              } else setSelectedChannel(() => currentChannel);
             }
           }
 
-          setGroupMounted(true);
+          console.log("here");
         })
         .catch((e) => e); // axios abort throws error unless it's caught here
     }

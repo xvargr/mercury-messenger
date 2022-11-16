@@ -27,7 +27,7 @@ function UserPage() {
   const navigate = useNavigate();
   const { setIsLoggedIn, setGroupData, setChatData, setGroupMounted } =
     useContext(DataContext);
-  const { setFlashMessages } = useContext(FlashContext);
+  const { pushFlashMessage } = useContext(FlashContext);
   const { socketClear } = useContext(SocketContext);
   const [inpErr, setInpErr] = useState(true);
   const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
@@ -56,7 +56,7 @@ function UserPage() {
         navigate("/login");
       })
       .catch((err) => {
-        setFlashMessages(err.response.data.messages);
+        pushFlashMessage(err.response.data.messages);
       });
   }
 
@@ -110,14 +110,14 @@ function UserPage() {
           res.data.userData.userImageMedium
         );
         localStorage.setItem("userColor", res.data.userData.userColor);
-        setFlashMessages(res.data.messages);
+        pushFlashMessage(res.data.messages);
 
         navigate("/");
       })
       .catch((err) => {
         setButtonText("Keep changes");
         setInpErr(false);
-        setFlashMessages(err.response.data.messages);
+        pushFlashMessage(err.response.data.messages);
       });
   }
 
