@@ -40,7 +40,7 @@ function Sender(props) {
             </span>
             <span className="text-sm opacity-60">{timeText}</span>
           </div>
-          <div>{children}</div>
+          <div className="text-gray-900 font-semibold">{children}</div>
         </span>
       </div>
     </div>

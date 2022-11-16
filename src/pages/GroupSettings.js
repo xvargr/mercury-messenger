@@ -156,17 +156,34 @@ function GroupSettingsPage() {
       setFormIsPending(true);
       console.log(editForm);
       // console.log(updateForm.hasChanges());
-      // console.log(updateForm.nameChanged());
-      // console.log(updateForm.usersChanged());
-      // console.log(updateForm.imageChanged());
-      console.log(updateForm.imageChanged());
+      // console.log("nameChanged", updateForm.nameChanged());
+      // console.log("usersChanged", updateForm.usersChanged());
+      // console.log("imageChanged", updateForm.imageChanged());
+      updateForm.toPromote("123");
+      console.log(editForm);
 
       let formData = new FormData();
-      formData.append("id", selectedGroup._id);
-      if (updateForm.nameChanged()) formData.append("name", editForm.name);
-      if (updateForm.usersChanged())
-        formData.append("users", JSON.stringify(editForm.users)); // ! working here
-      if (updateForm.imageChanged()) formData.append("file", editForm.image);
+      if (updateForm.nameChanged()) {
+        formData.append("name", editForm.name);
+      }
+      if (updateForm.imageChanged()) {
+        formData.append("file", editForm.image);
+      }
+      if (updateForm.usersChanged()) {
+        if (editForm.users.toKick.length > 0) {
+          formData.append("toKick", editForm.users.toKick);
+        }
+        if (editForm.users.toPromote.length > 0) {
+          formData.append("toPromote", editForm.users.toPromote);
+        }
+      }
+
+      console.log("sending this");
+      for (var pair of formData.entries()) {
+        console.log(pair[0] + ", " + pair[1]);
+      }
+
+      // formData.append("users", JSON.stringify(editForm.users)); // stringify object to pass this as obj
 
       userGroups
         .edit(selectedGroup._id, formData)
@@ -256,7 +273,7 @@ function GroupSettingsPage() {
       <div className="w-full flex flex-col bg-gray-600 items-center relative">
         <ChannelBanner name={"settings"} />
         <ConfirmChangesModal
-          show={showConfirmation}
+          show={showConfirmation || formIsPending}
           onAccept={submitGroupEdit}
           onReject={updateForm.revertFields}
           pending={formIsPending}

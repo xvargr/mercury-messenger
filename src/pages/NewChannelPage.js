@@ -12,7 +12,7 @@ import axiosInstance from "../utils/axios";
 function NewChannelPage() {
   const { setGroupData, getGroupIndex, setChatData } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel } = useContext(UiContext);
-  const { setFlashMessages } = useContext(FlashContext);
+  const { pushFlashMessage } = useContext(FlashContext);
   const [axiosErr, setAxiosErr] = useState({
     message: null,
     status: null,
@@ -44,11 +44,11 @@ function NewChannelPage() {
           return dataCopy;
         });
 
-        setFlashMessages(res.data.messages);
+        pushFlashMessage(res.data.messages);
         navigate(`/g/${selectedGroup.name}`);
       })
       .catch((err) => {
-        // setFlashMessages(err.response.data.messages);
+        // pushFlashMessage(err.response.data.messages);
         setAxiosErr({
           message: err.response.data.messages[0].message,
           status: err.response.status,

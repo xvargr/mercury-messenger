@@ -58,27 +58,40 @@ async function validateGroup(req, res, next) {
 }
 
 async function validateGroupEdit(req, res, next) {
-  console.log(req.body);
-  console.log(req.file);
-  console.log(req.body.users);
-  console.log(req.body.users.toPromote);
-  console.log(req.body.users.toKick);
-  if (req.body.name) {
-    const result = await Group.findOne({ name: req.body.name });
+  const { name } = req.body;
+  const toKick = req.body.toKick?.split(","); // formData does not support objects or arrays, an alternative method to this it to JSON stringify and parse objects and arrays
+  const toPromote = req.body.toPromote?.split(",");
+
+  if (name) {
+    const result = await Group.findOne({ name });
     if (result) {
       cloudinary.uploader.destroy(req.file.filename);
       next(new ExpressError("That name is unavailable", 400));
     }
   }
-  if (req.body.users) {
-    console.log(JSON.parse(req.body.users)); // ! working here
-    // const result = await Group.findById(req.body.id);
-    // const userArray = [...req.body.users.toPromote, ...req.body.users.toKick];
+  if (toKick || toPromote) {
+    const result = await Group.findById(req.params.gid);
+    if (!result) next(new ExpressError("Group not found", 400));
+
+    const usersToCheck = [
+      ...(toKick ? toKick : []),
+      ...(toPromote ? toPromote : []),
+    ]; // optional spreading, would be nice to do [...foo?], but [...foo?.bar] is valid
+    const usersInGroup = [...result.members].map((member) => member._id); // ! here
+
+    console.log(usersToCheck);
+    console.log(usersInGroup);
+
+    const usersValid = usersToCheck.every((incoming) =>
+      usersInGroup.some((user) => user === incoming)
+    );
+
+    if (!usersValid) next(new ExpressError("Members conflict", 400));
   }
   if (req.file) {
     validateImage();
   }
-  // next();
+  next();
 }
 
 async function validateChannel(req, res, next) {

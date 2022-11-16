@@ -17,7 +17,7 @@ function ChannelBadge(props) {
     useContext(DataContext);
   const { selectedGroup, selectedChannel, setSelectedChannel } =
     useContext(UiContext);
-  const { setFlashMessages } = useContext(FlashContext);
+  const { pushFlashMessage } = useContext(FlashContext);
   const navigate = useNavigate();
   const { userChannels } = axiosInstance();
 
@@ -57,11 +57,11 @@ function ChannelBadge(props) {
             return dataCopy;
           });
 
-          setFlashMessages(res.data.messages);
+          pushFlashMessage(res.data.messages);
           navigate(`/g/${selectedGroup.name}`);
         })
         .catch((err) => {
-          setFlashMessages(err.response.data.messages);
+          pushFlashMessage(err.response.data.messages);
         });
     }
   }
@@ -90,7 +90,7 @@ function ChannelBadge(props) {
 
         setIsEditing(false);
         setShowDialogue(false);
-        setFlashMessages(res.data.messages);
+        pushFlashMessage(res.data.messages);
         setSelectedChannel(res.data.channelData);
 
         navigate(`/g/${selectedGroup.name}/c/${res.data.channelData.name}`);
@@ -98,7 +98,7 @@ function ChannelBadge(props) {
       .catch((err) => {
         setIsEditing(false);
         setShowDialogue(false);
-        setFlashMessages(err.response.data.messages);
+        pushFlashMessage(err.response.data.messages);
       });
   }
 
