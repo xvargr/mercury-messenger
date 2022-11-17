@@ -117,8 +117,8 @@ export function SocketStateProvider(props) {
     socket.on("structureChange", function (res) {
       const { target, change } = res;
 
-      // console.log(`${change.type} signal received for `);
-      // console.log(res);
+      console.log(`${change.type} signal received for `);
+      console.log(res);
 
       function createChannel() {
         setGroupData((currentData) => {

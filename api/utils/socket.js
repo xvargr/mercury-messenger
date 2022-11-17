@@ -225,7 +225,7 @@ const socketInstance = {
   connectServer(server) {
     this.io = new Server(server, {
       cors: {
-        origin: [DOMAIN, "http://192.168.0.237:3000"],
+        origin: [DOMAIN, "http://192.168.0.137:3000"],
         credentials: true,
       },
       serveClient: false,

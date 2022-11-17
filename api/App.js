@@ -48,7 +48,7 @@ db.once("open", function () {
 app.use(
   cors({
     // todo dynamic origin
-    origin: [DOMAIN, "http://192.168.0.237:3000"],
+    origin: [DOMAIN, "http://192.168.0.137:3000"],
     optionsSuccessStatus: 200,
     credentials: true,
   })
