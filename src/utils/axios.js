@@ -19,7 +19,7 @@ export default function useAxiosInstance() {
   const headerConfig = {
     headers: { "Content-Type": "multipart/form-data" },
   };
-  const timeout = { timeout: 5000 };
+  const timeout = { timeout: 10000 };
 
   // axios abort controllers
   const fetchController = new AbortController();

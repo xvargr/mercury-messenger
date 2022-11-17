@@ -124,6 +124,7 @@ function LoginPage() {
           navigate("/");
         })
         .catch((err) => {
+          console.log(err)
           setFeedback(err.response.data.messages[0].message);
           setButtonStatus("ok");
         });
