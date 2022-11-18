@@ -16,7 +16,7 @@ import axiosInstance from "../../utils/axios";
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { pushFlashMessage } = useContext(FlashContext);
-  const { groupMounted, setGroupMounted } = useContext(DataContext);
+  const { groupMounted, removeGroup } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel, clearSelected } =
     useContext(UiContext);
   const navigate = useNavigate();
@@ -49,9 +49,9 @@ function GroupBanner(props) {
       .leave(selectedGroup._id)
       .then((res) => {
         clearSelected();
-        setGroupMounted(false);
+        // setGroupMounted(false);
+        removeGroup(selectedGroup._id);
         pushFlashMessage(res.data.messages);
-
         navigate("/");
       })
       .catch((err) => {
@@ -65,7 +65,8 @@ function GroupBanner(props) {
       .then((res) => {
         console.log("in then delete group");
         clearSelected();
-        setGroupMounted(false);
+        // setGroupMounted(false);
+        removeGroup(selectedGroup._id);
         pushFlashMessage(res.data.messages);
 
         navigate("/");
