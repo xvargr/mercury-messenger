@@ -49,6 +49,45 @@ export function DataStateProvider(props) {
     return result;
   }
 
+  function addNewChat(groupIdString, channelIdString) {
+    setChatData((prevData) => {
+      const dataCopy = { ...prevData };
+      if (!dataCopy[groupIdString]) {
+        dataCopy[groupIdString] = {};
+      }
+      dataCopy[groupIdString][channelIdString] = [];
+      return dataCopy;
+    });
+  }
+
+  // function removeChat(groupIdString, channelIdString){
+
+  // }
+
+  function addNewGroup(groupObject) {
+    setGroupData((prevData) => {
+      const dataCopy = [...prevData];
+      dataCopy.push(groupObject);
+      return dataCopy;
+    });
+    groupObject.channels.text.forEach((channel) =>
+      addNewChat(groupObject._id, channel._id)
+    );
+  }
+
+  function removeGroup(groupIdString) {
+    setChatData((prevData) => {
+      const dataCopy = { ...prevData };
+      delete dataCopy[groupIdString];
+      return dataCopy;
+    });
+
+    setGroupData((prevData) => {
+      const dataCopy = [...prevData];
+      return dataCopy.filter((group) => group._id !== groupIdString);
+    });
+  }
+
   const dataState = {
     groupData,
     setGroupData,
@@ -60,6 +99,10 @@ export function DataStateProvider(props) {
     setChatData,
     getGroupIndex,
     getChannelIndex,
+    addNewGroup,
+    addNewChat,
+    removeGroup,
+    // removeChat
   };
 
   return (
