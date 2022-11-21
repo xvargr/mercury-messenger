@@ -33,7 +33,7 @@ function NewGroupPage() {
     userGroups
       .new(newGroupData)
       .then((res) => {
-        addNewGroup(res.data.newGroup)
+        addNewGroup(res.data.newGroup);
 
         setSelectedGroup(res.data.newGroup);
         setSelectedChannel(null);
@@ -52,16 +52,15 @@ function NewGroupPage() {
     userGroups
       .join(joinCode)
       .then((res) => {
-        addNewGroup(res.data.joinedGroup)
+        addNewGroup(res.data.joinedGroup);
 
         setSelectedGroup(res.data.joinedGroup);
         setSelectedChannel(null);
-        
-        pushFlashMessage(res.data.messages)
+
+        pushFlashMessage(res.data.messages);
         navigate(`/g/${res.data.joinedGroup.name}`);
       })
       .catch((err) => {
-        console.log(err);
         setAxiosJoinErr({
           message: err.response.data.messages[0].message,
         });

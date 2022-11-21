@@ -96,8 +96,6 @@ function MainWindow() {
               } else setSelectedChannel(() => currentChannel);
             }
           }
-
-          console.log("here");
         })
         .catch((e) => e); // axios abort throws error unless it's caught here
     }

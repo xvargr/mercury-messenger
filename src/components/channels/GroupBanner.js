@@ -49,7 +49,6 @@ function GroupBanner(props) {
       .leave(selectedGroup._id)
       .then((res) => {
         clearSelected();
-        // setGroupMounted(false);
         removeGroup(selectedGroup._id);
         pushFlashMessage(res.data.messages);
         navigate("/");
@@ -63,12 +62,9 @@ function GroupBanner(props) {
     userGroups
       .delete(selectedGroup._id)
       .then((res) => {
-        console.log("in then delete group");
         clearSelected();
-        // setGroupMounted(false);
         removeGroup(selectedGroup._id);
         pushFlashMessage(res.data.messages);
-
         navigate("/");
       })
       .catch((err) => {

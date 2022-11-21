@@ -60,9 +60,16 @@ export function DataStateProvider(props) {
     });
   }
 
-  // function removeChat(groupIdString, channelIdString){
-
-  // }
+  function removeChat(groupIdString, channelIdString) {
+    // if only group id is provided, delete all the group's chat by removing the group itself
+    setChatData((prevData) => {
+      const dataCopy = { ...prevData };
+      channelIdString
+        ? delete dataCopy[groupIdString][channelIdString]
+        : delete dataCopy[groupIdString];
+      return dataCopy;
+    });
+  }
 
   function addNewGroup(groupObject) {
     setGroupData((prevData) => {
@@ -76,33 +83,38 @@ export function DataStateProvider(props) {
   }
 
   function removeGroup(groupIdString) {
-    setChatData((prevData) => {
-      const dataCopy = { ...prevData };
-      delete dataCopy[groupIdString];
-      return dataCopy;
-    });
-
+    removeChat(groupIdString);
     setGroupData((prevData) => {
       const dataCopy = [...prevData];
       return dataCopy.filter((group) => group._id !== groupIdString);
     });
   }
 
+  function patchGroup(groupObject) {
+    const groupIndex = getGroupIndex(groupObject._id);
+    setGroupData((prevData) => {
+      const dataCopy = [...prevData];
+      dataCopy[groupIndex] = groupObject;
+      return dataCopy;
+    });
+  }
+
   const dataState = {
     groupData,
     setGroupData,
+    setChatData,
+    chatData,
     groupMounted,
     setGroupMounted,
     isLoggedIn,
     setIsLoggedIn,
-    chatData,
-    setChatData,
     getGroupIndex,
     getChannelIndex,
     addNewGroup,
     addNewChat,
     removeGroup,
-    // removeChat
+    removeChat,
+    patchGroup,
   };
 
   return (
