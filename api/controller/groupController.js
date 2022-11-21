@@ -1,3 +1,5 @@
+import { v2 as cloudinary } from "cloudinary";
+
 import Group from "../models/Group.js";
 import User from "../models/User.js";
 import Channel from "../models/Channel.js";
@@ -89,34 +91,68 @@ export async function deleteGroup(req, res) {
 }
 
 export async function editGroup(req, res) {
-  // const id = req.params.gid;
-  // const group = await Group.findById(id).populate({
-  //   path: "channels",
-  //   populate: [
-  //     { path: "text", model: "Channel" },
-  //     { path: "task", model: "Channel" },
-  //   ],
-  // });
+  const id = req.params.gid;
+  const { name } = req.body;
+  const toKick = req.body.toKick?.split(","); // formData does not support objects or arrays, an alternative method to this it to JSON stringify and parse objects and arrays
+  const toPromote = req.body.toPromote?.split(",");
+  const file = req.file;
 
-  // if (!group.administrators.some((admin) => admin._id.equals(req.user._id))) {
-  //   throw new ExpressError("Forbidden", 403);
-  // }
+  console.log("req.params", req.params);
+  // console.log("req.body", req.body);
+  console.log("prom", toPromote);
+  console.log("kick", toKick);
+  console.log("req.file", req.file);
+
+  const group = await Group.findById(id).populate([
+    {
+      path: "channels",
+      populate: [
+        { path: "text", model: "Channel" },
+        { path: "task", model: "Channel" },
+      ],
+    },
+    { path: "administrators", select: ["_id", "username"] },
+    {
+      path: "members",
+      select: ["_id", "username", "userImage", "userColor"],
+    },
+  ]);
+
+  // console.log(group);
+
+  if (name) group.name = name;
+
+  if (toPromote) {
+    for (let userId of toPromote) {
+      const member = await User.findById(userId).select("username").lean();
+      group.administrators.push(member);
+    }
+  }
+
+  if (toKick) {
+    group.members = group.members.filter(
+      (member) => !toKick.includes(member.id)
+    );
+  }
+
+  if (file) {
+    cloudinary.uploader.destroy(group.filename);
+    group.image = { url: req.file.path, filename: req.file.filename };
+  }
+
+  console.log(group);
+
+  await group.save();
 
   // socketSync.groupEmit({
   //   target: { type: "group", id: group._id },
-  //   change: { type: "delete" },
+  //   change: { type: "edit" },
   //   initiator: req.user,
   //   origin: req.ip,
   // });
 
-  // await group.remove();
-
-  console.log(req);
-  console.log("req.params", req.params);
-  console.log("req.body", req.body);
-  console.log("req.file", req.file);
-
   res.json({
+    group,
     messages: [{ message: "successfully edited group", type: "success" }],
   });
 }

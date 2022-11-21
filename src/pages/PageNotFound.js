@@ -9,6 +9,7 @@ function PageNotFound() {
   const navigate = useNavigate();
   // console.log(selectedGroup);
   // console.log(selectedChannel);
+  console.log("DID 404");
 
   pushFlashMessage([{ message: "Path does not exist", type: "error" }]);
   navigate("/");

@@ -62,25 +62,33 @@ async function validateGroupEdit(req, res, next) {
   const toKick = req.body.toKick?.split(","); // formData does not support objects or arrays, an alternative method to this it to JSON stringify and parse objects and arrays
   const toPromote = req.body.toPromote?.split(",");
 
+  const result = await Group.findById(req.params.gid).populate([
+    { path: "administrators", select: ["_id", "username"] },
+    {
+      path: "members",
+      select: ["_id", "username", "userImage", "userColor"],
+    },
+  ]);
+  if (!result) next(new ExpressError("Group not found", 400));
+  if (!result.administrators.map((admin) => admin.id).includes(req.user.id)) {
+    next(new ExpressError("You don't have sufficient permissions", 403));
+  }
+
   if (name) {
-    const result = await Group.findOne({ name });
-    if (result) {
+    const nameSearch = await Group.findOne({ name }).lean();
+
+    if (nameSearch) {
       cloudinary.uploader.destroy(req.file.filename);
       next(new ExpressError("That name is unavailable", 400));
     }
   }
-  if (toKick || toPromote) {
-    const result = await Group.findById(req.params.gid);
-    if (!result) next(new ExpressError("Group not found", 400));
 
+  if (toKick || toPromote) {
     const usersToCheck = [
       ...(toKick ? toKick : []),
       ...(toPromote ? toPromote : []),
     ]; // optional spreading, would be nice to do [...foo?], but [...foo?.bar] is valid
-    const usersInGroup = [...result.members].map((member) => member._id); // ! here
-
-    console.log(usersToCheck);
-    console.log(usersInGroup);
+    const usersInGroup = [...result.members].map((member) => member.id);
 
     const usersValid = usersToCheck.every((incoming) =>
       usersInGroup.some((user) => user === incoming)
@@ -88,6 +96,7 @@ async function validateGroupEdit(req, res, next) {
 
     if (!usersValid) next(new ExpressError("Members conflict", 400));
   }
+
   if (req.file) {
     validateImage();
   }

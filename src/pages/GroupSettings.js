@@ -18,8 +18,8 @@ import { SkeletonMemberOptions } from "../components/ui/SkeletonLoaders";
 import axiosInstance from "../utils/axios";
 
 function GroupSettingsPage() {
-  const { selectedGroup } = useContext(UiContext);
-  const { groupMounted } = useContext(DataContext);
+  const { selectedGroup, setSelectedGroup } = useContext(UiContext);
+  const { groupMounted, patchGroup } = useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [formIsPending, setFormIsPending] = useState(false);
@@ -154,15 +154,10 @@ function GroupSettingsPage() {
     e.preventDefault();
     if (updateForm.hasChanges()) {
       setFormIsPending(true);
-      console.log(editForm);
-      // console.log(updateForm.hasChanges());
-      // console.log("nameChanged", updateForm.nameChanged());
-      // console.log("usersChanged", updateForm.usersChanged());
-      // console.log("imageChanged", updateForm.imageChanged());
-      updateForm.toPromote("123");
+
       console.log(editForm);
 
-      let formData = new FormData();
+      const formData = new FormData();
       if (updateForm.nameChanged()) {
         formData.append("name", editForm.name);
       }
@@ -178,23 +173,23 @@ function GroupSettingsPage() {
         }
       }
 
-      console.log("sending this");
-      for (var pair of formData.entries()) {
-        console.log(pair[0] + ", " + pair[1]);
-      }
-
-      // formData.append("users", JSON.stringify(editForm.users)); // stringify object to pass this as obj
-
       userGroups
         .edit(selectedGroup._id, formData)
         .then((res) => {
-          console.log("sent innit");
-          console.log(res);
-          // setShowConfirmation(false)
+          console.log(res.data.group);
+          patchGroup(res.data.group);
+          setSelectedGroup(res.data.group);
+          pushFlashMessage(res.data.messages);
+          updateForm.revertFields();
           setFormIsPending(false);
+          navigate(`/g/${res.data.group.name}`);
+          // console.log("here11"); // break after success, name change, messes with 404 checking
+          // navigate("/"); // ? tentatively maybeee fixed
         })
         .catch((err) => {
           console.log(err);
+          pushFlashMessage(err.response.data.messages);
+          setFormIsPending(false);
         });
     }
   }
