@@ -17,7 +17,7 @@ import useSocket from "../../utils/socket";
 
 function ChatWindow() {
   const { channel } = useParams();
-  const { groupMounted, groupData, chatData, getGroupIndex } =
+  const { groupMounted, groupData, chatData, dataHelpers } =
     useContext(DataContext);
   const { selectedGroup, selectedChannel, setSelectedChannel } =
     useContext(UiContext);
@@ -33,7 +33,9 @@ function ChatWindow() {
   }, [chatData, selectedGroup, selectedChannel]);
 
   const channelFound = useMemo(() => {
-    const groupIndex = groupData ? getGroupIndex(selectedGroup?._id) : null;
+    const groupIndex = groupData
+      ? dataHelpers.getGroupIndex(selectedGroup?._id)
+      : null;
     if (groupData && groupIndex >= 0)
       return groupData[groupIndex].channels.text.find(
         (grp) => grp.name === channel

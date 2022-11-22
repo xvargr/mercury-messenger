@@ -10,7 +10,7 @@ import { FlashContext } from "../components/context/FlashContext";
 import axiosInstance from "../utils/axios";
 
 function NewChannelPage() {
-  const { setGroupData, getGroupIndex, setChatData } = useContext(DataContext);
+  const { setGroupData, dataHelpers, setChatData } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel } = useContext(UiContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const [axiosErr, setAxiosErr] = useState({
@@ -33,7 +33,7 @@ function NewChannelPage() {
 
         setGroupData((prevData) => {
           const dataCopy = [...prevData];
-          const groupIndex = getGroupIndex(res.data.groupId);
+          const groupIndex = dataHelpers.getGroupIndex(res.data.groupId);
           dataCopy[groupIndex].channels.text.push(res.data.channelData);
           return dataCopy;
         });

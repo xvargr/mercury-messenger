@@ -11,7 +11,7 @@ import { FlashContext } from "../components/context/FlashContext";
 import axiosInstance from "../utils/axios";
 
 function NewGroupPage() {
-  const { addNewGroup } = useContext(DataContext);
+  const { dataHelpers } = useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const [axiosCreateErr, setAxiosCreateErr] = useState({
@@ -33,7 +33,7 @@ function NewGroupPage() {
     userGroups
       .new(newGroupData)
       .then((res) => {
-        addNewGroup(res.data.newGroup);
+        dataHelpers.addNewGroup(res.data.newGroup);
 
         setSelectedGroup(res.data.newGroup);
         setSelectedChannel(null);
@@ -52,7 +52,7 @@ function NewGroupPage() {
     userGroups
       .join(joinCode)
       .then((res) => {
-        addNewGroup(res.data.joinedGroup);
+        dataHelpers.addNewGroup(res.data.joinedGroup);
 
         setSelectedGroup(res.data.joinedGroup);
         setSelectedChannel(null);

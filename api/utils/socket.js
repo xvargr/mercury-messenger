@@ -313,7 +313,7 @@ const socketSync = {
       io.in(`c:${target.id}`).socketsLeave(`c:${target.id}`);
     }
   },
-  // todo group edit emit
+
   groupEmit(args) {
     const io = socketInstance.io;
     const { target, change, initiator, origin } = args;
@@ -331,29 +331,20 @@ const socketSync = {
     console.log("senderSocket", senderSocket);
     // console.log(userSockets);
 
-    if (change.type === "create") {
-      // initiator join room
+    if (change.type === "create")
       userSockets.forEach((socket) => socket.join(`g:${target.id}`));
 
-      // emit to user's other socket if exist
-      if (userInstances.length > 1) {
-        io.in(`g:${target.id}`)
-          .except(senderSocket.id)
-          .emit("structureChange", {
-            target: { ...target },
-            change: { ...change },
-          });
-      }
-    } else if (change.type === "delete") {
-      io.in(`g:${target.id}`)
-        .except(senderSocket.id)
-        .emit("structureChange", {
-          target: { ...target },
-          change: { ...change },
-        });
+    // ! group join emit, send chatData to sender?
 
+    io.in(`g:${target.id}`)
+      .except(senderSocket.id)
+      .emit("structureChange", {
+        target: { ...target },
+        change: { ...change },
+      });
+
+    if (change.type === "delete")
       io.in(`g:${target.id}`).socketsLeave(`g:${target.id}`);
-    }
   },
 };
 

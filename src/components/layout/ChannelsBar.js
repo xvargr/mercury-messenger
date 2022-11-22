@@ -21,9 +21,9 @@ function ChannelsBar() {
   const navigate = useNavigate();
 
   const groupFound = useMemo(
-    () => groupData?.find((grp) => grp.name === group) ?? false, // ! changes
-    // () => groupData?.find((grp) => grp.id === selectedGroup?.id) ?? false, // ! changes
-    [selectedGroup, groupData]
+    () => groupData?.find((grp) => grp.name === group) ?? false,
+    // () => groupData?.find((grp) => grp.id === selectedGroup?.id) ?? false,
+    [group, groupData]
   );
 
   // redirect and refresh position preservation
@@ -79,7 +79,6 @@ function ChannelsBar() {
         <GroupBanner name={selectedGroup.name} />
         <div className="w-full flex-grow overflow-y-scroll scrollbar-none flex flex-col items-center">
           <div className="w-1/3 mb-2 mt-2"></div>
-          {console.log(groupIndex)}
           {groupData[groupIndex].channels.text.map((channel) => {
             let selected =
               selectedChannel?.name === channel.name ? true : false;
@@ -102,18 +101,6 @@ function ChannelsBar() {
             />
           ) : null}
           <hr className="w-1/3 mb-2 mt-2 border-gray-800" />
-          {/* {groupData[groupIndex].channels.text.map((channel) => {
-            let selected = selectedChannel === channel.name ? true : false;
-            // todo tasks here
-            return (
-              <ChannelBadge
-                name={channel.name}
-                selected={selected}
-                key={channel.name}
-                onClick={channelChangeHandler}
-              />
-            );
-          })} */}
         </div>
       </section>
     );

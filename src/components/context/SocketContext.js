@@ -11,19 +11,15 @@ export function SocketStateProvider(props) {
   const [socket, setSocket] = useState(null);
   const [socketIsConnected, setSocketIsConnected] = useState(false);
 
-  const {
-    setGroupData,
-    setChatData,
-    getGroupIndex,
-    getChannelIndex,
-    isLoggedIn,
-  } = useContext(DataContext);
+  const { setGroupData, setChatData, dataHelpers, isLoggedIn } =
+    useContext(DataContext);
 
   const {
     windowIsFocused,
     selectedChannel,
     selectedGroup,
     setSelectedChannel,
+    setSelectedGroup,
     clearSelected,
   } = useContext(UiContext);
 
@@ -46,6 +42,7 @@ export function SocketStateProvider(props) {
     );
   }
 
+  // initial connection
   useEffect(() => {
     if (isLoggedIn && socketIsConnected === false) {
       connectSocket();
@@ -69,7 +66,7 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("connect_error", (err) => {
-      // console.log("iooooo"); // todo set error already connected
+      // console.log("iooooo"); // todo set error already connected, force connection here
       setSocketIsConnected(false);
     });
 
@@ -123,7 +120,7 @@ export function SocketStateProvider(props) {
       function createChannel() {
         setGroupData((currentData) => {
           const dataCopy = [...currentData];
-          const parentIndex = getGroupIndex(target.parent);
+          const parentIndex = dataHelpers.getGroupIndex(target.parent);
 
           dataCopy[parentIndex].channels.text.push(change.data);
           return dataCopy;
@@ -139,8 +136,11 @@ export function SocketStateProvider(props) {
       function editChannel() {
         setGroupData((currentData) => {
           const dataCopy = [...currentData];
-          const parentIndex = getGroupIndex(target.parent);
-          const channelIndex = getChannelIndex(target.parent, target.id);
+          const parentIndex = dataHelpers.getGroupIndex(target.parent);
+          const channelIndex = dataHelpers.getChannelIndex(
+            target.parent,
+            target.id
+          );
           dataCopy[parentIndex].channels.text[channelIndex] = change.data;
           return dataCopy;
         });
@@ -160,8 +160,13 @@ export function SocketStateProvider(props) {
 
         setGroupData((currentData) => {
           const dataCopy = [...currentData];
-          const parentIndex = getGroupIndex(target.parent ?? target.id);
-          const channelIndex = getChannelIndex(target.parent, target.id);
+          const parentIndex = dataHelpers.getGroupIndex(
+            target.parent ?? target.id
+          );
+          const channelIndex = dataHelpers.getChannelIndex(
+            target.parent,
+            target.id
+          );
 
           dataCopy[parentIndex].channels.text.splice(channelIndex, 1);
           return dataCopy;
@@ -188,7 +193,23 @@ export function SocketStateProvider(props) {
         });
       }
 
-      function editGroup() {} // todo
+      function editGroup() {
+        setGroupData((currentData) => {
+          const dataCopy = [...currentData];
+          const groupIndex = dataHelpers.getGroupIndex(target.id);
+
+          dataCopy[groupIndex] = change.data;
+          return dataCopy;
+        });
+
+        if (selectedGroupRef.current?._id === target.id) {
+          setSelectedGroup(change.data);
+          navigate(
+            `/g/${change.data.name}/c/${selectedChannelRef.current.name}`
+          );
+        }
+      }
+
       function deleteGroup() {
         setChatData((currentData) => {
           const dataCopy = { ...currentData };
@@ -198,7 +219,7 @@ export function SocketStateProvider(props) {
 
         setGroupData((currentData) => {
           const dataCopy = [...currentData];
-          const groupIndex = getGroupIndex(target.id);
+          const groupIndex = dataHelpers.getGroupIndex(target.id);
           dataCopy.splice(groupIndex, 1);
           return dataCopy;
         });
@@ -208,8 +229,10 @@ export function SocketStateProvider(props) {
           navigate(`/`);
         }
       }
-      function editMessage() {}
-      function deleteMessage() {}
+
+      // function editMessage() {} // todo
+
+      // function deleteMessage() {} // todo
 
       if (target.type === "channel") {
         if (change.type === "create") createChannel();
@@ -219,10 +242,11 @@ export function SocketStateProvider(props) {
         if (change.type === "create") createGroup();
         else if (change.type === "edit") editGroup();
         else if (change.type === "delete") deleteGroup();
-      } else if (target.type === "message") {
-        if (change.type === "edit") editMessage();
-        else if (change.type === "delete") deleteMessage();
       }
+      // else if (target.type === "message") {
+      //   if (change.type === "edit") editMessage();
+      //   else if (change.type === "delete") deleteMessage();
+      // }
     });
   }
 
