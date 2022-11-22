@@ -19,7 +19,7 @@ import axiosInstance from "../utils/axios";
 
 function GroupSettingsPage() {
   const { selectedGroup, setSelectedGroup } = useContext(UiContext);
-  const { groupMounted, patchGroup } = useContext(DataContext);
+  const { groupMounted, dataHelpers } = useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [formIsPending, setFormIsPending] = useState(false);
@@ -176,15 +176,12 @@ function GroupSettingsPage() {
       userGroups
         .edit(selectedGroup._id, formData)
         .then((res) => {
-          console.log(res.data.group);
-          patchGroup(res.data.group);
+          dataHelpers.patchGroup(res.data.group);
           setSelectedGroup(res.data.group);
           pushFlashMessage(res.data.messages);
           updateForm.revertFields();
           setFormIsPending(false);
           navigate(`/g/${res.data.group.name}`);
-          // console.log("here11"); // break after success, name change, messes with 404 checking
-          // navigate("/"); // ? tentatively maybeee fixed
         })
         .catch((err) => {
           console.log(err);

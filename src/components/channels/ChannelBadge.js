@@ -13,8 +13,7 @@ function ChannelBadge(props) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDialogue, setShowDialogue] = useState(false);
   const [nameField, setNameField] = useState(props.data.name);
-  const { setGroupData, setChatData, getChannelIndex } =
-    useContext(DataContext);
+  const { setGroupData, setChatData, dataHelpers } = useContext(DataContext);
   const { selectedGroup, selectedChannel, setSelectedChannel } =
     useContext(UiContext);
   const { pushFlashMessage } = useContext(FlashContext);
@@ -43,7 +42,7 @@ function ChannelBadge(props) {
         .then((res) => {
           setGroupData((prevData) => {
             const dataCopy = [...prevData];
-            const channelIndex = getChannelIndex(
+            const channelIndex = dataHelpers.getChannelIndex(
               res.data.groupId,
               res.data.channelId
             );
@@ -79,7 +78,7 @@ function ChannelBadge(props) {
       .then((res) => {
         setGroupData((currData) => {
           const dataCopy = [...currData];
-          const channelIndex = getChannelIndex(
+          const channelIndex = dataHelpers.getChannelIndex(
             selectedGroup.id,
             res.data.channelData._id
           );
@@ -108,7 +107,8 @@ function ChannelBadge(props) {
       setShowDialogue(false);
     } else setIsEditing(true);
   }
-  if (isEditing && selectedChannel.name !== props.data.name)
+
+  if (isEditing && selectedChannel?.name !== props.data.name)
     toggleEditForm(false); // useEffect cleanup could do the job as well, or props.selected
 
   if (isEditing) {

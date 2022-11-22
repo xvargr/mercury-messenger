@@ -97,11 +97,11 @@ export async function editGroup(req, res) {
   const toPromote = req.body.toPromote?.split(",");
   const file = req.file;
 
-  console.log("req.params", req.params);
+  // console.log("req.params", req.params);
   // console.log("req.body", req.body);
-  console.log("prom", toPromote);
-  console.log("kick", toKick);
-  console.log("req.file", req.file);
+  // console.log("prom", toPromote);
+  // console.log("kick", toKick);
+  // console.log("req.file", req.file);
 
   const group = await Group.findById(id).populate([
     {
@@ -144,12 +144,12 @@ export async function editGroup(req, res) {
 
   await group.save();
 
-  // socketSync.groupEmit({
-  //   target: { type: "group", id: group._id },
-  //   change: { type: "edit" },
-  //   initiator: req.user,
-  //   origin: req.ip,
-  // });
+  socketSync.groupEmit({
+    target: { type: "group", id: group._id },
+    change: { type: "edit", data: group },
+    initiator: req.user,
+    origin: req.ip,
+  });
 
   res.json({
     group,
@@ -157,6 +157,9 @@ export async function editGroup(req, res) {
   });
 }
 
+// ! JOIN
+// ! chatData not fetched
+// ! socket room not joined
 export async function joinWithCode(req, res) {
   const group = await Group.findById(req.params.gid).populate({
     path: "members",
@@ -173,12 +176,26 @@ export async function joinWithCode(req, res) {
   group.members.push(user);
   await group.save();
 
-  await group.populate({
-    path: "channels",
-    populate: [
-      { path: "text", model: "Channel" },
-      { path: "task", model: "Channel" },
-    ],
+  await group.populate([
+    {
+      path: "channels",
+      populate: [
+        { path: "text", model: "Channel" },
+        { path: "task", model: "Channel" },
+      ],
+    },
+    { path: "administrators", select: ["_id", "username"] },
+    {
+      path: "members",
+      select: ["_id", "username", "userImage", "userColor"],
+    },
+  ]);
+
+  socketSync.groupEmit({
+    target: { type: "group", id: group._id },
+    change: { type: "edit", data: group }, // ? duplicate edit type?, send chatDt here or socket?
+    initiator: req.user,
+    origin: req.ip,
   });
 
   res.status(200).json({

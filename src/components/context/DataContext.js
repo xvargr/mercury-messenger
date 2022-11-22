@@ -108,13 +108,15 @@ export function DataStateProvider(props) {
     setGroupMounted,
     isLoggedIn,
     setIsLoggedIn,
-    getGroupIndex,
-    getChannelIndex,
-    addNewGroup,
-    addNewChat,
-    removeGroup,
-    removeChat,
-    patchGroup,
+    dataHelpers: {
+      getGroupIndex,
+      getChannelIndex,
+      addNewGroup,
+      addNewChat,
+      removeGroup,
+      removeChat,
+      patchGroup,
+    },
   };
 
   return (
