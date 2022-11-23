@@ -97,12 +97,6 @@ export async function editGroup(req, res) {
   const toPromote = req.body.toPromote?.split(",");
   const file = req.file;
 
-  // console.log("req.params", req.params);
-  // console.log("req.body", req.body);
-  // console.log("prom", toPromote);
-  // console.log("kick", toKick);
-  // console.log("req.file", req.file);
-
   const group = await Group.findById(id).populate([
     {
       path: "channels",
@@ -117,8 +111,6 @@ export async function editGroup(req, res) {
       select: ["_id", "username", "userImage", "userColor"],
     },
   ]);
-
-  // console.log(group);
 
   if (name) group.name = name;
 
@@ -140,8 +132,6 @@ export async function editGroup(req, res) {
     group.image = { url: req.file.path, filename: req.file.filename };
   }
 
-  console.log(group);
-
   await group.save();
 
   socketSync.groupEmit({
@@ -149,7 +139,7 @@ export async function editGroup(req, res) {
     change: { type: "edit", data: group },
     initiator: req.user,
     origin: req.ip,
-  });
+  }); // ! sync not done
 
   res.json({
     group,
@@ -157,9 +147,6 @@ export async function editGroup(req, res) {
   });
 }
 
-// ! JOIN
-// ! chatData not fetched
-// ! socket room not joined
 export async function joinWithCode(req, res) {
   const group = await Group.findById(req.params.gid).populate({
     path: "members",
@@ -191,14 +178,15 @@ export async function joinWithCode(req, res) {
     },
   ]);
 
-  socketSync.groupEmit({
+  const chatData = await socketSync.groupEmit({
     target: { type: "group", id: group._id },
-    change: { type: "edit", data: group }, // ? duplicate edit type?, send chatDt here or socket?
+    change: { type: "join", data: group },
     initiator: req.user,
     origin: req.ip,
   });
 
   res.status(200).json({
+    chatData,
     joinedGroup: group,
     messages: [{ message: "successfully joined channel", type: "success" }],
   });

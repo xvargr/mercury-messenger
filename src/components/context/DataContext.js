@@ -49,13 +49,16 @@ export function DataStateProvider(props) {
     return result;
   }
 
-  function addNewChat(groupIdString, channelIdString) {
+  function addNewChat(groupIdString, channelIdString, chatData) {
     setChatData((prevData) => {
       const dataCopy = { ...prevData };
       if (!dataCopy[groupIdString]) {
         dataCopy[groupIdString] = {};
       }
-      dataCopy[groupIdString][channelIdString] = [];
+      // empty chat array if no data was passed, assumes newly created group
+      dataCopy[groupIdString][channelIdString] = chatData
+        ? chatData[groupIdString][channelIdString]
+        : [];
       return dataCopy;
     });
   }
@@ -71,14 +74,14 @@ export function DataStateProvider(props) {
     });
   }
 
-  function addNewGroup(groupObject) {
+  function addNewGroup(groupObject, chatData) {
     setGroupData((prevData) => {
       const dataCopy = [...prevData];
       dataCopy.push(groupObject);
       return dataCopy;
     });
     groupObject.channels.text.forEach((channel) =>
-      addNewChat(groupObject._id, channel._id)
+      addNewChat(groupObject._id, channel._id, chatData)
     );
   }
 

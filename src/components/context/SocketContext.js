@@ -70,6 +70,8 @@ export function SocketStateProvider(props) {
       setSocketIsConnected(false);
     });
 
+    // todo on reconnected request new grp and cht data
+
     socket.on("initialize", (res) => setChatData(res));
 
     socket.on("newMessage", function (res) {
@@ -230,6 +232,10 @@ export function SocketStateProvider(props) {
         }
       }
 
+      function joinedGroup(params) {} // todo, modify grpData to reflect user change
+
+      function leftGroup(params) {} // todo, modify grpData to reflect user change
+
       // function editMessage() {} // todo
 
       // function deleteMessage() {} // todo
@@ -242,6 +248,8 @@ export function SocketStateProvider(props) {
         if (change.type === "create") createGroup();
         else if (change.type === "edit") editGroup();
         else if (change.type === "delete") deleteGroup();
+        else if (change.type === "join") joinedGroup();
+        else if (change.type === "leave") leftGroup();
       }
       // else if (target.type === "message") {
       //   if (change.type === "edit") editMessage();
@@ -251,6 +259,7 @@ export function SocketStateProvider(props) {
   }
 
   // todo users online
+  // * see socket.io room events, create delete join leave
 
   const socketInstance = {
     socket,

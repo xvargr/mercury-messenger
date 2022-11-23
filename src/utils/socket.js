@@ -42,7 +42,7 @@ export default function useSocket() {
 
     function genesisAcknowledged(res) {
       setChatData((prevStack) => {
-        // setState callback is used to access the latest pending state before rerender
+        // setState expression is used to access the latest pending state before rerender
         // spread so that the values instead of the pointer is referenced by the new variable
         // else state will see no change since the pointer doesn't change even if the values did
         // make a copy of the whole chatData and the specific chat being modified

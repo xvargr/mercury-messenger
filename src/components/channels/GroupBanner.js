@@ -49,7 +49,7 @@ function GroupBanner(props) {
       .leave(selectedGroup._id)
       .then((res) => {
         clearSelected();
-        dataHelpers.IconRemoveGroup(selectedGroup._id);
+        dataHelpers.removeGroup(selectedGroup._id);
         pushFlashMessage(res.data.messages);
         navigate("/");
       })
@@ -63,7 +63,7 @@ function GroupBanner(props) {
       .delete(selectedGroup._id)
       .then((res) => {
         clearSelected();
-        dataHelpers.ChevronDownIconremoveGroup(selectedGroup._id);
+        dataHelpers.removeGroup(selectedGroup._id);
         pushFlashMessage(res.data.messages);
         navigate("/");
       })
