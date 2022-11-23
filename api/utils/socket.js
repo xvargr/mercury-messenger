@@ -74,19 +74,29 @@ const socketUsers = {
 
 async function constructChatData(args) {
   // find sender and their groups in database
-  const { socket, sender } = args;
-  const userGroups = await Group.find({ members: sender }).populate({
-    path: "channels.text",
-  });
+  const { socket, sender, single } = args;
+
+  let userGroups;
+  if (single) {
+    userGroups = [
+      await Group.findById(single).populate({
+        path: "channels.text",
+      }),
+    ];
+  } else {
+    userGroups = await Group.find({ members: sender }).populate({
+      path: "channels.text",
+    });
+  }
 
   const chatData = {};
 
   // forEach is not async friendly, use for of
   for (const group of userGroups) {
-    socket.join(`g:${group.id}`);
+    if (!single) socket.join(`g:${group.id}`);
     chatData[group.id] = {};
     for (const channel of group.channels.text) {
-      socket.join(`c:${channel.id}`);
+      if (!single) socket.join(`c:${channel.id}`);
       chatData[group.id][channel.id] = [];
 
       const clusters = await Message.find({ channel })
@@ -104,7 +114,6 @@ async function constructChatData(args) {
       }
     }
   }
-
   return chatData;
 }
 
@@ -327,14 +336,21 @@ const socketSync = {
       io.sockets.sockets.get(instance.id)
     );
 
-    console.log("userInstances", userInstances);
-    console.log("senderSocket", senderSocket);
+    // console.log("userInstances", userInstances);
+    // console.log("senderSocket", senderSocket);
     // console.log(userSockets);
 
-    if (change.type === "create")
+    if (change.type === "create" || change.type === "join") {
+      // join the group's room
       userSockets.forEach((socket) => socket.join(`g:${target.id}`));
 
-    // ! group join emit, send chatData to sender?
+      // join the rooms of each channel
+      change.data.channels.text.forEach((channel) => {
+        userSockets.forEach((socket) => socket.join(`c:${channel.id}`));
+      });
+    }
+
+    // pre emit
 
     io.in(`g:${target.id}`)
       .except(senderSocket.id)
@@ -343,8 +359,36 @@ const socketSync = {
         change: { ...change },
       });
 
-    if (change.type === "delete")
+    // Post emit
+
+    // ! todo join sync - client
+    // ! todo leave sync - controller, client
+    // ! todo edit sync - here
+
+    if (change.type === "delete" || change.type === "leave") {
+      console.log("leaving rooms...");
+      // leave the group's room
       io.in(`g:${target.id}`).socketsLeave(`g:${target.id}`);
+
+      // leave the rooms of each channel
+      change.data.channels.text.forEach((channel) => {
+        userSockets.forEach((socket) => socket.leave(`c:${channel.id}`));
+      }); // ! untested
+
+      console.log(userSockets);
+    }
+
+    if (change.type === "join") {
+      return constructChatData({
+        socket: senderSocket,
+        sender: initiator,
+        single: target.id,
+      });
+    }
+
+    // if (change.type === "leave") {
+    //   // todo for each socket of userInstances, leave room
+    // }
   },
 };
 
