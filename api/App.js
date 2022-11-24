@@ -111,7 +111,7 @@ app.use(function (err, req, res, next) {
     respond = true,
   } = err;
   console.log(status, message);
-  // console.log("stack: ", err);
+  console.log("stack: ", err);
   if (respond) {
     // console.log("SENDING BACK ERR");
     res.status(status).json({

@@ -24,7 +24,9 @@ function validateImage(req, res, next) {
     next(new ExpressError("Image is too large", 400));
   } else {
     // console.log("VALIDATION PASSED");
-    next();
+    if (next)
+      next(); // this is a bodge, this func is used in other validation, prevent next from being called if this validator is not called as a middleware
+    else return true; // used if this validator is called in another validation func
   }
 }
 
@@ -97,9 +99,8 @@ async function validateGroupEdit(req, res, next) {
     if (!usersValid) next(new ExpressError("Members conflict", 400));
   }
 
-  if (req.file) {
-    validateImage();
-  }
+  if (req.file) validateImage(req);
+
   next();
 }
 

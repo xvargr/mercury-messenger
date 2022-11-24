@@ -304,11 +304,12 @@ const socketSync = {
       (instance) => instance.address === origin
     );
 
-    // pre
     if (change.type === "create") {
       // get relevant sockets to join new room
       io.in(`g:${target.parent}`).socketsJoin(`c:${target.id}`);
     }
+
+    // pre emit ↑↑↑
 
     io.in(`c:${target.id}`)
       .except(senderSocket.id)
@@ -316,6 +317,8 @@ const socketSync = {
         target: { ...target },
         change: { ...change },
       });
+
+    // Post emit ↓↓↓
 
     if (change.type === "delete") {
       // leave all socket from room, thus deleting it
@@ -331,7 +334,6 @@ const socketSync = {
     const senderSocket = userInstances.find(
       (instance) => instance.address === origin
     );
-
     const userSockets = userInstances.map((instance) =>
       io.sockets.sockets.get(instance.id)
     );
@@ -350,7 +352,7 @@ const socketSync = {
       });
     }
 
-    // pre emit
+    // pre emit ↑↑↑
 
     io.in(`g:${target.id}`)
       .except(senderSocket.id)
@@ -359,11 +361,11 @@ const socketSync = {
         change: { ...change },
       });
 
-    // Post emit
+    // ! kick promote member untested, separate events for these?? <-- !!
 
-    // ! todo join sync - client
-    // ! todo leave sync - controller, client
-    // ! todo edit sync - here
+    // todo notification of changes via flashMessage?
+
+    // Post emit ↓↓↓
 
     if (change.type === "delete" || change.type === "leave") {
       console.log("leaving rooms...");
@@ -373,12 +375,11 @@ const socketSync = {
       // leave the rooms of each channel
       change.data.channels.text.forEach((channel) => {
         userSockets.forEach((socket) => socket.leave(`c:${channel.id}`));
-      }); // ! untested
-
-      console.log(userSockets);
+      });
     }
 
     if (change.type === "join") {
+      // return chatData of the joined group to new member for axios response
       return constructChatData({
         socket: senderSocket,
         sender: initiator,

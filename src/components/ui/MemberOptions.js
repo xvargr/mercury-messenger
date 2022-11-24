@@ -86,7 +86,9 @@ function MemberOptions(props) {
       <div className="w-3/4 flex">
         <div className="w-18 mr-2 shrink-0">
           <img
-            src={memberData.userImage.thumbnailSmall}
+            src={
+              memberData.userImage.thumbnailSmall || memberData.userImage.url
+            }
             alt="user"
             className="rounded-full h-16 w-16"
           />
