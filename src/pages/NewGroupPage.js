@@ -52,7 +52,6 @@ function NewGroupPage() {
     userGroups
       .join(joinCode)
       .then((res) => {
-        console.log(res);
         dataHelpers.addNewGroup(res.data.joinedGroup, res.data.chatData);
 
         setSelectedGroup(res.data.joinedGroup);

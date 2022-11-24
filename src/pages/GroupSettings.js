@@ -155,8 +155,6 @@ function GroupSettingsPage() {
     if (updateForm.hasChanges()) {
       setFormIsPending(true);
 
-      console.log(editForm);
-
       const formData = new FormData();
       if (updateForm.nameChanged()) {
         formData.append("name", editForm.name);
@@ -185,7 +183,7 @@ function GroupSettingsPage() {
         })
         .catch((err) => {
           console.log(err);
-          pushFlashMessage(err.response.data.messages);
+          if (err.response) pushFlashMessage(err.response.data.messages); // network err has no response key
           setFormIsPending(false);
         });
     }

@@ -206,9 +206,15 @@ export function SocketStateProvider(props) {
 
         if (selectedGroupRef.current?._id === target.id) {
           setSelectedGroup(change.data);
-          navigate(
-            `/g/${change.data.name}/c/${selectedChannelRef.current.name}`
-          );
+
+          // reroute to updated, depending on if in channel
+          if (selectedChannelRef.current) {
+            navigate(
+              `/g/${change.data.name}/c/${selectedChannelRef.current.name}`
+            );
+          } else {
+            navigate(`/g/${change.data.name}`);
+          }
         }
       }
 
@@ -232,9 +238,27 @@ export function SocketStateProvider(props) {
         }
       }
 
-      function joinedGroup(params) {} // todo, modify grpData to reflect user change
+      function joinedGroup() {
+        setGroupData((currentData) => {
+          const dataCopy = [...currentData];
+          const groupIndex = dataHelpers.getGroupIndex(target.id);
 
-      function leftGroup(params) {} // todo, modify grpData to reflect user change
+          dataCopy[groupIndex].members.push(change.extra.user);
+          return dataCopy;
+        });
+      }
+
+      function leftGroup(params) {
+        setGroupData((currentData) => {
+          const dataCopy = [...currentData];
+          const groupIndex = dataHelpers.getGroupIndex(target.id);
+
+          dataCopy[groupIndex].members = dataCopy[groupIndex].members.filter(
+            (member) => member._id !== change.extra.userId
+          );
+          return dataCopy;
+        });
+      }
 
       // function editMessage() {} // todo
 

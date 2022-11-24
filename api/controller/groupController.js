@@ -118,6 +118,7 @@ export async function editGroup(req, res) {
     for (let userId of toPromote) {
       const member = await User.findById(userId).select("username").lean();
       group.administrators.push(member);
+      // ? socketSync here?
     }
   }
 
@@ -125,10 +126,11 @@ export async function editGroup(req, res) {
     group.members = group.members.filter(
       (member) => !toKick.includes(member.id)
     );
+    // ? socketSync here?
   }
 
   if (file) {
-    cloudinary.uploader.destroy(group.filename);
+    cloudinary.uploader.destroy(group.image.filename);
     group.image = { url: req.file.path, filename: req.file.filename };
   }
 
@@ -139,7 +141,7 @@ export async function editGroup(req, res) {
     change: { type: "edit", data: group },
     initiator: req.user,
     origin: req.ip,
-  }); // ! sync not done
+  });
 
   res.json({
     group,
@@ -154,7 +156,9 @@ export async function joinWithCode(req, res) {
   });
   if (!group) throw new ExpressError("Cannot find group", 400);
 
-  const user = await User.findById(req.user._id).lean();
+  const user = await User.findById(req.user._id)
+    .select(["_id", "username", "userImage", "userColor"])
+    .lean();
   if (!user) throw new ExpressError("User account error", 400);
 
   if (group.members.some((member) => member._id.equals(user._id)))
@@ -180,7 +184,7 @@ export async function joinWithCode(req, res) {
 
   const chatData = await socketSync.groupEmit({
     target: { type: "group", id: group._id },
-    change: { type: "join", data: group },
+    change: { type: "join", data: group, extra: { user } },
     initiator: req.user,
     origin: req.ip,
   });
@@ -229,6 +233,14 @@ export async function groupRemoveUser(req, res) {
   group.members.splice(memberIndex, 1);
 
   await group.save();
+
+  socketSync.groupEmit({
+    target: { type: "group", id: group._id },
+    change: { type: "leave", data: group, extra: { userId: req.user._id } },
+    initiator: req.user,
+    origin: req.ip,
+  });
+
   res.json({
     messages: [{ message: "successfully left group", type: "success" }],
   });
