@@ -96,6 +96,7 @@ export async function editGroup(req, res) {
   const toKick = req.body.toKick?.split(","); // formData does not support objects or arrays, an alternative method to this it to JSON stringify and parse objects and arrays
   const toPromote = req.body.toPromote?.split(",");
   const file = req.file;
+  let extra = {};
 
   const group = await Group.findById(id).populate([
     {
@@ -115,18 +116,22 @@ export async function editGroup(req, res) {
   if (name) group.name = name;
 
   if (toPromote) {
+    extra.toPromote = [];
     for (let userId of toPromote) {
-      const member = await User.findById(userId).select("username").lean();
+      const member = await User.findById(userId).select(["username"]).lean();
       group.administrators.push(member);
-      // ? socketSync here?
+      extra.toPromote.push(userId);
     }
   }
 
   if (toKick) {
-    group.members = group.members.filter(
-      (member) => !toKick.includes(member.id)
-    );
-    // ? socketSync here?
+    extra.toKick = [];
+    group.members = group.members.filter((member) => {
+      if (toKick.includes(member.id)) {
+        extra.toKick.push(member.id);
+        return false;
+      } else return true;
+    });
   }
 
   if (file) {
@@ -138,7 +143,7 @@ export async function editGroup(req, res) {
 
   socketSync.groupEmit({
     target: { type: "group", id: group._id },
-    change: { type: "edit", data: group },
+    change: { type: "edit", data: group, extra },
     initiator: req.user,
     origin: req.ip,
   });
@@ -212,6 +217,7 @@ export async function groupRemoveUser(req, res) {
     member._id.equals(req.user._id)
   );
   if (memberIndex < 0) {
+    console.log(group); // !!!
     throw new ExpressError("Invalid request", 400);
   }
 
@@ -236,7 +242,7 @@ export async function groupRemoveUser(req, res) {
 
   socketSync.groupEmit({
     target: { type: "group", id: group._id },
-    change: { type: "leave", data: group, extra: { userId: req.user._id } },
+    change: { type: "leave", data: group, extra: { userId: req.user.id } },
     initiator: req.user,
     origin: req.ip,
   });

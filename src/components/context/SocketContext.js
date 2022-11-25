@@ -196,24 +196,36 @@ export function SocketStateProvider(props) {
       }
 
       function editGroup() {
+        const isKicked = change.extra?.toKick?.includes(localStorage.userId);
+
         setGroupData((currentData) => {
           const dataCopy = [...currentData];
           const groupIndex = dataHelpers.getGroupIndex(target.id);
 
-          dataCopy[groupIndex] = change.data;
+          if (isKicked) dataCopy.splice(groupIndex, 1);
+          else dataCopy[groupIndex] = change.data;
+
           return dataCopy;
         });
 
         if (selectedGroupRef.current?._id === target.id) {
-          setSelectedGroup(change.data);
-
-          // reroute to updated, depending on if in channel
-          if (selectedChannelRef.current) {
-            navigate(
-              `/g/${change.data.name}/c/${selectedChannelRef.current.name}`
-            );
+          if (isKicked) {
+            console.log("in kicked reroute");
+            setSelectedGroup(null);
+            setSelectedChannel(null);
+            navigate("/");
           } else {
-            navigate(`/g/${change.data.name}`);
+            console.log("in NON kicked reroute");
+            setSelectedGroup(change.data);
+
+            // reroute to updated, depending on if in channel
+            if (selectedChannelRef.current) {
+              navigate(
+                `/g/${change.data.name}/c/${selectedChannelRef.current.name}`
+              );
+            } else {
+              navigate(`/g/${change.data.name}`);
+            }
           }
         }
       }
@@ -242,7 +254,6 @@ export function SocketStateProvider(props) {
         setGroupData((currentData) => {
           const dataCopy = [...currentData];
           const groupIndex = dataHelpers.getGroupIndex(target.id);
-
           dataCopy[groupIndex].members.push(change.extra.user);
           return dataCopy;
         });
@@ -256,6 +267,11 @@ export function SocketStateProvider(props) {
           dataCopy[groupIndex].members = dataCopy[groupIndex].members.filter(
             (member) => member._id !== change.extra.userId
           );
+
+          dataCopy[groupIndex].administrators = dataCopy[
+            groupIndex
+          ].members.filter((admin) => admin._id !== change.extra.userId);
+
           return dataCopy;
         });
       }
