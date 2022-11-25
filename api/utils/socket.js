@@ -292,8 +292,32 @@ const socketInstance = {
   },
 };
 
-// todo join group emit ChatData
+// todo flash message to send
 const socketSync = {
+  getFlashMessage(type) {
+    switch (type) {
+      case "new channel":
+        return true;
+      case "channel deleted":
+        return true;
+      case "channel modified":
+        return true;
+      case "group modified":
+        return true;
+      case "group deleted":
+        return true;
+      case "user promoted":
+        return true;
+      case "user kicked":
+        return true;
+
+      default:
+        break;
+    }
+  },
+
+  /// crud
+
   async channelEmit(args) {
     const io = socketInstance.io;
     const { target, change, initiator, origin } = args;
@@ -361,20 +385,37 @@ const socketSync = {
         change: { ...change },
       });
 
-    // ! kick promote member untested, separate events for these?? <-- !!
-
     // todo notification of changes via flashMessage?
 
     // Post emit ↓↓↓
 
-    if (change.type === "delete" || change.type === "leave") {
-      console.log("leaving rooms...");
+    if (change.type === "delete") {
       // leave the group's room
       io.in(`g:${target.id}`).socketsLeave(`g:${target.id}`);
 
       // leave the rooms of each channel
       change.data.channels.text.forEach((channel) => {
-        userSockets.forEach((socket) => socket.leave(`c:${channel.id}`));
+        io.in(`c:${channel._id}`).socketsLeave(`c:${channel._id}`);
+      });
+    }
+
+    if (change.type === "leave" || change.extra?.toKick) {
+      let leavingInstances;
+      if (change.type === "leave") {
+        leavingInstances = socketUsers.getInstances([change.extra.userId]);
+      } else if (change.extra?.toKick) {
+        leavingInstances = socketUsers.getInstances(change.extra.toKick);
+      }
+      console.log("instances", leavingInstances);
+
+      leavingInstances.forEach((instance) => {
+        const socket = io.sockets.sockets.get(instance.id);
+
+        socket.leave(`g:${target.id}`);
+
+        change.data.channels.text.forEach((channel) => {
+          socket.leave(`c:${channel._id}`);
+        });
       });
     }
 
@@ -386,10 +427,6 @@ const socketSync = {
         single: target.id,
       });
     }
-
-    // if (change.type === "leave") {
-    //   // todo for each socket of userInstances, leave room
-    // }
   },
 };
 
