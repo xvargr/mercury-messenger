@@ -22,6 +22,9 @@ export async function newChannel(req, res) {
   socketSync.channelEmit({
     target: { type: "channel", id: newChannel._id, parent: parentGroup._id },
     change: { type: "create", data: newChannel },
+    messages: [
+      { message: `Channel "${newChannel.name}" was created`, type: "success" },
+    ],
     initiator: req.user,
     origin: req.ip,
   });
@@ -58,6 +61,9 @@ export async function editChannel(req, res) {
   socketSync.channelEmit({
     target: { type: "channel", id: channel._id, parent: group._id },
     change: { type: "edit", data: channel },
+    messages: [
+      { message: `Channel "${channel.name}" was modified`, type: "success" },
+    ],
     initiator: req.user,
     origin: req.ip,
   });
@@ -96,6 +102,9 @@ export async function deleteChannel(req, res) {
   socketSync.channelEmit({
     target: { type: "channel", id: req.params.cid, parent: parentGroup._id },
     change: { type: "delete" },
+    messages: [
+      { message: `Channel "${channel.name}" was deleted`, type: "success" },
+    ],
     initiator: req.user,
     origin: req.ip,
   });

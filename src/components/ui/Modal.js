@@ -82,28 +82,36 @@ export function DeleteUserModal(props) {
 export function ReconnectingModal(params) {
   const { isReconnecting } = params;
   const [transform, setTransform] = useState("-translate-y-12");
+  const [opacity, setOpacity] = useState("-translate-y-12");
 
   useEffect(() => {
     if (isReconnecting) {
       setTimeout(() => {
         setTransform("translate-y-0");
+        setOpacity("opacity-40");
       }, 75);
     } else {
       setTimeout(() => {
         setTransform("-translate-y-12");
+        setOpacity("opacity-0 pointer-events-none");
       }, 75);
     }
   }, [isReconnecting]);
 
   return (
-    <div
-      className={`absolute justify-self-center justify-around font-bold bg-gray-500 text-gray-900 h-12 w-2/5 max-w-2xl p-1 rounded-b-md shadow-md transition-transform ease-out transform ${transform} z-50`}
-    >
-      <span className="h-full w-full flex justify-center items-center">
-        reconnecting
-        <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-700" />
-      </span>
-    </div>
+    <>
+      <div
+        className={`absolute justify-self-center justify-around font-bold bg-gray-500 text-gray-900 h-12 w-2/5 max-w-2xl p-1 rounded-b-md shadow-md transition-transform ease-out transform ${transform} z-50`}
+      >
+        <span className="h-full w-full flex justify-center items-center">
+          reconnecting
+          <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-700" />
+        </span>
+      </div>
+      <div
+        className={`w-screen h-screen bg-black absolute ${opacity} transition-opacity duration-75 ease-in-out z-40`}
+      ></div>
+    </>
   );
 }
 
