@@ -1,9 +1,13 @@
 import { useState, createContext, useContext, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
+import { FlashContext } from "./FlashContext";
 import { DataContext } from "./DataContext";
 import { UiContext } from "./UiContext";
+
+// utility hooks
+import axiosInstance from "../../utils/axios";
 
 export const SocketContext = createContext();
 
@@ -11,8 +15,15 @@ export function SocketStateProvider(props) {
   const [socket, setSocket] = useState(null);
   const [socketIsConnected, setSocketIsConnected] = useState(false);
 
-  const { setGroupData, setChatData, dataHelpers, isLoggedIn } =
-    useContext(DataContext);
+  const { pushFlashMessage } = useContext(FlashContext);
+
+  const {
+    setGroupData,
+    setGroupMounted,
+    setChatData,
+    dataHelpers,
+    isLoggedIn,
+  } = useContext(DataContext);
 
   const {
     windowIsFocused,
@@ -22,6 +33,10 @@ export function SocketStateProvider(props) {
     setSelectedGroup,
     clearSelected,
   } = useContext(UiContext);
+
+  const { group, channel } = useParams();
+
+  const { userGroups } = axiosInstance();
 
   // these refs are used to provide the latest values and fix stale closures in socket events
   const selectedGroupRef = useRef(selectedGroup);
@@ -62,6 +77,40 @@ export function SocketStateProvider(props) {
     socket.on("connect", function (/*don't redefine socket here*/) {
       // "connect" not "connected"
       // console.log(`connected to socketio as ${socket.id}`);
+
+      userGroups
+        .fetch()
+        .then((res) => {
+          const groupData = res.data;
+          setGroupData(() => groupData);
+          setGroupMounted(true);
+
+          if (group) {
+            const currentGroup = groupData.find((grp) => grp.name === group);
+            if (!currentGroup) {
+              pushFlashMessage([
+                { message: "Group does not exist", type: "error" },
+              ]);
+              setSelectedGroup(null);
+              setSelectedChannel(null);
+            } else setSelectedGroup(() => currentGroup);
+
+            if (channel) {
+              const currentChannel = currentGroup.find(
+                (chn) => chn.name === channel
+              );
+              if (!currentChannel) {
+                pushFlashMessage([
+                  { message: "Channel does not exist", type: "error" },
+                ]);
+                setSelectedChannel(null);
+                navigate(`/g/${setSelectedGroup.name}`);
+              } else setSelectedChannel(() => currentChannel);
+            }
+          }
+        })
+        .catch((e) => e); // axios abort throws error unless it's caught here
+
       setSocketIsConnected(true);
     });
 
@@ -69,8 +118,6 @@ export function SocketStateProvider(props) {
       // console.log("iooooo"); // todo set error already connected, force connection here
       setSocketIsConnected(false);
     });
-
-    // todo on reconnected request new grp and cht data
 
     socket.on("initialize", (res) => setChatData(res));
 
@@ -114,7 +161,7 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("structureChange", function (res) {
-      const { target, change } = res;
+      const { target, change, messages } = res;
 
       console.log(`${change.type} signal received for `);
       console.log(res);
@@ -210,12 +257,10 @@ export function SocketStateProvider(props) {
 
         if (selectedGroupRef.current?._id === target.id) {
           if (isKicked) {
-            console.log("in kicked reroute");
             setSelectedGroup(null);
             setSelectedChannel(null);
             navigate("/");
           } else {
-            console.log("in NON kicked reroute");
             setSelectedGroup(change.data);
 
             // reroute to updated, depending on if in channel
@@ -279,6 +324,8 @@ export function SocketStateProvider(props) {
       // function editMessage() {} // todo
 
       // function deleteMessage() {} // todo
+
+      if (messages.length > 0) pushFlashMessage(messages); // transfer any messages to context
 
       if (target.type === "channel") {
         if (change.type === "create") createChannel();

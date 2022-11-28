@@ -265,8 +265,6 @@ const socketInstance = {
       // todo use connectedUsers array to show if user is online
       // todo private messages and friends
 
-      // todo on reconnect reload data
-
       const sender = await User.findById(socket.request.user.id).lean();
 
       const initData = await constructChatData({ socket, sender });
@@ -292,35 +290,10 @@ const socketInstance = {
   },
 };
 
-// todo flash message to send
 const socketSync = {
-  getFlashMessage(type) {
-    switch (type) {
-      case "new channel":
-        return true;
-      case "channel deleted":
-        return true;
-      case "channel modified":
-        return true;
-      case "group modified":
-        return true;
-      case "group deleted":
-        return true;
-      case "user promoted":
-        return true;
-      case "user kicked":
-        return true;
-
-      default:
-        break;
-    }
-  },
-
-  /// crud
-
   async channelEmit(args) {
     const io = socketInstance.io;
-    const { target, change, initiator, origin } = args;
+    const { target, change, initiator, origin, messages = [] } = args;
 
     // get initiator socket, used for ignoring sender
     const userInstances = socketUsers.getInstances([initiator.id]);
@@ -340,6 +313,7 @@ const socketSync = {
       .emit("structureChange", {
         target: { ...target },
         change: { ...change },
+        messages: [...messages],
       });
 
     // Post emit ↓↓↓
@@ -352,7 +326,7 @@ const socketSync = {
 
   groupEmit(args) {
     const io = socketInstance.io;
-    const { target, change, initiator, origin } = args;
+    const { target, change, initiator, origin, messages = [] } = args;
 
     const userInstances = socketUsers.getInstances([initiator.id]);
     const senderSocket = userInstances.find(
@@ -383,9 +357,8 @@ const socketSync = {
       .emit("structureChange", {
         target: { ...target },
         change: { ...change },
+        messages: [...messages],
       });
-
-    // todo notification of changes via flashMessage?
 
     // Post emit ↓↓↓
 

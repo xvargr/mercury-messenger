@@ -282,6 +282,21 @@ export default function useAxiosInstance() {
   function abortEditUser() {
     editUserController.abort();
   }
+  function abortAll() {
+    fetchController.abort();
+    deleteChannelController.abort();
+    deleteChannelController.abort();
+    newChannelController.abort();
+    leaveGroupController.abort();
+    deleteGroupController.abort();
+    signUserController.abort();
+    newGroupController.abort();
+    editGroupController.abort();
+    joinGroupController.abort();
+    joinGroupController.abort();
+    deleteUserController.abort();
+    editUserController.abort();
+  }
 
   return {
     userAccount: {
@@ -316,5 +331,6 @@ export default function useAxiosInstance() {
       abortEdit: abortChannelEdit,
       abortDelete: abortChannelDelete,
     },
+    abortAll,
   };
 }

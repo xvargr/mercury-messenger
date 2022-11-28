@@ -47,7 +47,6 @@ db.once("open", function () {
 // middleware
 app.use(
   cors({
-    // todo dynamic origin
     origin: [DOMAIN, "http://192.168.0.137:3000"],
     optionsSuccessStatus: 200,
     credentials: true,
@@ -81,7 +80,6 @@ passport.deserializeUser((id, done) => {
 app.use("/u", userRouter);
 app.use("/g", groupRouter);
 app.use("/c", channelRouter);
-// todo some more validations esp for edits
 
 // socket.io middleware
 const wrap = (middleware) => (socket, next) => {

@@ -3,10 +3,12 @@ import { useState, useContext, useEffect } from "react";
 
 import { DotsVerticalIcon, TrashIcon, XIcon } from "@heroicons/react/solid";
 
+// context
 import { DataContext } from "../context/DataContext";
 import { FlashContext } from "../context/FlashContext";
 import { UiContext } from "../context/UiContext";
 
+// utility hooks
 import axiosInstance from "../../utils/axios";
 
 function ChannelBadge(props) {

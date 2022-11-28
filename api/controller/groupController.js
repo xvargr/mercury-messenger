@@ -78,7 +78,10 @@ export async function deleteGroup(req, res) {
 
   socketSync.groupEmit({
     target: { type: "group", id: group._id },
-    change: { type: "delete" },
+    change: { type: "delete", data: group },
+    messages: [
+      { message: `Group "${group.name}" was deleted`, type: "success" },
+    ],
     initiator: req.user,
     origin: req.ip,
   });
@@ -144,6 +147,9 @@ export async function editGroup(req, res) {
   socketSync.groupEmit({
     target: { type: "group", id: group._id },
     change: { type: "edit", data: group, extra },
+    messages: [
+      { message: `Group "${group.name}" was modified`, type: "success" },
+    ],
     initiator: req.user,
     origin: req.ip,
   });
@@ -190,6 +196,9 @@ export async function joinWithCode(req, res) {
   const chatData = await socketSync.groupEmit({
     target: { type: "group", id: group._id },
     change: { type: "join", data: group, extra: { user } },
+    messages: [
+      { message: `${user.username} joined "${group.name}"`, type: "success" },
+    ],
     initiator: req.user,
     origin: req.ip,
   });
@@ -217,7 +226,6 @@ export async function groupRemoveUser(req, res) {
     member._id.equals(req.user._id)
   );
   if (memberIndex < 0) {
-    console.log(group); // !!!
     throw new ExpressError("Invalid request", 400);
   }
 
@@ -243,6 +251,9 @@ export async function groupRemoveUser(req, res) {
   socketSync.groupEmit({
     target: { type: "group", id: group._id },
     change: { type: "leave", data: group, extra: { userId: req.user.id } },
+    messages: [
+      { message: `${req.user.username} left ${group.name}`, type: "success" },
+    ],
     initiator: req.user,
     origin: req.ip,
   });
