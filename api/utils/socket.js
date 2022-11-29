@@ -242,7 +242,7 @@ const socketInstance = {
   },
 
   initialize() {
-    // refuse connection if not authenticated or user already has a connection
+    // refuse connection if not authenticated or user already has a connection with this ip
     this.io.use(async function (socket, next) {
       if (
         socket.request.isAuthenticated() &&
@@ -282,7 +282,11 @@ const socketInstance = {
         appendCluster({ socket, clusterData, callback })
       );
 
+      // todo connection status
       socket.on("disconnect", function () {
+        console.log(socket.rooms); // * already empty by this point
+        // ? use room events? socket on join-room leave-room
+
         socketUsers.disconnect(socket);
         console.log("currently connected: ", socketUsers.connectedUsers);
       });

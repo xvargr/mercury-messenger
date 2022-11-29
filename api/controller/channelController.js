@@ -23,7 +23,7 @@ export async function newChannel(req, res) {
     target: { type: "channel", id: newChannel._id, parent: parentGroup._id },
     change: { type: "create", data: newChannel },
     messages: [
-      { message: `Channel "${newChannel.name}" was created`, type: "success" },
+      { message: `Channel "${newChannel.name}" was created`, type: "alert" },
     ],
     initiator: req.user,
     origin: req.ip,
@@ -62,7 +62,7 @@ export async function editChannel(req, res) {
     target: { type: "channel", id: channel._id, parent: group._id },
     change: { type: "edit", data: channel },
     messages: [
-      { message: `Channel "${channel.name}" was modified`, type: "success" },
+      { message: `Channel "${channel.name}" was modified`, type: "alert" },
     ],
     initiator: req.user,
     origin: req.ip,
@@ -103,7 +103,7 @@ export async function deleteChannel(req, res) {
     target: { type: "channel", id: req.params.cid, parent: parentGroup._id },
     change: { type: "delete" },
     messages: [
-      { message: `Channel "${channel.name}" was deleted`, type: "success" },
+      { message: `Channel "${channel.name}" was deleted`, type: "alert" },
     ],
     initiator: req.user,
     origin: req.ip,
