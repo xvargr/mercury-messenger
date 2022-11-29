@@ -1,3 +1,6 @@
 {
-  "cSpell.words": ["kanit", "peername", "resave", "tailwindcss", "virtuals"]
+  "cSpell.words": ["kanit", "peername", "resave", "tailwindcss", "virtuals"],
+  "files.associations": {
+    "*.js": "javascriptreact"
+  }
 }

@@ -1,7 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useContext, useEffect } from "react";
 
-import { DotsVerticalIcon, TrashIcon, XIcon } from "@heroicons/react/solid";
+//svg
+import {
+  DotsVerticalIcon,
+  TrashIcon,
+  XIcon,
+  HashtagIcon,
+  FolderIcon,
+} from "@heroicons/react/solid";
 
 // context
 import { DataContext } from "../context/DataContext";
@@ -12,17 +19,35 @@ import { UiContext } from "../context/UiContext";
 import axiosInstance from "../../utils/axios";
 
 function ChannelBadge(props) {
+  const [nameField, setNameField] = useState(props.data.name);
+  const emphasis = props.selected ? "bg-gray-600" : "hover:bg-gray-600";
+
   const [isEditing, setIsEditing] = useState(false);
   const [showDialogue, setShowDialogue] = useState(false);
-  const [nameField, setNameField] = useState(props.data.name);
+
   const { setGroupData, setChatData, dataHelpers } = useContext(DataContext);
+
   const { selectedGroup, selectedChannel, setSelectedChannel } =
     useContext(UiContext);
+
   const { pushFlashMessage } = useContext(FlashContext);
+
   const navigate = useNavigate();
+
   const { userChannels } = axiosInstance();
 
-  const emphasis = props.selected ? "bg-gray-600" : "hover:bg-gray-600";
+  let Charm;
+  switch (props.type) {
+    case "text":
+      Charm = <HashtagIcon className="w-5 h-5 text-gray-800" />;
+      break;
+    case "task":
+      Charm = <FolderIcon className="w-5 h-5 text-gray-800" />;
+      break;
+
+    default:
+      break;
+  }
 
   // pass name to parent on click
   function passOnClick() {
@@ -150,9 +175,12 @@ function ChannelBadge(props) {
       <Link
         onClick={passOnClick}
         to={`c/${props.data.name}`}
-        className={`h-8 w-5/6 m-0.5 pl-2 py-1 pr-0 ${emphasis} rounded-lg flex justify-between items-center transition-colors ease-in duration-75 group`}
+        className={`h-8 w-5/6 m-0.5 pl-1 py-1 pr-0 ${emphasis} rounded-lg flex justify-between items-center transition-colors ease-in duration-75 group`}
       >
-        <div className="truncate">{props.data.name}</div>
+        <div className="flex items-center">
+          {Charm}
+          <div className="truncate">{props.data.name}</div>
+        </div>
         {props.isAdmin ? (
           <DotsVerticalIcon
             className="h-5 w-5 shrink-0 text-gray-900 hover:text-gray-400 opacity-0 group-hover:opacity-100 rounded-full transition-all ease-in duration-75"

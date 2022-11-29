@@ -79,9 +79,7 @@ export async function deleteGroup(req, res) {
   socketSync.groupEmit({
     target: { type: "group", id: group._id },
     change: { type: "delete", data: group },
-    messages: [
-      { message: `Group "${group.name}" was deleted`, type: "success" },
-    ],
+    messages: [{ message: `Group "${group.name}" was deleted`, type: "alert" }],
     initiator: req.user,
     origin: req.ip,
   });
@@ -148,7 +146,7 @@ export async function editGroup(req, res) {
     target: { type: "group", id: group._id },
     change: { type: "edit", data: group, extra },
     messages: [
-      { message: `Group "${group.name}" was modified`, type: "success" },
+      { message: `Group "${group.name}" was modified`, type: "alert" },
     ],
     initiator: req.user,
     origin: req.ip,
@@ -197,7 +195,7 @@ export async function joinWithCode(req, res) {
     target: { type: "group", id: group._id },
     change: { type: "join", data: group, extra: { user } },
     messages: [
-      { message: `${user.username} joined "${group.name}"`, type: "success" },
+      { message: `${user.username} joined "${group.name}"`, type: "alert" },
     ],
     initiator: req.user,
     origin: req.ip,
@@ -252,7 +250,7 @@ export async function groupRemoveUser(req, res) {
     target: { type: "group", id: group._id },
     change: { type: "leave", data: group, extra: { userId: req.user.id } },
     messages: [
-      { message: `${req.user.username} left ${group.name}`, type: "success" },
+      { message: `${req.user.username} left ${group.name}`, type: "alert" },
     ],
     initiator: req.user,
     origin: req.ip,

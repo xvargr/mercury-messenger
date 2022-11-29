@@ -1,9 +1,12 @@
 import { useContext, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+
 // components
 import ChannelBadge from "../channels/ChannelBadge";
 import NewChannelButton from "../channels/NewChannelButton";
 import GroupBanner from "../channels/GroupBanner";
+import MemberStatusBadge from "../channels/MemberStatusBadge";
+
 // context
 import { UiContext } from "../context/UiContext";
 import { DataContext } from "../context/DataContext";
@@ -57,7 +60,7 @@ function ChannelsBar() {
 
   if (!groupMounted || !selectedGroup) {
     return (
-      <section className="bg-gray-700 h-screen w-1/4 lg:w-1/5 shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
+      <section className="bg-gray-700 h-screen w-1/4 lg:w-1/5 max-w-sm lg:min-w-[24rem] shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
         <GroupBanner name={group} />
         <div className="w-full flex-grow overflow-y-scroll scrollbar-none flex flex-col items-center">
           <div className="w-1/3 mb-2 mt-2"></div>
@@ -75,32 +78,53 @@ function ChannelsBar() {
     );
   } else {
     return (
-      <section className="bg-gray-700 h-screen w-1/4 lg:w-1/5 shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
+      <section className="bg-gray-700 h-screen w-1/4 lg:w-1/5 max-w-sm min-w-[10rem] md:min-w-[15rem] shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
         <GroupBanner name={selectedGroup.name} />
-        <div className="w-full flex-grow overflow-y-scroll scrollbar-none flex flex-col items-center">
-          <div className="w-1/3 mb-2 mt-2"></div>
-          {groupData[groupIndex].channels.text.map((channel) => {
-            let selected =
-              selectedChannel?.name === channel.name ? true : false;
+        <div className="w-full h-full flex-grow overflow-y-scroll scrollbar-none flex flex-col items-center justify-between">
+          <div className="w-full max-h-[50%] grow flex flex-col items-center overflow-y-scroll scrollbar-dark">
+            <div className="mt-4"></div>
 
-            return (
-              <ChannelBadge
-                data={channel}
-                groupIndex={groupIndex}
-                selected={selected}
-                key={channel._id}
-                onClick={channelChangeHandler}
-                isAdmin={isAdmin}
-              />
-            );
-          })}
-          {isAdmin ? (
-            <NewChannelButton
-              for={selectedGroup}
-              onClick={channelChangeHandler}
-            />
-          ) : null}
+            {groupData[groupIndex].channels.text.map((channel) => {
+              let selected =
+                selectedChannel?.name === channel.name ? true : false;
+
+              return (
+                <ChannelBadge
+                  data={channel}
+                  groupIndex={groupIndex}
+                  selected={selected}
+                  type="text"
+                  key={channel._id}
+                  onClick={channelChangeHandler}
+                  isAdmin={isAdmin}
+                />
+              );
+            })}
+            <div className="w-full pt-1 bg-gray-700 flex flex-col items-center sticky-reverse">
+              {isAdmin ? (
+                <NewChannelButton
+                  for={selectedGroup}
+                  onClick={channelChangeHandler}
+                />
+              ) : null}
+            </div>
+          </div>
+
           <hr className="w-1/3 mb-2 mt-2 border-gray-800" />
+
+          <div className="w-full h-1/2 py-1 flex flex-col items-center overflow-y-scroll scrollbar-dark">
+            {groupData[groupIndex].members.map((member) => {
+              const status = "away"; // ! evaluate this, pending backend
+
+              return (
+                <MemberStatusBadge
+                  member={member}
+                  status={status}
+                  key={member._id}
+                />
+              );
+            })}
+          </div>
         </div>
       </section>
     );
