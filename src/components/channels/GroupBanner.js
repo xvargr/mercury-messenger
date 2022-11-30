@@ -95,7 +95,7 @@ function GroupBanner(props) {
 
   function TrayExpanded() {
     return (
-      <div className="w-1/5 px-2 py-4 bg-gray-900 text-gray-400 rounded-b-md shadow-md fixed top-10 flex flex-col justify-center items-center">
+      <div className="w-1/5 px-2 py-4 bg-gray-900 text-gray-400 rounded-b-md shadow-md fixed top-10 flex flex-col justify-center items-center z-10">
         <InviteButton inviteLink={inviteLink} />
         {isAdmin ? <AdminOptions /> : null}
         <button

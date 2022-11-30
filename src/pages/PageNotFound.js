@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 // import { UiContext } from "../components/context/UiContext";
 import { FlashContext } from "../components/context/FlashContext";
 
+// ! page not needed, just reroute on each level?
 function PageNotFound() {
   // const { selectedGroup, selectedChannel } = useContext(UiContext);
   const { pushFlashMessage } = useContext(FlashContext);

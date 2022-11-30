@@ -85,6 +85,7 @@ export async function deleteChannel(req, res) {
       { path: "task", model: "Channel" },
     ],
   });
+
   // check if channel exist in group, and group found
   if (!channel) throw new ExpressError("Channel not found", 500);
   if (!parentGroup) throw new ExpressError("Group not found", 500);

@@ -20,6 +20,7 @@ const socketUsers = {
       this.connectedUsers.push({
         // address: socket.request.connection.remoteAddress // request.connection.remotePort // request.connection._peername // handshake.address are alternatives
         userId: socket.request.user.id,
+        status: "online",
         instances: [
           { id: socket.id, address: socket.request.connection.remoteAddress },
         ],
@@ -70,8 +71,13 @@ const socketUsers = {
 
     return result;
   },
+  changeStatus() {},
+  getStatus(userId) {
+    return true / false;
+  },
 };
 
+// socket event functions
 async function constructChatData(args) {
   // find sender and their groups in database
   const { socket, sender, single } = args;
@@ -152,7 +158,9 @@ async function newCluster(args) {
 }
 
 async function appendCluster(args) {
-  const { socket, clusterData, callback } = args;
+  const { socket, sender, clusterData, callback } = args;
+
+  console.log(sender);
 
   function appendAndEmit() {
     parentCluster.append(clusterData);
@@ -228,6 +236,7 @@ async function appendCluster(args) {
   }
 }
 
+// socket object for initializing io and handling events
 const socketInstance = {
   io: null,
 
@@ -265,7 +274,9 @@ const socketInstance = {
       // todo use connectedUsers array to show if user is online
       // todo private messages and friends
 
-      const sender = await User.findById(socket.request.user.id).lean();
+      const sender = await User.findById(socket.request.user.id)
+        .select("username")
+        .lean();
 
       const initData = await constructChatData({ socket, sender });
 
@@ -279,21 +290,39 @@ const socketInstance = {
 
       // subsequent message handler
       socket.on("appendCluster", (clusterData, callback) =>
-        appendCluster({ socket, clusterData, callback })
+        appendCluster({ socket, sender, clusterData, callback })
       );
+
+      // user online status change
+      socket.on("statusChange", (statusData) => {
+        const { change } = statusData;
+      });
 
       // todo connection status
       socket.on("disconnect", function () {
-        console.log(socket.rooms); // * already empty by this point
+        // console.log(socket.rooms); // * already empty by this point
         // ? use room events? socket on join-room leave-room
 
         socketUsers.disconnect(socket);
         console.log("currently connected: ", socketUsers.connectedUsers);
       });
     });
+
+    // room events below are used to sync up member's status with clients on front end
+    // ? by joins and leave rooms or on connect and dc
+    // this.io.of("/").adapter.on("join-room", (room, id) => {
+    //   if (room.includes("g:"))
+    //     console.log(`socket ${id} has joined room ${room}`);
+    // });
+
+    // this.io.of("/").adapter.on("leave-room", (room, id) => {
+    //   console.log(`socket ${id} has left room ${room}`);
+    // });
   },
 };
 
+// this object sends events that syncs up the client's chat and group data whenever changes are made to -
+// any group or channel the user is a part of
 const socketSync = {
   async channelEmit(args) {
     const io = socketInstance.io;
