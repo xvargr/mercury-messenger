@@ -4,9 +4,10 @@ export const DataContext = createContext(); // use this to access the values her
 
 // use this to wrap around components that needs to access the values here
 export function DataStateProvider(props) {
-  const [groupMounted, setGroupMounted] = useState(false);
   const [groupData, setGroupData] = useState(null);
   const [chatData, setChatData] = useState(null);
+  const [peerData, setPeerData] = useState(null);
+  const [groupMounted, setGroupMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // this ref is used to prevent stale closure in the helper functions below
@@ -15,23 +16,40 @@ export function DataStateProvider(props) {
     groupDataRef.current = groupData;
   }, [groupData]);
 
-  // initialize chat data structure
+  // initialize chat data and peer data structure
   if (groupData && chatData === null) {
-    const workingChatData = {};
-
+    const initChatData = {};
     groupData.forEach((group) => {
       const chatObject = {};
       group.channels.text.forEach((channel) => {
         chatObject[channel._id] = []; // set empty array for each channel
       });
-      workingChatData[group._id] = chatObject;
+      initChatData[group._id] = chatObject;
     });
-    setChatData(workingChatData);
+    setChatData(initChatData);
+
+    // !!! /// !!! /// !!! ///
+    const initPeerData = {};
+    groupData.forEach((group) => {
+      // console.log(group);
+      initPeerData[group.id] = {}; // ! will have duplicates, aggregate to one obj with no repeated users?
+      group.members.forEach((member) => {
+        initPeerData[group.id][member._id] = {
+          // id: member._id,
+          status: "offline", // enum[online, away, busy, offline] type string
+        };
+      });
+    });
+    setPeerData(initPeerData);
+    // !!! /// !!! /// !!! ///
   }
+  // console.log(peerData);
 
   function getGroupIndex(idString) {
     const dataArray = groupDataRef.current ?? groupData;
+
     let result = dataArray.findIndex((group) => group.id === idString);
+
     if (result === -1) {
       result = dataArray.findIndex((group) =>
         group.channels.text.some((channel) => channel._id === idString)

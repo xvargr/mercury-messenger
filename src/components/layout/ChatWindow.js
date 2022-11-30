@@ -26,34 +26,37 @@ function ChatWindow() {
   const endStopRef = useRef();
   const navigate = useNavigate();
 
+  // refreshes chat stack on new message or location change
   const thisChatStack = useMemo(() => {
     return chatData && selectedGroup && selectedChannel
       ? chatData[selectedGroup._id][selectedChannel._id]
       : null;
   }, [chatData, selectedGroup, selectedChannel]);
 
+  // used to preserve selected channel on refresh
   const channelFound = useMemo(() => {
-    const groupIndex = groupData
-      ? dataHelpers.getGroupIndex(selectedGroup?._id)
-      : null;
-    if (groupData && groupIndex >= 0)
+    const groupIndex =
+      groupData && selectedGroup
+        ? dataHelpers.getGroupIndex(selectedGroup._id)
+        : null;
+
+    if (groupData && groupIndex !== null && groupIndex >= 0) {
       return groupData[groupIndex].channels.text.find(
         (grp) => grp.name === channel
       );
+    } else return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel, groupData]);
+  }, [channel, groupData, selectedGroup]);
 
   // redirect and refresh position preservation
   useEffect(() => {
-    if (groupMounted) {
-      if (!channelFound) navigate("/404");
-      else {
-        setSelectedChannel(channelFound);
-      }
-      if (!selectedGroup) navigate("/");
+    if (groupMounted && selectedGroup) {
+      if (channelFound === undefined) navigate("/404");
+      else if (channelFound) setSelectedChannel(channelFound);
+      else if (!selectedGroup) navigate("/");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupMounted]);
+  }, [groupMounted, channelFound]);
 
   // scroll to bottom on every new message
   useEffect(() => {
@@ -186,7 +189,12 @@ function ChatWindow() {
 
   // todo back to current button
 
+  // console.log("CHATWIN selectedGroup", selectedGroup);
+  // console.log("CHATWIN chatStack", thisChatStack);
+  // console.log("CHATWIN mounted", groupMounted);
+
   if (!groupMounted || !thisChatStack) {
+    // if (!groupMounted || !thisChatStack || !selectedGroup) {
     return (
       <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">
         <ChannelBanner name={channel} />

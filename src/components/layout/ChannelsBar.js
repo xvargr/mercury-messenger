@@ -29,15 +29,20 @@ function ChannelsBar() {
     [group, groupData]
   );
 
+  console.count("channels bar rerendered");
+
   // redirect and refresh position preservation
   useEffect(() => {
     if (groupMounted) {
+      // console.log("groupFound", groupFound);
       if (!groupFound) navigate("/404");
       else if (groupFound) setSelectedGroup(groupFound);
       else if (!selectedGroup) navigate("/");
+      // console.log("selectedGroup", selectedGroup);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupMounted, groupFound]);
+  // console.log("selectedGroup Out", selectedGroup);
 
   let isAdmin;
   if (groupMounted && selectedGroup) {
