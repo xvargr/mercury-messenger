@@ -99,7 +99,7 @@ function NewChannelForm(props) {
         </div>
 
         <div className="flex flex-col">
-          <label className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-400">
+          <label className="mb-2 text-lg font-medium text-gray-400">
             Channel name
             <input
               type="text"
@@ -113,7 +113,7 @@ function NewChannelForm(props) {
           </label>
 
           <div className="mt-2">
-            <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-400">
+            <h3 className="mb-2 text-lg font-medium text-gray-400">
               Channel type
             </h3>
             <ul className="grid gap-6 w-full md:grid-cols-2">
@@ -128,7 +128,7 @@ function NewChannelForm(props) {
                 />
                 <label
                   htmlFor="type"
-                  className="inline-flex justify-between items-center p-5 w-full text-gray-500 bg-white rounded-lg border border-gray-200 cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
+                  className="inline-flex justify-between items-center p-5 w-full text-gray-400 bg-gray-800 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:bg-gray-700"
                 >
                   <div className="block">
                     <div className="w-full text-lg font-semibold">Text </div>
@@ -149,7 +149,7 @@ function NewChannelForm(props) {
                 ></input>
                 <label
                   htmlFor="task"
-                  className="inline-flex justify-between items-center p-5 w-full text-gray-500 bg-white rounded-lg border border-gray-200 cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
+                  className="inline-flex justify-between items-center p-5 w-full text-gray-400 bg-gray-800 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:bg-gray-700"
                 >
                   <div className="block">
                     <div className="w-full text-lg font-semibold">Tasks </div>

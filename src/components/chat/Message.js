@@ -31,8 +31,9 @@ function FailedActions(props) {
 
   // todo deletion
   function executeRemove() {
-    console.log("delete ex");
-    actions.remove();
+    console.warn("remove not done");
+    console.log(clusterData);
+    // actions.removeLocally();
   }
 
   useEffect(() => {
@@ -46,10 +47,10 @@ function FailedActions(props) {
 
   return (
     <div
-      className={`bg-gray-500 shadow-md w-1/6 max-w-[9rem] h-6 max-h-6 m-0.5 rounded-md flex justify-around shrink-0 self-baseline relative cursor-pointer ${props.className}`}
+      className={`bg-gray-500 shadow-md w-1/4 max-w-[9rem] h-6 max-h-6 m-0.5 rounded-md flex justify-around shrink-0 self-baseline relative cursor-pointer ${props.className}`}
     >
       <div
-        className={`w-full h-full bg-mexican-red-400 text-center rounded-md font-semibold absolute z-10 pointer-events-none ${opacity}`}
+        className={`w-full h-[1.75rem] bg-mexican-red-400 text-center rounded-md font-semibold absolute z-10 pointer-events-none ${opacity} text-ellipsis`}
       >
         failed to send
       </div>
@@ -71,15 +72,17 @@ function FailedActions(props) {
 }
 
 function Message(props) {
-  const { children, failed, pending, retryObject } = props;
+  const { data, failed, pending, retryObject } = props;
 
   return (
     <div
-      className={`h-auto min-h-[1.75rem] ${
+      className={`min-h-[1.75rem] w-full ${
         pending || failed ? "opacity-50" : null
       } flex justify-between items-center`}
     >
-      {children}
+      <span className="w-full pr-2 font-semibold text-md text-gray-900 break-words">
+        {data}
+      </span>
       {retryObject ? (
         <FailedActions
           retryObject={retryObject}

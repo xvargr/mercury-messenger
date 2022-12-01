@@ -140,7 +140,7 @@ function ChatWindow() {
           actions: {
             sendMessage,
             appendMessage,
-            remove: null,
+            removeLocally: null,
           },
           failedIndex: content.reduce((result, message, index) => {
             if (message.failed) result.push(index);
@@ -156,12 +156,11 @@ function ChatWindow() {
           messageStack.push(
             <Message
               key={message.timestamp}
+              data={message.text}
               pending={message._id ? false : true}
               failed={message.failed} // indicates fails on messages
               retryObject={isGenesis ? retryObject : null} // enables retry actions on genesis message if any child failed
-            >
-              {message.text}
-            </Message>
+            />
           );
         }
         if (isGenesis) isGenesis = false;
@@ -189,14 +188,9 @@ function ChatWindow() {
 
   // todo back to current button
 
-  // console.log("CHATWIN selectedGroup", selectedGroup);
-  // console.log("CHATWIN chatStack", thisChatStack);
-  // console.log("CHATWIN mounted", groupMounted);
-
   if (!groupMounted || !thisChatStack) {
-    // if (!groupMounted || !thisChatStack || !selectedGroup) {
     return (
-      <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">
+      <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
         <ChannelBanner name={channel} />
 
         <div className="w-full flex-grow overflow-y-hidden">
@@ -208,10 +202,10 @@ function ChatWindow() {
     );
   } else {
     return (
-      <section className="bg-gray-600 h-screen w-3/4 lg:w-4/5 flex flex-col relative">
+      <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
+        {/* // firefox does not respect flex shrink without width min 0 */}
         <ChannelBanner name={selectedChannel.name} />
-
-        <div className="w-full flex-grow overflow-y-scroll scrollbar-dark scroll-smooth">
+        <div className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth">
           {renderClusters(thisChatStack)}
           <div className="w-full h-28" ref={endStopRef}></div>
           <ChatInputBox return={sendOut} />

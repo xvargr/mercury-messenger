@@ -23,44 +23,42 @@ import { SocketStateProvider } from "./components/context/SocketContext";
 
 function App() {
   return (
-    <main className="flex justify-center h-screen w-screen">
-      <DataStateProvider>
-        <FlashStateProvider>
-          <UiStateProvider>
-            <SocketStateProvider>
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/" element={<MainWindow />}>
-                  <Route index element={<HomeWindow />} />
-                  <Route path="u" element={<UserPage />} />
-                  <Route path="g">
-                    <Route path="new" element={<NewGroupPage />} />
-                    <Route
-                      path=":group"
-                      element={
-                        <>
-                          <ChannelsBar />
-                          <Outlet />
-                        </>
-                      }
-                    >
-                      <Route index element={<ChannelIndex />} />
-                      <Route path="settings" element={<GroupSettingsPage />} />
-                      <Route path="c">
-                        <Route path="new" element={<NewChannelPage />} />
-                        <Route path=":channel" element={<ChatWindow />} />
-                      </Route>
+    <DataStateProvider>
+      <FlashStateProvider>
+        <UiStateProvider>
+          <SocketStateProvider>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/" element={<MainWindow />}>
+                <Route index element={<HomeWindow />} />
+                <Route path="u" element={<UserPage />} />
+                <Route path="g">
+                  <Route path="new" element={<NewGroupPage />} />
+                  <Route
+                    path=":group"
+                    element={
+                      <>
+                        <ChannelsBar />
+                        <Outlet />
+                      </>
+                    }
+                  >
+                    <Route index element={<ChannelIndex />} />
+                    <Route path="settings" element={<GroupSettingsPage />} />
+                    <Route path="c">
+                      <Route path="new" element={<NewChannelPage />} />
+                      <Route path=":channel" element={<ChatWindow />} />
                     </Route>
                   </Route>
-                  <Route path="404" element={<PageNotFound />} />
-                  <Route path="*" element={<PageNotFound />} />
                 </Route>
-              </Routes>
-            </SocketStateProvider>
-          </UiStateProvider>
-        </FlashStateProvider>
-      </DataStateProvider>
-    </main>
+                <Route path="404" element={<PageNotFound />} />
+                <Route path="*" element={<PageNotFound />} />
+              </Route>
+            </Routes>
+          </SocketStateProvider>
+        </UiStateProvider>
+      </FlashStateProvider>
+    </DataStateProvider>
   );
 }
 

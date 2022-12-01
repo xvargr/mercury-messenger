@@ -109,7 +109,7 @@ export function ReconnectingModal(params) {
         </span>
       </div>
       <div
-        className={`w-screen h-screen bg-black absolute ${opacity} transition-opacity duration-75 ease-in-out z-40`}
+        className={`w-full h-full bg-black absolute ${opacity} transition-opacity duration-75 ease-in-out z-40`}
       ></div>
     </>
   );

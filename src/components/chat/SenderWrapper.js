@@ -18,16 +18,16 @@ function Sender(props) {
 
   return (
     <div className="pr-3 hover:bg-gray-700 flex">
-      <span className={`w-1 mr-3 ${emphasis}`}></span>
+      <span className={`w-1 mr-2 ${emphasis} shrink-0`}></span>
       <div className="flex mt-2 mb-2 w-full">
         <img
           src={sender.userImage.thumbnailMedium}
           alt="profile"
-          className={`w-12 h-12 mr-3 rounded-full self-start shrink-0 ${
+          className={`w-12 h-12 mr-2 rounded-full self-start shrink-0 ${
             pending ? "opacity-50" : null
           }`}
         />
-        <span className="flex flex-col w-full">
+        <span className="w-full flex flex-col overflow-hidden">
           <div className="flex justify-between items-center">
             <span
               className={`font-kanit ${pending ? "opacity-50" : null}`}
@@ -40,7 +40,7 @@ function Sender(props) {
             </span>
             <span className="text-sm opacity-60">{timeText}</span>
           </div>
-          <div className="text-gray-900 font-semibold">{children}</div>
+          {children}
         </span>
       </div>
     </div>
