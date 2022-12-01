@@ -46,7 +46,7 @@ function NewGroupForm(props) {
         onSubmit={submitHandler}
       >
         <label
-          className="text-lg font-medium text-gray-900 dark:text-gray-400 sr-only"
+          className="text-lg font-medium text-gray-400 sr-only"
           htmlFor="link"
         >
           Join by invite code

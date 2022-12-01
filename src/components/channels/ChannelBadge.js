@@ -39,10 +39,10 @@ function ChannelBadge(props) {
   let Charm;
   switch (props.type) {
     case "text":
-      Charm = <HashtagIcon className="w-5 h-5 text-gray-800" />;
+      Charm = <HashtagIcon className="w-5 h-5 text-gray-800 shrink-0" />;
       break;
     case "task":
-      Charm = <FolderIcon className="w-5 h-5 text-gray-800" />;
+      Charm = <FolderIcon className="w-5 h-5 text-gray-800 shrink-0" />;
       break;
 
     default:
@@ -177,7 +177,7 @@ function ChannelBadge(props) {
         to={`c/${props.data.name}`}
         className={`h-8 w-5/6 m-0.5 pl-1 py-1 pr-0 ${emphasis} rounded-lg flex justify-between items-center transition-colors ease-in duration-75 group`}
       >
-        <div className="flex items-center">
+        <div className="max-w-[85%] flex items-center">
           {Charm}
           <div className="truncate">{props.data.name}</div>
         </div>

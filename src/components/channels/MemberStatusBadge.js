@@ -25,7 +25,7 @@ export default function MemberStatusBadge(props) {
 
   return (
     <div className="flex w-11/12 p-1 m-0.5 rounded-lg items-center">
-      <div className="flex relative">
+      <div className="flex relative shrink-0">
         <img
           className="w-10 h-10 md:w-12 md:h-12 xl:w-14 xl:h-14 mr-1.5 object-cover rounded-full"
           src={member.userImage.thumbnailSmall}

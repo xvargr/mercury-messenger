@@ -78,9 +78,10 @@ const socketUsers = {
 };
 
 // socket event functions
-async function constructChatData(args) {
+async function constructInitData(args) {
   // find sender and their groups in database
   const { socket, sender, single } = args;
+  const NUM_TO_LOAD = 20;
 
   let userGroups;
   if (single) {
@@ -95,9 +96,9 @@ async function constructChatData(args) {
     });
   }
 
-  const chatData = {};
-
+  // join rooms of each channel and group associated with
   // forEach is not async friendly, use for of
+  const chatData = {};
   for (const group of userGroups) {
     if (!single) socket.join(`g:${group.id}`);
     chatData[group.id] = {};
@@ -113,13 +114,14 @@ async function constructChatData(args) {
           path: "sender",
           select: ["userImage", "username", "userColor"],
         })
-        .limit(20);
+        .limit(NUM_TO_LOAD);
 
       for (const cluster of await clusters) {
         chatData[group.id][channel.id].unshift(cluster);
       }
     }
   }
+
   return chatData;
 }
 
@@ -158,9 +160,7 @@ async function newCluster(args) {
 }
 
 async function appendCluster(args) {
-  const { socket, sender, clusterData, callback } = args;
-
-  console.log(sender);
+  const { socket, clusterData, callback } = args;
 
   function appendAndEmit() {
     parentCluster.append(clusterData);
@@ -251,7 +251,7 @@ const socketInstance = {
   },
 
   initialize() {
-    // refuse connection if not authenticated or user already has a connection with this ip
+    // middleware - refuse connection if not authenticated or user already has connection with connecting ip
     this.io.use(async function (socket, next) {
       if (
         socket.request.isAuthenticated() &&
@@ -278,7 +278,7 @@ const socketInstance = {
         .select("username")
         .lean();
 
-      const initData = await constructChatData({ socket, sender });
+      const initData = await constructInitData({ socket, sender });
 
       // sends chat data of all groups that user is a part of
       socket.emit("initialize", initData);
@@ -427,7 +427,7 @@ const socketSync = {
 
     if (change.type === "join") {
       // return chatData of the joined group to new member for axios response
-      return constructChatData({
+      return constructInitData({
         socket: senderSocket,
         sender: initiator,
         single: target.id,

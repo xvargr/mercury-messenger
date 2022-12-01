@@ -24,7 +24,7 @@ function GroupsBar() {
 
   if (!groupMounted) {
     return (
-      <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden shrink-0">
+      <nav className="bg-gray-800 flex flex-col overflow-hidden shrink-0">
         <Logo className="bg-gray-800" />
 
         <UserBadge />
@@ -42,7 +42,7 @@ function GroupsBar() {
     );
   } else {
     return (
-      <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden shrink-0">
+      <nav className="bg-gray-800 w-20 flex flex-col overflow-hidden flex-shrink-0">
         <Logo />
 
         <UserBadge />

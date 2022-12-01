@@ -76,7 +76,7 @@ function NewGroupForm(props) {
         New Group
       </div>
       <form className="flex flex-col" onSubmit={submitHandler}>
-        <label className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-400">
+        <label className="mb-2 text-lg font-medium text-gray-400">
           Group Name
           <input
             type="text"
@@ -88,7 +88,7 @@ function NewGroupForm(props) {
             onChange={onChangeHandler}
           />
         </label>
-        <label className="mb-2 mt-1 text-lg font-medium text-gray-900 dark:text-gray-400">
+        <label className="mb-2 mt-1 text-lg font-medium text-gray-400">
           Image
           <input
             type="file"

@@ -28,20 +28,30 @@ export function DataStateProvider(props) {
     });
     setChatData(initChatData);
 
-    // !!! /// !!! /// !!! ///
+    console.time("create peer tree");
+    // ? dont init? if usr undefined, then assumes offline
+    // const initPeerData = new Set();
     const initPeerData = {};
     groupData.forEach((group) => {
       // console.log(group);
-      initPeerData[group.id] = {}; // ! will have duplicates, aggregate to one obj with no repeated users?
+      // initPeerData[group.id] = {};
       group.members.forEach((member) => {
-        initPeerData[group.id][member._id] = {
+        // initPeerData.add({
+        //   id: member._id,
+        //   status: "offline",
+        // });
+
+        // if (!initPeerData[member._id]){} // checking is slower
+
+        // ? is checking if undefined faster than just overwriting?
+        initPeerData[member._id] = {
           // id: member._id,
           status: "offline", // enum[online, away, busy, offline] type string
         };
       });
     });
     setPeerData(initPeerData);
-    // !!! /// !!! /// !!! ///
+    console.timeEnd("create peer tree");
   }
   // console.log(peerData);
 

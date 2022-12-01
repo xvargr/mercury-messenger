@@ -78,7 +78,7 @@ function MainWindow() {
   }
 
   return (
-    <>
+    <main className="w-screen h-screen font-nunito overflow-hidden flex justify-center bgHeroTopo">
       <ReconnectingModal isReconnecting={!socketIsConnected || !groupMounted} />
       <FlashMessageWrapper>
         {messageStack?.map((message) => {
@@ -96,7 +96,7 @@ function MainWindow() {
       </FlashMessageWrapper>
       <GroupsBar />
       <Outlet />
-    </>
+    </main>
   );
 }
 
