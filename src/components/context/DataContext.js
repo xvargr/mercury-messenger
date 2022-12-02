@@ -16,7 +16,7 @@ export function DataStateProvider(props) {
     groupDataRef.current = groupData;
   }, [groupData]);
 
-  // initialize chat data and peer data structure
+  // initialize chat data and peer data structure @ first load
   if (groupData && chatData === null) {
     const initChatData = {};
     groupData.forEach((group) => {
@@ -53,7 +53,6 @@ export function DataStateProvider(props) {
     setPeerData(initPeerData);
     console.timeEnd("create peer tree");
   }
-  // console.log(peerData);
 
   function getGroupIndex(idString) {
     const dataArray = groupDataRef.current ?? groupData;
@@ -130,6 +129,12 @@ export function DataStateProvider(props) {
     });
   }
 
+  function getStatus(idString) {
+    return peerData[idString]?.status || "offline";
+  }
+
+  function changeStatus(idString) {}
+
   const dataState = {
     groupData,
     setGroupData,
@@ -139,6 +144,8 @@ export function DataStateProvider(props) {
     setGroupMounted,
     isLoggedIn,
     setIsLoggedIn,
+    peerData,
+    setPeerData,
     dataHelpers: {
       getGroupIndex,
       getChannelIndex,
@@ -147,6 +154,10 @@ export function DataStateProvider(props) {
       removeGroup,
       removeChat,
       patchGroup,
+    },
+    peerHelpers: {
+      getStatus,
+      changeStatus,
     },
   };
 

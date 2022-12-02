@@ -21,6 +21,7 @@ export function SocketStateProvider(props) {
     setGroupData,
     setGroupMounted,
     setChatData,
+    setPeerData,
     dataHelpers,
     isLoggedIn,
   } = useContext(DataContext);
@@ -61,7 +62,11 @@ export function SocketStateProvider(props) {
   useEffect(() => {
     if (isLoggedIn && socketIsConnected === false) {
       connectSocket();
-    } // eslint-disable-next-line react-hooks/exhaustive-deps
+    }
+    return () => {
+      socket?.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn]);
 
   function socketClear() {
@@ -119,7 +124,10 @@ export function SocketStateProvider(props) {
       setSocketIsConnected(false);
     });
 
-    socket.on("initialize", (res) => setChatData(res));
+    socket.on("initialize", (res) => {
+      setChatData(res.chatData);
+      setPeerData(res.peerData);
+    });
 
     socket.on("newMessage", function (res) {
       if (
