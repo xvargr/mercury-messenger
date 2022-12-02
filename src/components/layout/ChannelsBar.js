@@ -14,7 +14,7 @@ import { SkeletonChannel } from "../ui/SkeletonLoaders";
 
 function ChannelsBar() {
   const { group } = useParams();
-  const { groupData, groupMounted } = useContext(DataContext);
+  const { groupData, groupMounted, peerHelpers } = useContext(DataContext);
   const {
     selectedChannel,
     selectedGroup,
@@ -114,12 +114,10 @@ function ChannelsBar() {
 
           <div className="w-full h-1/2 py-1 flex flex-col items-center overflow-y-auto overflow-x-hidden scrollbar-dark">
             {groupData[groupIndex].members.map((member) => {
-              const status = "away"; // ! evaluate this, pending backend
-
               return (
                 <MemberStatusBadge
                   member={member}
-                  status={status}
+                  status={peerHelpers.getStatus(member._id)}
                   key={member._id}
                 />
               );

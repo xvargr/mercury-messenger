@@ -12,6 +12,7 @@ const DOMAIN = process.env.APP_DOMAIN;
 // this is a helper object that provide methods to help with ensuring a single connection per user
 const socketUsers = {
   connectedUsers: [],
+
   connect(socket) {
     const userIndex = this.connectedUsers.findIndex(
       (user) => user.userId === socket.request.user.id
@@ -27,11 +28,13 @@ const socketUsers = {
       });
     } else {
       this.connectedUsers[userIndex].instances.push({
+        // ? why not just store sockets in here?
         id: socket.id,
         address: socket.request.connection.remoteAddress,
       });
     }
   },
+
   disconnect(socket) {
     const index = this.connectedUsers.findIndex((user) =>
       user.instances.some((instance) => instance.id === socket.id)
@@ -47,6 +50,7 @@ const socketUsers = {
       this.connectedUsers[index].instances.splice(instanceIndex, 1);
     }
   },
+
   isConnected(socket) {
     return this.connectedUsers.some(
       (user) =>
@@ -57,6 +61,7 @@ const socketUsers = {
         )
     );
   },
+
   getInstances(idArray) {
     const result = [];
 
@@ -71,9 +76,25 @@ const socketUsers = {
 
     return result;
   },
-  changeStatus() {},
-  getStatus(userId) {
-    return true / false;
+
+  getStatus(idString) {
+    const user = this.connectedUsers.find((user) => {
+      return user.userId === idString.toString();
+    });
+    if (user) return user.status;
+    else return "offline";
+  },
+
+  // ! here, emit on change?
+  changeStatus(idString, status) {
+    if (typeof idString !== "string") idString = idString.toString();
+    const index = this.connectedUsers.findIndex(
+      (user) => user.userId === idString
+    );
+
+    if (index !== -1) {
+      this.connectedUsers[index].status = status;
+    } else return null;
   },
 };
 
@@ -99,6 +120,7 @@ async function constructInitData(args) {
   // join rooms of each channel and group associated with
   // forEach is not async friendly, use for of
   const chatData = {};
+  const peerData = {};
   for (const group of userGroups) {
     if (!single) socket.join(`g:${group.id}`);
     chatData[group.id] = {};
@@ -120,9 +142,12 @@ async function constructInitData(args) {
         chatData[group.id][channel.id].unshift(cluster);
       }
     }
+    for (const member of group.members) {
+      peerData[member._id] = { status: socketUsers.getStatus(member._id) };
+    }
   }
 
-  return chatData;
+  return { chatData, peerData };
 }
 
 async function newCluster(args) {
@@ -284,9 +309,11 @@ const socketInstance = {
       socket.emit("initialize", initData);
 
       // new message handler
-      socket.on("newCluster", (clusterData, callback) =>
-        newCluster({ socket, sender, clusterData, callback })
-      );
+      socket.on("newCluster", (clusterData, callback) => {
+        newCluster({ socket, sender, clusterData, callback });
+        socketUsers.changeStatus(sender._id, "away");
+        console.log(socketUsers.connectedUsers);
+      });
 
       // subsequent message handler
       socket.on("appendCluster", (clusterData, callback) =>

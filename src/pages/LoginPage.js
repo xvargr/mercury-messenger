@@ -124,7 +124,7 @@ function LoginPage() {
           navigate("/");
         })
         .catch((err) => {
-          console.log(err)
+          console.log(err);
           setFeedback(err.response.data.messages[0].message);
           setButtonStatus("ok");
         });
@@ -143,7 +143,7 @@ function LoginPage() {
   }
 
   return (
-    <div className="bgHeroDiagDark text-gray-400 w-full h-full flex flex-col items-center justify-evenly md:flex-row">
+    <div className="bgHeroDiagDark text-gray-400 w-screen h-screen flex flex-col items-center justify-evenly md:flex-row">
       <div className="text-3xl text-gray-red-600 font-montserrat font-semibold">
         MERCURY<span className="text-mexican-red-500 text-4xl">.</span>
       </div>

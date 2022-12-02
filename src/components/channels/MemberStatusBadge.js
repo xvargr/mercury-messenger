@@ -16,7 +16,7 @@ export default function MemberStatusBadge(props) {
       break;
 
     case "offline":
-      statusIndicator = "";
+      statusIndicator = "border-2 bg-gray-600";
       break;
 
     default:
@@ -28,7 +28,7 @@ export default function MemberStatusBadge(props) {
       <div className="flex relative shrink-0">
         <img
           className="w-10 h-10 md:w-12 md:h-12 xl:w-14 xl:h-14 mr-1.5 object-cover rounded-full"
-          src={member.userImage.thumbnailSmall}
+          src={member.userImage.thumbnailSmall || member.userImage.url}
           alt="profile thumbnail"
         />
         <span
