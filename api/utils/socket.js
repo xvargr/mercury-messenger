@@ -320,6 +320,13 @@ const socketInstance = {
         appendCluster({ socket, sender, clusterData, callback })
       );
 
+      socket.on("fetchMore", (fetchParams) => {
+        console.log("fetch signal received");
+        console.log(fetchParams);
+        console.log(socket.request.user);
+        // console.log(socket.handshake);
+      });
+
       // user online status change
       socket.on("statusChange", (statusData) => {
         const { change } = statusData;

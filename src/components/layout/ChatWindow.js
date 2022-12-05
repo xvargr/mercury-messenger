@@ -1,11 +1,14 @@
 import { useEffect, useState, useMemo, useRef, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useInView } from "react-intersection-observer";
 
 // components
 import ChatInputBox from "../chat/ChatInputBox";
 import ChannelBanner from "../chat/ChatBanner";
 import Sender from "../chat/SenderWrapper";
 import Message from "../chat/Message";
+import GoToBottomButton from "../chat/GoToBottomButton";
+import Dots from "../ui/Dots";
 
 // context
 import { DataContext } from "../context/DataContext";
@@ -17,13 +20,27 @@ import useSocket from "../../utils/socket";
 
 function ChatWindow() {
   const { channel } = useParams();
+
+  // context
   const { groupMounted, groupData, chatData, dataHelpers } =
     useContext(DataContext);
   const { selectedGroup, selectedChannel, setSelectedChannel } =
     useContext(UiContext);
-  const { sendMessage, appendMessage } = useSocket();
+
+  // states
   const [lastUpdate, setLastUpdate] = useState(Date.now());
-  const endStopRef = useRef();
+
+  // refs
+  const topOfPageRef = useRef(null);
+  const bottomOfPageRef = useRef(null);
+  const topAlreadyIntersected = useRef(false);
+
+  // intersection-observer
+  const [topVisibleRef, topOfPageIsVisible, topOfPageEntry] = useInView();
+  const [bottomVisibleRef, bottomOfPageIsVisible] = useInView();
+
+  // misc
+  const { sendMessage, appendMessage, fetchMore } = useSocket();
   const navigate = useNavigate();
 
   // refreshes chat stack on new message or location change
@@ -58,14 +75,20 @@ function ChatWindow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupMounted, channelFound]);
 
-  // scroll to bottom on every new message
+  // scroll to bottom on every new message if already at the bottom,
+  // and on click of toBottom button
+  function goToBottom() {
+    bottomOfPageRef.current.scrollIntoView({
+      // behavior: "smooth",
+      // block: "end",
+    });
+  }
   useEffect(() => {
-    if (endStopRef.current) {
-      endStopRef.current.scrollIntoView();
-    }
+    if (bottomOfPageRef.current && bottomOfPageIsVisible) goToBottom();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatData]);
 
-  // rerender every 30 sec, for updating timestamps
+  // rerender every 30 sec to update timestamps
   useEffect(() => {
     const rerenderInterval = setInterval(
       () => setLastUpdate(Date.now()),
@@ -73,6 +96,29 @@ function ChatWindow() {
     );
     return () => clearInterval(rerenderInterval);
   }, [lastUpdate]);
+
+  useEffect(() => {
+    // console.log(topOfPageEntry?.intersectionRatio);
+    // console.log(topAlreadyIntersected.current);
+    if (
+      topAlreadyIntersected.current &&
+      topOfPageEntry?.intersectionRatio > 0
+    ) {
+      console.count("fetching!");
+      fetchMore({ grp: "hi" });
+      // console.count("entering");
+    }
+    if (topOfPageEntry?.intersectionRatio === 0) {
+      if (thisChatStack) topAlreadyIntersected.current = true;
+      // console.count("leaving");
+    }
+
+    // return () => {
+    //   cleanup
+    // }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topOfPageIsVisible]);
 
   function sendOut(sendObj) {
     if (groupMounted) {
@@ -89,6 +135,7 @@ function ChatWindow() {
           target: { group: selectedGroup._id, channel: selectedChannel._id },
         });
       }
+      goToBottom();
     }
 
     function getLastInfo() {
@@ -188,6 +235,8 @@ function ChatWindow() {
 
   // todo back to current button
 
+  // todo latch bottom only when fully scrolled to bottom else don't scroll down on new message
+
   if (!groupMounted || !thisChatStack) {
     return (
       <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
@@ -203,11 +252,30 @@ function ChatWindow() {
   } else {
     return (
       <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
-        {/* // firefox does not respect flex shrink without width min 0 */}
+        {/* // firefox does not respect flex shrink without width min 0 ! */}
         <ChannelBanner name={selectedChannel.name} />
         <div className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth">
+          <div
+            className="w-full h-14 flex justify-center items-center"
+            ref={(el) => {
+              topOfPageRef.current = el;
+              topVisibleRef(el);
+            }}
+          >
+            <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-500" />
+          </div>
           {renderClusters(thisChatStack)}
-          <div className="w-full h-28" ref={endStopRef}></div>
+          <GoToBottomButton
+            visible={bottomOfPageIsVisible}
+            passOnClick={goToBottom}
+          />
+          <div
+            className="w-full h-28"
+            ref={(el) => {
+              bottomOfPageRef.current = el;
+              bottomVisibleRef(el);
+            }}
+          ></div>
           <ChatInputBox return={sendOut} />
         </div>
       </section>

@@ -6,7 +6,7 @@ import { SocketContext } from "../components/context/SocketContext";
 export default function useSocket() {
   const { chatData, setChatData } = useContext(DataContext);
   const { socket } = useContext(SocketContext);
-  const timeoutDuration = 7000;
+  const TIMEOUT = 7000;
 
   function sendMessage(args) {
     const { message, target, failed } = args;
@@ -90,7 +90,7 @@ export default function useSocket() {
     // console.log(JSON.stringify(genesisCluster)); // emit fails with arg as failed object as it is a circular reference, fix by spread or reassigning
 
     socket
-      .timeout(timeoutDuration)
+      .timeout(TIMEOUT)
       .emit("newCluster", { ...genesisCluster }, (err, res) => {
         // set failed property on message if timed out or error
         if (err) genesisTimedOut();
@@ -205,17 +205,29 @@ export default function useSocket() {
       });
     }
 
-    socket
-      .timeout(timeoutDuration)
-      .emit("appendCluster", appendObject, (err, res) => {
-        if (err || res.failed)
-          appendTimedOut(); // handle err if append fails on backend with res.failed in addition to timeout
-        else appendAcknowledged(res);
-      });
+    socket.timeout(TIMEOUT).emit("appendCluster", appendObject, (err, res) => {
+      if (err || res.failed)
+        appendTimedOut(); // handle err if append fails on backend with res.failed in addition to timeout
+      else appendAcknowledged(res);
+    });
+  }
+
+  function fetchMore(fetchParams) {
+    // const { grp } = args;
+
+    function fetchTimedOut() {}
+
+    function fetchReceived() {}
+
+    socket.timeout(TIMEOUT).emit("fetchMore", fetchParams, (err, res) => {
+      if (err || res.failed) fetchTimedOut();
+      else fetchReceived(res);
+    });
   }
 
   return {
     sendMessage,
     appendMessage,
+    fetchMore,
   };
 }
