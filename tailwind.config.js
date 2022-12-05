@@ -27,9 +27,12 @@ module.exports = {
         },
       },
       animation: {
-        pulseIndefinitely0: "slowPulse 4s ease-in-out infinite 1s",
-        pulseIndefinitely1: "slowPulse 4s ease-in-out infinite 2s",
-        pulseIndefinitely2: "slowPulse 4s ease-in-out infinite 3s",
+        pulseIndefinitely0: "slowPulse 1800ms linear infinite",
+        pulseIndefinitely1: "slowPulse 1800ms linear infinite 600ms",
+        pulseIndefinitely2: "slowPulse 1800ms linear infinite 900ms",
+        // pulseIndefinitely0: "slowPulse 4s linear infinite 1s",
+        // pulseIndefinitely1: "slowPulse 4s linear infinite 2s",
+        // pulseIndefinitely2: "slowPulse 4s linear infinite 3s",
       },
       keyframes: {
         slowPulse: {
@@ -39,5 +42,6 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  // plugins: [],
+  // safelist: [],
 };

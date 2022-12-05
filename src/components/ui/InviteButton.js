@@ -19,7 +19,6 @@ export default function InviteButton(props) {
     <button
       className="w-5/6 h-8 mx-4 my-1 px-4 py-1 rounded-lg shadow-md bg-gray-700 hover:bg-gray-600 transition-colors ease-in duration group"
       onClick={copyLink}
-      //   onMouseEnter={showLink}
       onMouseLeave={resetDisplay}
     >
       <p className="group-hover:opacity-0 transition-opacity duration-150 delay-75 relative truncate">
