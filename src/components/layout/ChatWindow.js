@@ -29,11 +29,14 @@ function ChatWindow() {
 
   // states
   const [lastUpdate, setLastUpdate] = useState(Date.now());
+  const [topIntersected, setTopIntersected] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState(null);
 
   // refs
   const topOfPageRef = useRef(null);
   const bottomOfPageRef = useRef(null);
-  const topAlreadyIntersected = useRef(false);
+  const chatWindowRef = useRef(null);
+  // const topAlreadyIntersected = useRef(false);
 
   // intersection-observer
   const [topVisibleRef, topOfPageIsVisible, topOfPageEntry] = useInView();
@@ -72,21 +75,18 @@ function ChatWindow() {
       else if (channelFound) setSelectedChannel(channelFound);
       else if (!selectedGroup) navigate("/");
     }
+    return () => setTopIntersected(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupMounted, channelFound]);
 
   // scroll to bottom on every new message if already at the bottom,
-  // and on click of toBottom button
   function goToBottom() {
-    bottomOfPageRef.current.scrollIntoView({
-      // behavior: "smooth",
-      // block: "end",
-    });
+    bottomOfPageRef.current.scrollIntoView();
   }
   useEffect(() => {
     if (bottomOfPageRef.current && bottomOfPageIsVisible) goToBottom();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatData]);
+  }, [thisChatStack]);
 
   // rerender every 30 sec to update timestamps
   useEffect(() => {
@@ -100,17 +100,17 @@ function ChatWindow() {
   useEffect(() => {
     // console.log(topOfPageEntry?.intersectionRatio);
     // console.log(topAlreadyIntersected.current);
-    if (
-      topAlreadyIntersected.current &&
-      topOfPageEntry?.intersectionRatio > 0
-    ) {
+    if (topIntersected && topOfPageEntry?.intersectionRatio > 0) {
       console.count("fetching!");
-      fetchMore({ grp: "hi" });
-      // console.count("entering");
+      // console.log(thisChatStack[thisChatStack.length - 1]);
+      // console.log(thisChatStack[thisChatStack.length - 1]);
+      fetchMore({
+        target: { group: selectedGroup._id, channel: selectedChannel._id },
+        last: thisChatStack[0].clusterTimestamp,
+      });
     }
     if (topOfPageEntry?.intersectionRatio === 0) {
-      if (thisChatStack) topAlreadyIntersected.current = true;
-      // console.count("leaving");
+      if (thisChatStack) setTopIntersected(true);
     }
 
     // return () => {
@@ -216,6 +216,7 @@ function ChatWindow() {
     }
 
     stack.forEach((cluster) => {
+      // console.log(cluster);
       clusterStack.push(
         <Sender
           sender={cluster.sender}
@@ -231,11 +232,26 @@ function ChatWindow() {
     return clusterStack;
   }
 
-  // todo fetch more if scroll up
+  // console.dir(this);
+  // console.dir(chatWindowRef.current?.getBoundingClientRect());
+  // console.dir(chatWindowRef.current);
+  console.log(
+    `${chatWindowRef.current?.scrollTop}/${chatWindowRef.current?.scrollTopMax}`
+  );
 
-  // todo back to current button
+  //   scrollHeight: 2060
+  // ​
+  // scrollLeft: 0
+  // ​
+  // scrollLeftMax: 0
+  // ​
+  // scrollTop: 1254
+  // ​
+  // scrollTopMax: 1254
+  // ​
+  // scrollWidth: 415
 
-  // todo latch bottom only when fully scrolled to bottom else don't scroll down on new message
+  // console.log(window.scrollY);
 
   if (!groupMounted || !thisChatStack) {
     return (
@@ -254,16 +270,23 @@ function ChatWindow() {
       <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
         {/* // firefox does not respect flex shrink without width min 0 ! */}
         <ChannelBanner name={selectedChannel.name} />
-        <div className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth">
-          <div
-            className="w-full h-14 flex justify-center items-center"
-            ref={(el) => {
-              topOfPageRef.current = el;
-              topVisibleRef(el);
-            }}
-          >
-            <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-500" />
-          </div>
+        <div
+          className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth"
+          onScroll={() => console.log("scrolling")} // ! rate limit this?
+          onWheel={() => console.log("wheeling")} // ! rate limit this?
+          ref={chatWindowRef}
+        >
+          {thisChatStack.length > 0 ? (
+            <div
+              className="w-full h-14 flex justify-center items-center"
+              ref={(el) => {
+                topOfPageRef.current = el;
+                topVisibleRef(el);
+              }}
+            >
+              <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-500" />
+            </div>
+          ) : null}
           {renderClusters(thisChatStack)}
           <GoToBottomButton
             visible={bottomOfPageIsVisible}
