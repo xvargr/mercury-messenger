@@ -8,6 +8,7 @@ import User from "../models/User.js";
 import ExpressError from "./ExpressError.js";
 
 const DOMAIN = process.env.APP_DOMAIN;
+const NUM_TO_LOAD = 20;
 
 // this is a helper object that provide methods to help with ensuring a single connection per user
 const socketUsers = {
@@ -102,7 +103,6 @@ const socketUsers = {
 async function constructInitData(args) {
   // find sender and their groups in database
   const { socket, sender, single } = args;
-  const NUM_TO_LOAD = 20;
 
   let userGroups;
   if (single) {
@@ -132,6 +132,7 @@ async function constructInitData(args) {
         .sort({
           clusterTimestamp: "desc",
         })
+        .select(["content", "dateString", "timestamp", "clusterTimestamp"])
         .populate({
           path: "sender",
           select: ["userImage", "username", "userColor"],
@@ -261,6 +262,40 @@ async function appendCluster(args) {
   }
 }
 
+async function fetchMoreMessages(args) {
+  const { socket, sender, fetchParams, callback } = args;
+
+  const partialChat = [];
+
+  const clusters = await Message.find({
+    channel: fetchParams.target.channel,
+    clusterTimestamp: { $lt: fetchParams.last },
+  })
+    .sort({
+      clusterTimestamp: "desc",
+    })
+    .select(["content", "dateString", "timestamp", "clusterTimestamp"])
+    .populate({
+      path: "sender",
+      select: ["userImage", "username", "userColor"],
+    })
+    .limit(NUM_TO_LOAD);
+  // .lean();
+
+  for (const cluster of await clusters) {
+    partialChat.unshift(cluster);
+  }
+
+  console.log(partialChat);
+  console.log(partialChat.length);
+
+  callback({
+    target: fetchParams.target,
+    data: partialChat,
+    clustersDepleted: partialChat.length < NUM_TO_LOAD,
+  });
+}
+
 // socket object for initializing io and handling events
 const socketInstance = {
   io: null,
@@ -311,8 +346,8 @@ const socketInstance = {
       // new message handler
       socket.on("newCluster", (clusterData, callback) => {
         newCluster({ socket, sender, clusterData, callback });
-        socketUsers.changeStatus(sender._id, "away");
-        console.log(socketUsers.connectedUsers);
+        // socketUsers.changeStatus(sender._id, "away");
+        // console.log(socketUsers.connectedUsers);
       });
 
       // subsequent message handler
@@ -320,11 +355,12 @@ const socketInstance = {
         appendCluster({ socket, sender, clusterData, callback })
       );
 
-      socket.on("fetchMore", (fetchParams) => {
+      socket.on("fetchMore", (fetchParams, callback) => {
         console.log("fetch signal received");
-        console.log(fetchParams);
-        console.log(socket.request.user);
+        // console.log(fetchParams);
+        // console.log(socket.request.user);
         // console.log(socket.handshake);
+        fetchMoreMessages({ socket, sender, fetchParams, callback });
       });
 
       // user online status change

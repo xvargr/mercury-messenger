@@ -215,10 +215,41 @@ export default function useSocket() {
   function fetchMore(fetchParams) {
     // const { grp } = args;
 
-    function fetchTimedOut() {}
+    function fetchTimedOut() {
+      console.log("timed out");
+    }
 
-    function fetchReceived() {}
+    function fetchReceived(res) {
+      console.log(res);
+      setChatData((prevStack) => {
+        const dataCopy = { ...prevStack };
+        const stackCopy = [...prevStack[res.target.group][res.target.channel]];
 
+        // const clusterIndex = stackCopy.findIndex(
+        //   (cluster) => cluster.id === res.target.cluster.id
+        // );
+
+        // // find pending message
+        // let messageIndex = stackCopy[clusterIndex].content.findIndex(
+        //   (message) =>
+        //     message.timestamp === (res.err ? res.err : res.data.timestamp)
+        // ); // index always 0 because ternary and operator precedence, use parentheses to eval right side first
+
+        // debugger;
+        console.log([...stackCopy, ...res.data]);
+        // dataCopy[res.target.group][res.target.channel].push([...res.data]);
+        // datacopy = [...stackCopy, ...res.data];
+        // console.log(dataCopy[res.target.group][res.target.channel]);
+        dataCopy[res.target.group][res.target.channel] = [
+          ...res.data,
+          ...stackCopy,
+        ];
+        console.log(dataCopy[res.target.group][res.target.channel]);
+        return dataCopy;
+      });
+    }
+
+    console.log(fetchParams);
     socket.timeout(TIMEOUT).emit("fetchMore", fetchParams, (err, res) => {
       if (err || res.failed) fetchTimedOut();
       else fetchReceived(res);
