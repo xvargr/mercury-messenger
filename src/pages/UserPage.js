@@ -25,8 +25,13 @@ const userForm = {
 
 function UserPage() {
   const navigate = useNavigate();
-  const { setIsLoggedIn, setGroupData, setChatData, setGroupMounted } =
-    useContext(DataContext);
+  const {
+    setIsLoggedIn,
+    setGroupData,
+    setChatData,
+    setGroupMounted,
+    setChatMounted,
+  } = useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const { socketClear } = useContext(SocketContext);
   const [inpErr, setInpErr] = useState(true);
@@ -53,6 +58,7 @@ function UserPage() {
         setGroupData(null);
         setChatData(null);
         setGroupMounted(false);
+        setChatMounted(false);
         navigate("/login");
       })
       .catch((err) => {

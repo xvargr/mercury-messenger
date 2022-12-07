@@ -22,7 +22,7 @@ function ChatWindow() {
   const { channel } = useParams();
 
   // context
-  const { groupMounted, groupData, chatData, dataHelpers } =
+  const { groupMounted, chatMounted, groupData, chatData, dataHelpers } =
     useContext(DataContext);
   const { selectedGroup, selectedChannel, setSelectedChannel } =
     useContext(UiContext);
@@ -30,12 +30,15 @@ function ChatWindow() {
   // states
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const [topIntersected, setTopIntersected] = useState(false);
+  const [scrollTimestamp, setScrollTimestamp] = useState(null);
   const [scrollPosition, setScrollPosition] = useState(null);
 
   // refs
   const topOfPageRef = useRef(null);
   const bottomOfPageRef = useRef(null);
   const chatWindowRef = useRef(null);
+  const scrollTimerRef = useRef(null);
+
   // const topAlreadyIntersected = useRef(false);
 
   // intersection-observer
@@ -46,14 +49,22 @@ function ChatWindow() {
   const { sendMessage, appendMessage, fetchMore } = useSocket();
   const navigate = useNavigate();
 
-  // refreshes chat stack on new message or location change
+  // stores the chat stack, used to detect changes in this chat specifically
   const thisChatStack = useMemo(() => {
-    return chatData && selectedGroup && selectedChannel
-      ? chatData[selectedGroup._id][selectedChannel._id]
+    return chatMounted && selectedGroup && selectedChannel
+      ? dataHelpers.renderChatStack({
+          target: {
+            groupId: selectedGroup._id,
+            channelId: selectedChannel._id,
+          },
+          actions: { sendMessage, appendMessage },
+          components: { Sender, Message },
+        })
       : null;
-  }, [chatData, selectedGroup, selectedChannel]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatMounted, chatData, selectedGroup, selectedChannel]);
 
-  // used to preserve selected channel on refresh
+  // preserve selected channel on refresh
   const channelFound = useMemo(() => {
     const groupIndex =
       groupData && selectedGroup
@@ -79,7 +90,7 @@ function ChatWindow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupMounted, channelFound]);
 
-  // scroll to bottom on every new message if already at the bottom,
+  // scroll to bottom on every new message if already latched to the bottom,
   function goToBottom() {
     bottomOfPageRef.current.scrollIntoView();
   }
@@ -122,7 +133,10 @@ function ChatWindow() {
 
   function sendOut(sendObj) {
     if (groupMounted) {
-      const { elapsed, lastCluster, lastSender } = getLastInfo();
+      const { elapsed, lastCluster, lastSender } = dataHelpers.getLastInfo(
+        selectedGroup._id,
+        selectedChannel._id
+      );
       if (elapsed > 60000 || lastSender !== localStorage.username) {
         sendMessage({
           message: sendObj,
@@ -137,128 +151,35 @@ function ChatWindow() {
       }
       goToBottom();
     }
+  }
 
-    function getLastInfo() {
-      const elapsed =
-        thisChatStack.length > 0
-          ? Date.now() -
-            thisChatStack[thisChatStack.length - 1].clusterTimestamp
-          : 0;
+  console.count("refreshed");
 
-      const lastSender =
-        thisChatStack.length > 0
-          ? thisChatStack[thisChatStack.length - 1].sender.username
-          : null;
-
-      const lastCluster =
-        thisChatStack.length > 0
-          ? thisChatStack[thisChatStack.length - 1]
-          : null;
-
-      return { elapsed, lastCluster, lastSender };
+  // ! rate limit this?
+  function handleScroll() {
+    // console.log("handlingScroll");
+    // console.log(scrollTimestamp);
+    if (!scrollTimestamp) {
+      console.log("setting scroll tmot");
+      setScrollTimestamp(Date.now());
+    } else if (Date.now() - scrollTimestamp < 500) {
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      // clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => {
+        setScrollPosition(chatWindowRef.current.scrollTop);
+        // scrollTimerRef.current = null
+        setScrollTimestamp(null);
+        console.count("pos set");
+      }, 500);
     }
   }
 
-  // renders every cluster in the current chat
-  function renderClusters(stack) {
-    const clusterStack = [];
-    const isUserAdmin = {};
-    selectedGroup.members.forEach((member) => {
-      const isAdmin = selectedGroup.administrators.some(
-        (admin) => admin._id === member._id
-      );
-      isUserAdmin[member._id] = isAdmin ? true : false;
-    });
-
-    // renders the sender/cluster wrapper
-    function renderMessages(cluster) {
-      // todo support content other than text
-      const content = cluster.content;
-      const messageStack = [];
-      const someFailed = content.some((message) => message?.failed);
-      let isGenesis = true;
-      let retryObject = null;
-
-      // creates object with all necessary information for a retry if any failed
-      if (someFailed) {
-        retryObject = {
-          // genesisFailed: content[0].failed ? true : false,
-          clusterData: cluster,
-          actions: {
-            sendMessage,
-            appendMessage,
-            removeLocally: null,
-          },
-          failedIndex: content.reduce((result, message, index) => {
-            if (message.failed) result.push(index);
-            return result;
-          }, []),
-        };
-      }
-
-      // renders the individual messages in the cluster
-      content.forEach((message) => {
-        // some messages can be null if saved out of order, so check
-        if (message) {
-          messageStack.push(
-            <Message
-              key={message.timestamp}
-              data={message.text}
-              pending={message._id ? false : true}
-              failed={message.failed} // indicates fails on messages
-              retryObject={isGenesis ? retryObject : null} // enables retry actions on genesis message if any child failed
-            />
-          );
-        }
-        if (isGenesis) isGenesis = false;
-      });
-      return messageStack;
-    }
-
-    stack.forEach((cluster) => {
-      // console.log(cluster);
-      clusterStack.push(
-        <Sender
-          sender={cluster.sender}
-          timestamp={cluster.clusterTimestamp}
-          key={cluster.clusterTimestamp}
-          pending={cluster._id ? false : true}
-          isAdmin={isUserAdmin[cluster.sender._id]}
-        >
-          {renderMessages(cluster)}
-        </Sender>
-      );
-    });
-    return clusterStack;
-  }
-
-  // console.dir(this);
-  // console.dir(chatWindowRef.current?.getBoundingClientRect());
-  // console.dir(chatWindowRef.current);
-  console.log(
-    `${chatWindowRef.current?.scrollTop}/${chatWindowRef.current?.scrollTopMax}`
-  );
-
-  //   scrollHeight: 2060
-  // ​
-  // scrollLeft: 0
-  // ​
-  // scrollLeftMax: 0
-  // ​
-  // scrollTop: 1254
-  // ​
-  // scrollTopMax: 1254
-  // ​
-  // scrollWidth: 415
-
-  // console.log(window.scrollY);
-
-  if (!groupMounted || !thisChatStack) {
+  if (!groupMounted || !chatMounted) {
     return (
       <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
         <ChannelBanner name={channel} />
 
-        <div className="w-full flex-grow overflow-y-hidden">
+        <div className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth">
           <ChatSkeletonLoader count={15} />
 
           <ChatInputBox return={null} />
@@ -272,8 +193,8 @@ function ChatWindow() {
         <ChannelBanner name={selectedChannel.name} />
         <div
           className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth"
-          onScroll={() => console.log("scrolling")} // ! rate limit this?
-          onWheel={() => console.log("wheeling")} // ! rate limit this?
+          onScroll={() => handleScroll()}
+          // onWheel={() => console.log("wheeling")}
           ref={chatWindowRef}
         >
           {thisChatStack.length > 0 ? (
@@ -287,7 +208,7 @@ function ChatWindow() {
               <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-500" />
             </div>
           ) : null}
-          {renderClusters(thisChatStack)}
+          {thisChatStack}
           <GoToBottomButton
             visible={bottomOfPageIsVisible}
             passOnClick={goToBottom}

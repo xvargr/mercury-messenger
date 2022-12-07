@@ -20,6 +20,7 @@ export function SocketStateProvider(props) {
   const {
     setGroupData,
     setGroupMounted,
+    setChatMounted,
     setChatData,
     setPeerData,
     dataHelpers,
@@ -127,6 +128,7 @@ export function SocketStateProvider(props) {
     socket.on("initialize", (res) => {
       setChatData(res.chatData);
       setPeerData(res.peerData);
+      setChatMounted(true);
     });
 
     socket.on("newMessage", function (res) {

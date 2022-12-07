@@ -1,5 +1,8 @@
 import { useState, createContext, useEffect, useRef } from "react";
 
+// import Sender from "../chat/SenderWrapper";
+// import Message from "../chat/Message";
+
 export const DataContext = createContext(); // use this to access the values here
 
 // use this to wrap around components that needs to access the values here
@@ -8,6 +11,7 @@ export function DataStateProvider(props) {
   const [chatData, setChatData] = useState(null);
   const [peerData, setPeerData] = useState(null);
   const [groupMounted, setGroupMounted] = useState(false);
+  const [chatMounted, setChatMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // this ref is used to prevent stale closure in the helper functions below
@@ -135,6 +139,107 @@ export function DataStateProvider(props) {
 
   function changeStatus(idString) {}
 
+  function getLastInfo(groupId, channelId) {
+    const chatStack = chatData[groupId][channelId];
+
+    const elapsed =
+      chatStack.length > 0
+        ? Date.now() - chatStack[chatStack.length - 1].clusterTimestamp
+        : 0;
+
+    const lastSender =
+      chatStack.length > 0
+        ? chatStack[chatStack.length - 1].sender.username
+        : null;
+
+    const lastCluster =
+      chatStack.length > 0 ? chatStack[chatStack.length - 1] : null;
+
+    return { elapsed, lastCluster, lastSender };
+  }
+
+  // renders every cluster in the current chat
+  function renderChatStack(params) {
+    const { target, actions, components } = params;
+    const { groupId, channelId } = target;
+    const { sendMessage, appendMessage } = actions;
+    const { Sender, Message } = components;
+
+    const chatStack = chatData[groupId][channelId];
+    const group = groupData[getGroupIndex(groupId)];
+
+    const clusterStack = [];
+    const isUserAdmin = {};
+
+    group.members.forEach((member) => {
+      const isAdmin = group.administrators.some(
+        (admin) => admin._id === member._id
+      );
+      isUserAdmin[member._id] = isAdmin ? true : false;
+    });
+
+    // renders the sender/cluster wrapper
+    function renderMessages(cluster) {
+      // todo support content other than text
+      const content = cluster.content;
+      const messageStack = [];
+      const someFailed = content.some((message) => message?.failed);
+      let isGenesis = true;
+      let retryObject = null;
+
+      // creates object with all necessary information for a retry if any failed
+      if (someFailed) {
+        retryObject = {
+          // genesisFailed: content[0].failed ? true : false,
+          clusterData: cluster,
+          actions: {
+            sendMessage,
+            appendMessage,
+            removeLocally: null,
+          },
+          failedIndex: content.reduce((result, message, index) => {
+            if (message.failed) result.push(index);
+            return result;
+          }, []),
+        };
+      }
+
+      // renders the individual messages in the cluster
+      content.forEach((message) => {
+        // some messages can be null if saved out of order, so check
+        if (message) {
+          messageStack.push(
+            <Message
+              key={message.timestamp}
+              data={message.text}
+              pending={message._id ? false : true}
+              failed={message.failed} // indicates fails on messages
+              retryObject={isGenesis ? retryObject : null} // enables retry actions on genesis message if any child failed
+            />
+          );
+        }
+        if (isGenesis) isGenesis = false;
+      });
+      return messageStack;
+    }
+
+    chatStack.forEach((cluster) => {
+      // console.log(cluster);
+      clusterStack.push(
+        <Sender
+          sender={cluster.sender}
+          timestamp={cluster.clusterTimestamp}
+          key={cluster.clusterTimestamp}
+          pending={cluster._id ? false : true}
+          isAdmin={isUserAdmin[cluster.sender._id]}
+        >
+          {renderMessages(cluster)}
+        </Sender>
+      );
+    });
+    return clusterStack;
+  }
+
   const dataState = {
     groupData,
     setGroupData,
@@ -142,6 +247,8 @@ export function DataStateProvider(props) {
     chatData,
     groupMounted,
     setGroupMounted,
+    chatMounted,
+    setChatMounted,
     isLoggedIn,
     setIsLoggedIn,
     peerData,
@@ -154,6 +261,8 @@ export function DataStateProvider(props) {
       removeGroup,
       removeChat,
       patchGroup,
+      getLastInfo,
+      renderChatStack,
     },
     peerHelpers: {
       getStatus,
