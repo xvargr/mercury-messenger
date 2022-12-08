@@ -63,26 +63,11 @@ function NewChannelForm(props) {
   function submitHandler(e) {
     e.preventDefault();
     if (!inpErr) {
-      setButtonStatus("submitted");
-      setFeedback("Uploading...");
-
-      // console.log(groupData);
-
-      // console.log("selectedGroup", selectedGroup);
-
-      // const groupId = groupData.find(
-      //   (group) => group.name === selectedGroup
-      // )._id;
-
-      // console.log("groupId", groupId);
-
       const newChannel = {
         group: selectedGroup._id,
         name: channelNameInput,
         type: channelTypeInput,
       };
-
-      // console.log("newChannel", newChannel);
 
       props.onNewChannel(newChannel); // run passed func on parent
     }

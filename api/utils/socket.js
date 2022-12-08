@@ -286,9 +286,9 @@ async function fetchMoreMessages(args) {
     partialChat.unshift(cluster);
   }
 
-  console.log(partialChat);
+  // console.log(partialChat);
   console.log(partialChat.length);
-
+  //
   callback({
     target: fetchParams.target,
     data: partialChat,
