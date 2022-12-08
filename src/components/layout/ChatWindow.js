@@ -30,19 +30,19 @@ function ChatWindow() {
   // states
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const [topIntersected, setTopIntersected] = useState(false);
-  const [scrollTimestamp, setScrollTimestamp] = useState(null);
-  const [scrollPosition, setScrollPosition] = useState(null);
 
   // refs
   const topOfPageRef = useRef(null);
   const bottomOfPageRef = useRef(null);
   const chatWindowRef = useRef(null);
-  const scrollTimerRef = useRef(null);
 
-  // const topAlreadyIntersected = useRef(false);
+  // scrollRefs
+  const scrollElapsedRef = useRef(null);
+  const scrollTimerRef = useRef(null);
+  const scrollPositionRef = useRef(null);
 
   // intersection-observer
-  const [topVisibleRef, topOfPageIsVisible, topOfPageEntry] = useInView();
+  const [topVisibleRef, topOfPageIsVisible] = useInView();
   const [bottomVisibleRef, bottomOfPageIsVisible] = useInView();
 
   // misc
@@ -79,6 +79,8 @@ function ChatWindow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel, groupData, selectedGroup]);
 
+  // ! A bit messy with this many useEffects
+
   // redirect and refresh position preservation
   useEffect(() => {
     if (groupMounted && selectedGroup) {
@@ -88,11 +90,15 @@ function ChatWindow() {
     }
     return () => setTopIntersected(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupMounted, channelFound]);
+  }, [groupMounted, chatMounted, channelFound]);
 
   // scroll to bottom on every new message if already latched to the bottom,
   function goToBottom() {
-    bottomOfPageRef.current.scrollIntoView();
+    // bottomOfPageRef.current.scrollIntoView();
+    bottomOfPageRef.current.scrollIntoView({
+      block: "end",
+      inline: "start",
+    });
   }
   useEffect(() => {
     if (bottomOfPageRef.current && bottomOfPageIsVisible) goToBottom();
@@ -107,29 +113,31 @@ function ChatWindow() {
     );
     return () => clearInterval(rerenderInterval);
   }, [lastUpdate]);
+  console.log(topIntersected);
 
+  // fetch more messages on scroll hit top of page, scroll to bottom on first load
   useEffect(() => {
-    // console.log(topOfPageEntry?.intersectionRatio);
-    // console.log(topAlreadyIntersected.current);
-    if (topIntersected && topOfPageEntry?.intersectionRatio > 0) {
-      console.count("fetching!");
-      // console.log(thisChatStack[thisChatStack.length - 1]);
-      // console.log(thisChatStack[thisChatStack.length - 1]);
+    if (topOfPageIsVisible && topIntersected) {
+      console.log("fetching");
       fetchMore({
         target: { group: selectedGroup._id, channel: selectedChannel._id },
-        last: thisChatStack[0].clusterTimestamp,
+        last: chatData[selectedGroup._id][selectedChannel._id][0]
+          .clusterTimestamp,
       });
     }
-    if (topOfPageEntry?.intersectionRatio === 0) {
-      if (thisChatStack) setTopIntersected(true);
-    }
-
-    // return () => {
-    //   cleanup
+    // else if (chatMounted && !topIntersected) { // !!!! WHYYYY
+    //   setTopIntersected(true);
+    //   goToBottom();
     // }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topOfPageIsVisible]);
+
+  // useEffect(() => {
+  //   if (bottomOfPageRef?.current) {
+  //     setTopIntersected(true);
+  //     goToBottom();
+  //   }
+  // }, [chatMounted]);
 
   function sendOut(sendObj) {
     if (groupMounted) {
@@ -153,28 +161,46 @@ function ChatWindow() {
     }
   }
 
-  console.count("refreshed");
-
-  // ! rate limit this?
+  // save scroll position after set duration of last scroll event
   function handleScroll() {
-    // console.log("handlingScroll");
-    // console.log(scrollTimestamp);
-    if (!scrollTimestamp) {
-      console.log("setting scroll tmot");
-      setScrollTimestamp(Date.now());
-    } else if (Date.now() - scrollTimestamp < 500) {
-      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
-      // clearTimeout(scrollTimerRef.current);
+    function setPositionOnTimeout() {
       scrollTimerRef.current = setTimeout(() => {
-        setScrollPosition(chatWindowRef.current.scrollTop);
-        // scrollTimerRef.current = null
-        setScrollTimestamp(null);
-        console.count("pos set");
-      }, 500);
+        console.log("scroll pos set");
+        // console.log(window.innerHeight);
+        // console.log(documen);
+        // console.dir(chatWindowRef.current);
+        // console.dir(chatWindowRef.current.offsetHeight);
+        console.dir(chatWindowRef.current.scrollTopMax);
+        // console.dir(
+        // chatWindowRef.current.scrollHeight - chatWindowRef.offsetHeight
+        // );
+        // console.dir(chatWindowRef.current.scrollHeight);
+        console.log(
+          chatWindowRef.current.scrollTop,
+          "/",
+          chatWindowRef.current.scrollHeight -
+            chatWindowRef.current.offsetHeight
+        );
+        scrollPositionRef.current = chatWindowRef.current.scrollTop;
+        scrollElapsedRef.current = null;
+      }, 250);
+    }
+
+    // if timer is not set, set it
+    if (!scrollElapsedRef?.current) {
+      scrollElapsedRef.current = Date.now();
+      setPositionOnTimeout();
+    }
+
+    // if time passed since last scroll evt <250ms ignore and reset timer
+    else if (Date.now() - scrollElapsedRef.current < 250) {
+      scrollElapsedRef.current = Date.now();
+      clearTimeout(scrollTimerRef.current);
+      setPositionOnTimeout();
     }
   }
 
-  if (!groupMounted || !chatMounted) {
+  if (!groupMounted || !chatMounted || !selectedChannel) {
     return (
       <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
         <ChannelBanner name={channel} />
@@ -187,6 +213,8 @@ function ChatWindow() {
       </section>
     );
   } else {
+    // dataHelpers.getGroupDataFromId(selectedGroup._id);
+    // dataHelpers.getChannelDataFromId(selectedChannel._id);
     return (
       <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
         {/* // firefox does not respect flex shrink without width min 0 ! */}
@@ -199,7 +227,7 @@ function ChatWindow() {
         >
           {thisChatStack.length > 0 ? (
             <div
-              className="w-full h-14 flex justify-center items-center"
+              className="w-full h-20 flex justify-center items-center"
               ref={(el) => {
                 topOfPageRef.current = el;
                 topVisibleRef(el);
@@ -208,7 +236,9 @@ function ChatWindow() {
               <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-500" />
             </div>
           ) : null}
+
           {thisChatStack}
+
           <GoToBottomButton
             visible={bottomOfPageIsVisible}
             passOnClick={goToBottom}
