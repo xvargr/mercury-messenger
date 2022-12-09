@@ -16,7 +16,7 @@ import axiosInstance from "../../utils/axios";
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { pushFlashMessage } = useContext(FlashContext);
-  const { groupMounted, dataHelpers } = useContext(DataContext);
+  const { dataReady, dataHelpers } = useContext(DataContext);
   const { selectedGroup, setSelectedChannel, clearSelected } =
     useContext(UiContext);
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ function GroupBanner(props) {
 
   let inviteLink;
   let isAdmin;
-  if (groupMounted && selectedGroup) {
+  if (dataReady && selectedGroup) {
     inviteLink = selectedGroup.inviteLink;
 
     isAdmin = selectedGroup.administrators.some(

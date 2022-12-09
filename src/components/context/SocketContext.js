@@ -8,6 +8,7 @@ import { UiContext } from "./UiContext";
 
 // utility hooks
 import axiosInstance from "../../utils/axios";
+import useLocalFallback from "../../utils/localFallback";
 
 export const SocketContext = createContext();
 
@@ -17,11 +18,15 @@ export function SocketStateProvider(props) {
 
   const { pushFlashMessage } = useContext(FlashContext);
 
+  const { retrieveStored, updateStored } = useLocalFallback();
+
   const {
+    // setChatMounted,
+    // setChatData,
     setGroupData,
-    setGroupMounted,
-    setChatMounted,
-    setChatData,
+    dataMounted,
+    setDataMounted,
+    mount,
     setPeerData,
     dataHelpers,
     isLoggedIn,
@@ -36,7 +41,7 @@ export function SocketStateProvider(props) {
     clearSelected,
   } = useContext(UiContext);
 
-  const { group, channel } = useParams();
+  const { group: groupParam, channel: channelParam } = useParams();
 
   const { userGroups } = axiosInstance();
 
@@ -59,6 +64,10 @@ export function SocketStateProvider(props) {
     );
   }
 
+  // function disconnectSocket() {
+  //   socket?.disconnect();
+  // }
+
   // initial connection
   useEffect(() => {
     if (isLoggedIn && socketIsConnected === false) {
@@ -68,7 +77,7 @@ export function SocketStateProvider(props) {
       socket?.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn]);
+  }, [isLoggedIn, dataMounted]);
 
   function socketClear() {
     if (socket !== null) socket.disconnect();
@@ -89,27 +98,31 @@ export function SocketStateProvider(props) {
         .then((res) => {
           const groupData = res.data;
           setGroupData(() => groupData);
-          setGroupMounted(true);
+          setDataMounted(true);
 
-          if (group) {
-            const currentGroup = groupData.find((grp) => grp.name === group);
+          // ! responsible for refresh preservation
+          if (groupParam) {
+            const currentGroup = groupData[retrieveStored.groupId];
             if (!currentGroup) {
               pushFlashMessage([
                 { message: "Group does not exist", type: "error" },
               ]);
               setSelectedGroup(null);
               setSelectedChannel(null);
+              updateStored.all();
             } else setSelectedGroup(() => currentGroup);
 
-            if (channel) {
-              const currentChannel = currentGroup.find(
-                (chn) => chn.name === channel
-              );
+            if (channelParam) {
+              const currentChannel =
+                groupData[retrieveStored.groupId].channels.text[
+                  retrieveStored.channelId
+                ];
               if (!currentChannel) {
                 pushFlashMessage([
                   { message: "Channel does not exist", type: "error" },
                 ]);
                 setSelectedChannel(null);
+                updateStored.channel();
                 navigate(`/g/${setSelectedGroup.name}`);
               } else setSelectedChannel(() => currentChannel);
             }
@@ -126,9 +139,20 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("initialize", (res) => {
-      setChatData(res.chatData);
-      setPeerData(res.peerData);
-      setChatMounted(true);
+      if (!dataMounted) {
+        console.warn("trying to set chat before group is initialized");
+        setTimeout(() => {
+          mount.chat(res.chatData);
+          setPeerData(res.peerData);
+        }, 50);
+      } else {
+        mount.chat(res.chatData);
+        setPeerData(res.peerData);
+      }
+
+      // setChatData(res.chatData);
+      // setPeerData(res.peerData);
+      // setChatMounted(true);
     });
 
     socket.on("newMessage", function (res) {
@@ -139,11 +163,11 @@ export function SocketStateProvider(props) {
         notification.play();
       }
 
-      setChatData((prevData) => {
-        const dataCopy = { ...prevData };
-        dataCopy[res.group._id][res.channel._id].push(res);
-        return dataCopy;
-      });
+      // setChatData((prevData) => {
+      //   const dataCopy = { ...prevData };
+      //   dataCopy[res.group._id][res.channel._id].push(res);
+      //   return dataCopy;
+      // });
     });
 
     socket.on("appendMessage", function (res) {
@@ -154,20 +178,20 @@ export function SocketStateProvider(props) {
         notification.play();
       }
 
-      setChatData((prevStack) => {
-        const dataCopy = { ...prevStack };
-        const stackCopy = dataCopy[res.target.group][res.target.channel];
+      // setChatData((prevStack) => {
+      //   const dataCopy = { ...prevStack };
+      //   const stackCopy = dataCopy[res.target.group][res.target.channel];
 
-        const clusterIndex = stackCopy.findIndex(
-          (cluster) => cluster._id === res.target.cluster.id
-        );
+      //   const clusterIndex = stackCopy.findIndex(
+      //     (cluster) => cluster._id === res.target.cluster.id
+      //   );
 
-        // update stack to contain verified message
-        stackCopy[clusterIndex].content[res.target.index] = res.data;
-        dataCopy[res.target.group][res.target.channel] = stackCopy;
+      //   // update stack to contain verified message
+      //   stackCopy[clusterIndex].content[res.target.index] = res.data;
+      //   dataCopy[res.target.group][res.target.channel] = stackCopy;
 
-        return dataCopy;
-      });
+      //   return dataCopy;
+      // });
     });
 
     socket.on("structureChange", function (res) {
@@ -185,11 +209,11 @@ export function SocketStateProvider(props) {
           return dataCopy;
         });
 
-        setChatData((currentData) => {
-          const dataCopy = { ...currentData };
-          dataCopy[target.parent][target.id] = [];
-          return dataCopy;
-        });
+        // setChatData((currentData) => {
+        //   const dataCopy = { ...currentData };
+        //   dataCopy[target.parent][target.id] = [];
+        //   return dataCopy;
+        // });
       }
 
       function editChannel() {
@@ -211,11 +235,11 @@ export function SocketStateProvider(props) {
       }
 
       function deleteChannel() {
-        setChatData((currentData) => {
-          const dataCopy = { ...currentData };
-          delete dataCopy[target.parent][target.id];
-          return dataCopy;
-        });
+        // setChatData((currentData) => {
+        //   const dataCopy = { ...currentData };
+        //   delete dataCopy[target.parent][target.id];
+        //   return dataCopy;
+        // });
 
         setGroupData((currentData) => {
           const dataCopy = [...currentData];
@@ -244,12 +268,12 @@ export function SocketStateProvider(props) {
           return dataCopy;
         });
 
-        setChatData((currentData) => {
-          const dataCopy = { ...currentData };
-          dataCopy[target.parent] = {};
-          dataCopy[target.parent][target.id] = [];
-          return dataCopy;
-        });
+        // setChatData((currentData) => {
+        //   const dataCopy = { ...currentData };
+        //   dataCopy[target.parent] = {};
+        //   dataCopy[target.parent][target.id] = [];
+        //   return dataCopy;
+        // });
       }
 
       function editGroup() {
@@ -286,11 +310,11 @@ export function SocketStateProvider(props) {
       }
 
       function deleteGroup() {
-        setChatData((currentData) => {
-          const dataCopy = { ...currentData };
-          delete dataCopy[target.id];
-          return dataCopy;
-        });
+        // setChatData((currentData) => {
+        //   const dataCopy = { ...currentData };
+        //   delete dataCopy[target.id];
+        //   return dataCopy;
+        // });
 
         setGroupData((currentData) => {
           const dataCopy = [...currentData];

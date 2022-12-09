@@ -29,7 +29,7 @@ function UserPage() {
     setIsLoggedIn,
     setGroupData,
     setChatData,
-    setGroupMounted,
+    setDataMounted,
     setChatMounted,
   } = useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
@@ -57,7 +57,7 @@ function UserPage() {
         setIsLoggedIn(false);
         setGroupData(null);
         setChatData(null);
-        setGroupMounted(false);
+        setDataMounted(false);
         setChatMounted(false);
         navigate("/login");
       })
@@ -81,7 +81,7 @@ function UserPage() {
           setIsLoggedIn(false);
           setGroupData(null);
           setChatData(null);
-          setGroupMounted(false);
+          setDataMounted(false);
           navigate("/login");
         })
         .catch((err) =>

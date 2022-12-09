@@ -2,63 +2,58 @@ import { useContext, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 // components
-import ChannelBadge from "../channels/ChannelBadge";
 import NewChannelButton from "../channels/NewChannelButton";
 import GroupBanner from "../channels/GroupBanner";
-import MemberStatusBadge from "../channels/MemberStatusBadge";
 
 // context
 import { UiContext } from "../context/UiContext";
 import { DataContext } from "../context/DataContext";
 import { SkeletonChannel } from "../ui/SkeletonLoaders";
+import { ChannelStack, MemberStack } from "../../utils/iterableComponents";
 
 function ChannelsBar() {
   const { group } = useParams();
-  const { groupData, groupMounted, peerHelpers } = useContext(DataContext);
+  const { dataReady } = useContext(DataContext);
   const {
-    selectedChannel,
+    // selectedChannel,
     selectedGroup,
-    setSelectedChannel,
-    setSelectedGroup,
+    // setSelectedChannel,
+    // setSelectedGroup,
+    isAdmin,
   } = useContext(UiContext);
   const navigate = useNavigate();
 
-  const groupFound = useMemo(
-    () => groupData?.find((grp) => grp.name === group) ?? false,
-    // () => groupData?.find((grp) => grp.id === selectedGroup?.id) ?? false,
-    [group, groupData]
-  );
+  // const groupFound = useMemo(
+  //   () => groupData[selectedGroup?.id] ?? false,
+  //   // () => groupData?.find((grp) => grp.id === selectedGroup?.id) ?? false,
+  //   [group, groupData, selectedGroup]
+  // );
 
   // redirect and refresh position preservation
-  useEffect(() => {
-    if (groupMounted) {
-      if (!groupFound) navigate("/404");
-      else if (groupFound) setSelectedGroup(groupFound);
-      else if (!selectedGroup) navigate("/");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupMounted, groupFound]);
+  // useEffect(() => {
+  //   if (dataReady) {
+  //     if (!groupFound) navigate("/404");
+  //     else if (groupFound) setSelectedGroup(groupFound);
+  //     else if (!selectedGroup) navigate("/");
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [dataReady, groupFound]);
 
-  let isAdmin;
-  if (groupMounted && selectedGroup) {
-    isAdmin = selectedGroup.administrators.some(
-      (admin) => admin._id === localStorage.userId
-    );
-  }
+  // let isAdmin;
+  // if (dataReady && selectedGroup) {
+  //   isAdmin = selectedGroup.administrators.some(
+  //     (admin) => admin._id === localStorage.userId
+  //   );
+  // }
 
-  const groupIndex =
-    groupMounted && selectedGroup
-      ? groupData.findIndex((group) => {
-          return group.id === selectedGroup.id;
-        })
-      : null;
+  // const groupIndex =
+  //   dataReady && selectedGroup
+  //     ? groupData.findIndex((group) => {
+  //         return group.id === selectedGroup.id;
+  //       })
+  //     : null;
 
-  function channelChangeHandler(channel) {
-    if (!channel) setSelectedChannel(null);
-    else setSelectedChannel(channel);
-  }
-
-  if (!groupMounted || !selectedGroup) {
+  if (!dataReady || !selectedGroup) {
     return (
       <section className="bg-gray-700 h-screen w-1/4 lg:w-1/5 max-w-sm lg:min-w-[24rem] shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
         <GroupBanner name={group} />
@@ -84,44 +79,17 @@ function ChannelsBar() {
           <div className="w-full max-h-[50%] grow flex flex-col items-center overflow-y-auto overflow-x-hidden scrollbar-dark">
             <div className="mt-4"></div>
 
-            {groupData[groupIndex].channels.text.map((channel) => {
-              let selected =
-                selectedChannel?.name === channel.name ? true : false;
+            <ChannelStack />
 
-              return (
-                <ChannelBadge
-                  data={channel}
-                  groupIndex={groupIndex}
-                  selected={selected}
-                  type="text"
-                  key={channel._id}
-                  onClick={channelChangeHandler}
-                  isAdmin={isAdmin}
-                />
-              );
-            })}
             <div className="w-full pt-1 bg-gray-700 flex flex-col items-center sticky-reverse">
-              {isAdmin ? (
-                <NewChannelButton
-                  for={selectedGroup}
-                  onClick={channelChangeHandler}
-                />
-              ) : null}
+              {isAdmin ? <NewChannelButton for={selectedGroup} /> : null}
             </div>
           </div>
 
           <hr className="w-1/3 mb-2 mt-2 border-gray-800" />
 
           <div className="w-full h-1/2 py-1 flex flex-col items-center overflow-y-auto overflow-x-hidden scrollbar-dark">
-            {groupData[groupIndex].members.map((member) => {
-              return (
-                <MemberStatusBadge
-                  member={member}
-                  status={peerHelpers.getStatus(member._id)}
-                  key={member._id}
-                />
-              );
-            })}
+            <MemberStack />
           </div>
         </div>
       </section>
