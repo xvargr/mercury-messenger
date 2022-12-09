@@ -19,15 +19,18 @@ import { SocketContext } from "../components/context/SocketContext";
 
 // utility
 import axiosInstance from "../utils/axios";
+import useStateRestore from "../utils/restoreState";
 
 function MainWindow() {
   const navigate = useNavigate();
-  const { socketIsConnected } = useContext(SocketContext);
+  const { socketIsConnected, disconnectSocket } = useContext(SocketContext);
   const { setWindowIsFocused } = useContext(UiContext);
-  const { groupMounted, isLoggedIn, setIsLoggedIn } = useContext(DataContext);
+  const { dataReady, isLoggedIn, setIsLoggedIn } = useContext(DataContext);
   const { flashMessages, setFlashMessages } = useContext(FlashContext);
   const [messageStack, setMessageStack] = useState([]);
   const { abortAll } = axiosInstance();
+
+  useStateRestore();
 
   // redirect to login if not logged in
   useEffect(() => {
@@ -35,6 +38,29 @@ function MainWindow() {
     else setIsLoggedIn(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   });
+
+  // // force disconnect socket on refresh, without this, sometimes socket is still marked connected after refresh and will infinitely wait for reconnection
+  // useEffect(() => {
+  //   window.onbeforeunload = function () {
+  //     disconnectSocket();
+  //   };
+
+  //   return () => {
+  //     window.onbeforeunload = null;
+  //   };
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
+
+  // ! store last grp/ch in local? load them back here?
+  // useEffect(() => {
+  //         // localStorage.setItem("lastGroup", groupObject._id);
+
+  //         // localStorage.setItem("lastChannel", channelObject._id);
+
+  //   // return () => {
+  //   //   second
+  //   // }
+  // }, [selectedGroup, selectedChannel])
 
   // load flash messages if any
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,7 +88,7 @@ function MainWindow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // axios abort
+  // axios abort cleanup
   useEffect(() => {
     return () => {
       abortAll();
@@ -79,7 +105,7 @@ function MainWindow() {
 
   return (
     <main className="w-screen h-screen font-nunito overflow-hidden flex justify-center bgHeroTopo">
-      <ReconnectingModal isReconnecting={!socketIsConnected || !groupMounted} />
+      <ReconnectingModal isReconnecting={!socketIsConnected || !dataReady} />
       <FlashMessageWrapper>
         {messageStack?.map((message) => {
           const position = messageStack.indexOf(message);

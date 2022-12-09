@@ -24,7 +24,12 @@ export async function fetchGroups(req, res) {
     },
   ]);
 
-  res.json(result);
+  const groupData = {};
+  for (const group of result) {
+    groupData[group._id] = group;
+  }
+
+  res.json(groupData);
 }
 
 export async function newGroup(req, res) {

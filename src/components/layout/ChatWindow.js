@@ -5,10 +5,10 @@ import { useInView } from "react-intersection-observer";
 // components
 import ChatInputBox from "../chat/ChatInputBox";
 import ChannelBanner from "../chat/ChatBanner";
-import Sender from "../chat/SenderWrapper";
-import Message from "../chat/Message";
+// import Sender from "../chat/SenderWrapper";
+// import Message from "../chat/Message";
 import GoToBottomButton from "../chat/GoToBottomButton";
-import Dots from "../ui/Dots";
+// import Dots from "../ui/Dots";
 
 // context
 import { DataContext } from "../context/DataContext";
@@ -17,13 +17,13 @@ import { ChatSkeletonLoader } from "../ui/SkeletonLoaders";
 
 // utility hooks
 import useSocket from "../../utils/socket";
+import { ChatStack } from "../../utils/iterableComponents";
 
 function ChatWindow() {
   const { channel } = useParams();
 
   // context
-  const { groupMounted, chatMounted, groupData, chatData, dataHelpers } =
-    useContext(DataContext);
+  const { dataReady, chatData, dataHelpers } = useContext(DataContext);
   const { selectedGroup, selectedChannel, setSelectedChannel } =
     useContext(UiContext);
 
@@ -50,47 +50,47 @@ function ChatWindow() {
   const navigate = useNavigate();
 
   // stores the chat stack, used to detect changes in this chat specifically
-  const thisChatStack = useMemo(() => {
-    return chatMounted && selectedGroup && selectedChannel
-      ? dataHelpers.renderChatStack({
-          target: {
-            groupId: selectedGroup._id,
-            channelId: selectedChannel._id,
-          },
-          actions: { sendMessage, appendMessage },
-          components: { Sender, Message },
-        })
-      : null;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatMounted, chatData, selectedGroup, selectedChannel]);
+  // const thisChatStack = useMemo(() => {
+  //   return chatMounted && selectedGroup && selectedChannel
+  //     ? dataHelpers.renderChatStack({
+  //         target: {
+  //           groupId: selectedGroup._id,
+  //           channelId: selectedChannel._id,
+  //         },
+  //         actions: { sendMessage, appendMessage },
+  //         components: { Sender, Message },
+  //       })
+  //     : null;
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [chatMounted, chatData, selectedGroup, selectedChannel]);
 
   // preserve selected channel on refresh
-  const channelFound = useMemo(() => {
-    const groupIndex =
-      groupData && selectedGroup
-        ? dataHelpers.getGroupIndex(selectedGroup._id)
-        : null;
+  // const channelFound = useMemo(() => {
+  //   const groupIndex =
+  //     groupData && selectedGroup
+  //       ? dataHelpers.getGroupIndex(selectedGroup._id)
+  //       : null;
 
-    if (groupData && groupIndex !== null && groupIndex >= 0) {
-      return groupData[groupIndex].channels.text.find(
-        (grp) => grp.name === channel
-      );
-    } else return null;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel, groupData, selectedGroup]);
+  //   if (groupData && groupIndex !== null && groupIndex >= 0) {
+  //     return groupData[groupIndex].channels.text.find(
+  //       (grp) => grp.name === channel
+  //     );
+  //   } else return null;
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [channel, groupData, selectedGroup]);
 
   // ! A bit messy with this many useEffects
 
   // redirect and refresh position preservation
-  useEffect(() => {
-    if (groupMounted && selectedGroup) {
-      if (channelFound === undefined) navigate("/404");
-      else if (channelFound) setSelectedChannel(channelFound);
-      else if (!selectedGroup) navigate("/");
-    }
-    return () => setTopIntersected(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupMounted, chatMounted, channelFound]);
+  // useEffect(() => {
+  //   if (dataReady && selectedGroup) {
+  //     if (channelFound === undefined) navigate("/404");
+  //     else if (channelFound) setSelectedChannel(channelFound);
+  //     else if (!selectedGroup) navigate("/");
+  //   }
+  //   return () => setTopIntersected(false);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [dataReady, chatMounted, channelFound]);
 
   // scroll to bottom on every new message if already latched to the bottom,
   function goToBottom() {
@@ -100,10 +100,10 @@ function ChatWindow() {
       inline: "start",
     });
   }
-  useEffect(() => {
-    if (bottomOfPageRef.current && bottomOfPageIsVisible) goToBottom();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [thisChatStack]);
+  // useEffect(() => {
+  //   if (bottomOfPageRef.current && bottomOfPageIsVisible) goToBottom();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [thisChatStack]);
 
   // rerender every 30 sec to update timestamps
   useEffect(() => {
@@ -113,7 +113,7 @@ function ChatWindow() {
     );
     return () => clearInterval(rerenderInterval);
   }, [lastUpdate]);
-  console.log(topIntersected);
+  // console.log(topIntersected);
 
   // fetch more messages on scroll hit top of page, scroll to bottom on first load
   useEffect(() => {
@@ -140,7 +140,7 @@ function ChatWindow() {
   // }, [chatMounted]);
 
   function sendOut(sendObj) {
-    if (groupMounted) {
+    if (dataReady) {
       const { elapsed, lastCluster, lastSender } = dataHelpers.getLastInfo(
         selectedGroup._id,
         selectedChannel._id
@@ -200,7 +200,10 @@ function ChatWindow() {
     }
   }
 
-  if (!groupMounted || !chatMounted || !selectedChannel) {
+  // console.log(selectedChannel);
+
+  // if (!dataReady || !chatMounted || !selectedChannel) {
+  if (!selectedChannel) {
     return (
       <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
         <ChannelBanner name={channel} />
@@ -218,14 +221,16 @@ function ChatWindow() {
     return (
       <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
         {/* // firefox does not respect flex shrink without width min 0 ! */}
+
         <ChannelBanner name={selectedChannel.name} />
+
         <div
           className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth"
           onScroll={() => handleScroll()}
           // onWheel={() => console.log("wheeling")}
           ref={chatWindowRef}
         >
-          {thisChatStack.length > 0 ? (
+          {/* {thisChatStack.length > 0 ? (
             <div
               className="w-full h-20 flex justify-center items-center"
               ref={(el) => {
@@ -235,14 +240,20 @@ function ChatWindow() {
             >
               <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-500" />
             </div>
-          ) : null}
+          ) : null} */}
+          {
+            // ! loader
+          }
 
-          {thisChatStack}
+          <ChatStack />
+
+          {/* {thisChatStack} */}
 
           <GoToBottomButton
             visible={bottomOfPageIsVisible}
             passOnClick={goToBottom}
           />
+
           <div
             className="w-full h-28"
             ref={(el) => {
@@ -250,6 +261,7 @@ function ChatWindow() {
               bottomVisibleRef(el);
             }}
           ></div>
+
           <ChatInputBox return={sendOut} />
         </div>
       </section>

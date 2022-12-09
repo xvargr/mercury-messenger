@@ -311,15 +311,28 @@ const socketInstance = {
   },
 
   initialize() {
+    const io = this.io;
     // middleware - refuse connection if not authenticated or user already has connection with connecting ip
-    this.io.use(async function (socket, next) {
+    io.use(async function (socket, next) {
       if (
         socket.request.isAuthenticated() &&
         !socketUsers.isConnected(socket)
       ) {
         socketUsers.connect(socket);
         next();
+      } else if (socketUsers.isConnected(socket)) {
+        console.log(socket.id);
+        console.log(socketUsers.getInstances([socket.request.user.id]));
+
+        // ! sometimes disconnected instances are still stored, check if is not connected before refusing
+
+        // const instances = socketUsers.getInstances([socket.request.user.id]);
+
+        //  const connected =   io.sockets.sockets.get(instances.id); //foreach
+
+        console.log("Already conn");
       } else {
+        console.log("REFUEDCONN");
         const err = new ExpressError("Unauthorized", 401);
         err.data = {
           message: "App already open on this device, click to use here instead",
@@ -328,8 +341,11 @@ const socketInstance = {
       }
     });
 
-    this.io.on("connection", async function (socket) {
+    io.on("connection", async function (socket) {
       console.log("currently connected: ", socketUsers.connectedUsers);
+      // console.log([socket.id]);
+      // console.log(io.sockets.server);
+      // console.log(socket.connected);
 
       // todo use connectedUsers array to show if user is online
       // todo private messages and friends
@@ -377,6 +393,8 @@ const socketInstance = {
         console.log("currently connected: ", socketUsers.connectedUsers);
       });
     });
+    // console.log(this.io.engine);
+    // this.io.engine.on("close", (reason) => console.log(reason));
 
     // room events below are used to sync up member's status with clients on front end
     // ? by joins and leave rooms or on connect and dc

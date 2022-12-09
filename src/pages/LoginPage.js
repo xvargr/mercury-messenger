@@ -15,7 +15,7 @@ function LoginPage() {
   const [feedback, setFeedback] = useState("");
   const [buttonStatus, setButtonStatus] = useState("error");
   const [formState, setFormState] = useState("login");
-  const { setGroupMounted, setIsLoggedIn } = useContext(DataContext);
+  const { setDataMounted, setIsLoggedIn } = useContext(DataContext);
   const { clearSelected } = useContext(UiContext);
   const [userData, setUserData] = useState({
     username: "",
@@ -105,7 +105,7 @@ function LoginPage() {
         .sign(route, formData)
         .then((res) => {
           clearSelected();
-          setGroupMounted(false);
+          setDataMounted(false);
           setIsLoggedIn(true);
 
           localStorage.setItem("username", res.data.userData.username);
