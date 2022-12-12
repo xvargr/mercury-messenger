@@ -20,16 +20,17 @@ const socketUsers = {
     );
     if (userIndex === -1) {
       this.connectedUsers.push({
-        // address: socket.request.connection.remoteAddress // request.connection.remotePort // request.connection._peername // handshake.address are alternatives
         userId: socket.request.user.id,
         status: "online",
         instances: [
-          { id: socket.id, address: socket.request.connection.remoteAddress },
+          {
+            id: socket.id,
+            address: socket.request.connection.remoteAddress,
+          },
         ],
       });
     } else {
       this.connectedUsers[userIndex].instances.push({
-        // ? why not just store sockets in here?
         id: socket.id,
         address: socket.request.connection.remoteAddress,
       });
@@ -53,6 +54,48 @@ const socketUsers = {
   },
 
   isConnected(socket) {
+    // const userInstance = this.connectedUsers.find(
+    //   (user) =>
+    //     user.userId === socket.request.user.id &&
+    //     user.instances.some(
+    //       (instance) =>
+    //         instance.address === socket.request.connection.remoteAddress
+    //     )
+    // );
+
+    // console.log("userInstance", userInstance);
+
+    // if (!userInstance) return false;
+
+    // userInstance.instances.forEach((instance) => {
+    //   // console.log("instances", instance); // ! check each socket to make sure it is still actually connected
+
+    //   // console.log(io);
+    //   console.log("instance.socket.id", instance.socket.id);
+    //   console.log("instance.socket.connected", instance.socket.connected);
+    //   console.log("instance.socket.connected", instance.socket.connected);
+
+    //   // const instances = socketUsers.getInstances([socket.request.user.id]);
+
+    //   //  const connected =   io.sockets.sockets.get(instances.id); //foreach
+    // });
+    // !
+
+    // const result = this.connectedUsers.reduce((accumulator, currentUser) => {
+    //   if (
+    //     currentUser.userId === socket.request.user.id &&
+    //     currentUser.instances.some(
+    //       (instance) =>
+    //         instance.address === socket.request.connection.remoteAddress
+    //     )
+    //   ) {
+    //     accumulator.push(currentUser);
+    //   }
+    //   return accumulator;
+    // }, []);
+
+    // console.log("socket.request", socket.request.user);
+
     return this.connectedUsers.some(
       (user) =>
         user.userId === socket.request.user.id &&
@@ -61,6 +104,7 @@ const socketUsers = {
             instance.address === socket.request.connection.remoteAddress
         )
     );
+    // console.log("result:", userInstance);
   },
 
   getInstances(idArray) {
@@ -77,6 +121,21 @@ const socketUsers = {
 
     return result;
   },
+
+  // getSockets(idArray) {
+  //   const result = [];
+
+  //   idArray.forEach((id) => {
+  //     const index = this.connectedUsers.findIndex((user) => user.userId === id);
+  //     if (index !== -1) {
+  //       this.connectedUsers[index].instances.forEach((instance) =>
+  //         result.push(instance.socket)
+  //       );
+  //     } else return null;
+  //   });
+
+  //   return result;
+  // },
 
   getStatus(idString) {
     const user = this.connectedUsers.find((user) => {
@@ -314,38 +373,64 @@ const socketInstance = {
     const io = this.io;
     // middleware - refuse connection if not authenticated or user already has connection with connecting ip
     io.use(async function (socket, next) {
-      if (
-        socket.request.isAuthenticated() &&
-        !socketUsers.isConnected(socket)
-      ) {
-        socketUsers.connect(socket);
-        next();
+      if (!socket.request.isAuthenticated()) {
+        // not authenticated
+        console.log("NOT AUTH");
+        const err = new ExpressError("Unauthorized", 401);
+        err.data = {
+          message: "UNAUTHORIZED",
+          code: 401,
+        }; // feature not necessary, api and app can handle multiple instances
+        next(err); // refuse connection
       } else if (socketUsers.isConnected(socket)) {
-        console.log(socket.id);
-        console.log(socketUsers.getInstances([socket.request.user.id]));
-
-        // ! sometimes disconnected instances are still stored, check if is not connected before refusing
-
-        // const instances = socketUsers.getInstances([socket.request.user.id]);
-
-        //  const connected =   io.sockets.sockets.get(instances.id); //foreach
-
-        console.log("Already conn");
-      } else {
-        console.log("REFUEDCONN");
+        // already connected
+        console.log("CON DUPE");
         const err = new ExpressError("Unauthorized", 401);
         err.data = {
           message: "App already open on this device, click to use here instead",
         }; // feature not necessary, api and app can handle multiple instances
+
+        // ! checking against io if duplicate socket connections are still open
+        if (socketUsers.isConnected(socket)) {
+          const instances = socketUsers.getInstances([socket.request.user.id]);
+
+          // const sockets = [];
+          instances.forEach(
+            (instance) => {
+              // console.log(instance);
+              console.log(
+                `${instance.socket.id} is connected => ${instance.socket.connected}`
+              );
+
+              // console.log(io.sockets.sockets.get(instance.socket.id));
+
+              console.log(
+                `${instance.socket.id} is TRULY connected => ${
+                  io.sockets.sockets.get(instance.socket.id)?.connected
+                }`
+              );
+
+              // edge case where socket is not terminated but disconnect event does not fire, still considered connected in usrcon object
+              if (!io.sockets.sockets.get(instance.socket.id)?.connected) {
+                console.log("DC this SOCKET");
+                console.log(socket);
+                // socketUsers.disconnect(socket);
+              }
+            }
+            // sockets.push(io.sockets.sockets.get(instance.id))
+          );
+        }
+        // BS
+
         next(err); // refuse connection
+      } else {
+        socketUsers.connect(socket);
+        next();
       }
     });
 
     io.on("connection", async function (socket) {
       console.log("currently connected: ", socketUsers.connectedUsers);
-      // console.log([socket.id]);
-      // console.log(io.sockets.server);
-      // console.log(socket.connected);
 
       // todo use connectedUsers array to show if user is online
       // todo private messages and friends
@@ -362,8 +447,6 @@ const socketInstance = {
       // new message handler
       socket.on("newCluster", (clusterData, callback) => {
         newCluster({ socket, sender, clusterData, callback });
-        // socketUsers.changeStatus(sender._id, "away");
-        // console.log(socketUsers.connectedUsers);
       });
 
       // subsequent message handler
@@ -373,9 +456,6 @@ const socketInstance = {
 
       socket.on("fetchMore", (fetchParams, callback) => {
         console.log("fetch signal received");
-        // console.log(fetchParams);
-        // console.log(socket.request.user);
-        // console.log(socket.handshake);
         fetchMoreMessages({ socket, sender, fetchParams, callback });
       });
 
@@ -473,8 +553,10 @@ const socketSync = {
 
     // pre emit ↑↑↑
 
+    console.log("WFY DO YTOYU MENAB UNDEFUINED????", senderSocket);
+
     io.in(`g:${target.id}`)
-      .except(senderSocket.id)
+      .except(senderSocket.id) // !!!!!!!!!!! sometimes undefined???
       .emit("structureChange", {
         target: { ...target },
         change: { ...change },
@@ -500,7 +582,7 @@ const socketSync = {
       } else if (change.extra?.toKick) {
         leavingInstances = socketUsers.getInstances(change.extra.toKick);
       }
-      console.log("instances", leavingInstances);
+      // console.log("instances", leavingInstances);
 
       leavingInstances.forEach((instance) => {
         const socket = io.sockets.sockets.get(instance.id);

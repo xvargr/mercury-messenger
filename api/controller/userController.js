@@ -43,7 +43,6 @@ export async function newUser(req, res) {
 }
 
 export function logOutUser(req, res) {
-  // console.log(`logged out ${req.user.username}`);
   req.logOut((err) => err);
   res.status(200).send("ok");
 }
@@ -58,7 +57,6 @@ export function logInUser(req, res, next) {
     else {
       req.logIn(user, (err) => {
         if (err) throw new ExpressError(err, 500);
-        // console.log("Successfully Authenticated");
         res.status(201).json({
           userData: {
             username: user.username,
@@ -109,12 +107,10 @@ export async function editUser(req, res) {
 }
 
 export async function deleteUser(req, res) {
-  // console.log(req.body);
   if (req.user.id !== req.params.uid) throw new ExpressError("Forbidden", 403);
 
   const user = await User.findById(req.user.id);
 
-  // console.log(user);
   const passwordCheck = await bcrypt.compare(req.body.password, user.password);
 
   if (!passwordCheck) throw new ExpressError("INCORRECT PASSWORD", 403);

@@ -118,6 +118,10 @@ async function validateChannel(req, res, next) {
     },
   ]);
 
+  const requesterIsAdmin = result.administrators.some(
+    (administrator) => administrator._id === req.user._id
+  );
+
   if (
     type === "text" &&
     result.channels.text.some((channel) => channel.name === name)
@@ -131,6 +135,12 @@ async function validateChannel(req, res, next) {
   ) {
     return next(
       new ExpressError("There is already a channel by that name", 400)
+    );
+  }
+
+  if (!requesterIsAdmin) {
+    return next(
+      new ExpressError("Action can only be completed by administrators", 403)
     );
   }
 

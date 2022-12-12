@@ -25,7 +25,7 @@ function ChannelBadge(props) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDialogue, setShowDialogue] = useState(false);
 
-  const { setGroupData, setChatData, dataHelpers } = useContext(DataContext);
+  const { setGroupData, dataHelpers } = useContext(DataContext);
 
   const { selectedGroup, selectedChannel, setSelectedChannel } =
     useContext(UiContext);
@@ -68,20 +68,21 @@ function ChannelBadge(props) {
         .delete(props.data._id)
         .then((res) => {
           setGroupData((prevData) => {
-            const dataCopy = [...prevData];
+            const dataCopy = { ...prevData };
             const channelIndex = dataHelpers.getChannelIndex(
               res.data.groupId,
               res.data.channelId
             );
-            dataCopy[props.groupIndex].channels.text.splice(channelIndex, 1);
+            dataCopy[res.data.groupId].channels.text.splice(channelIndex, 1);
+            delete dataCopy[res.data.groupId].chatData[res.data.channelId];
             return dataCopy;
           });
 
-          setChatData((prevData) => {
-            const dataCopy = { ...prevData };
-            delete dataCopy[res.data.groupId][res.data.channelId];
-            return dataCopy;
-          });
+          // setChatData((prevData) => {
+          //   const dataCopy = { ...prevData };
+          //   delete dataCopy[res.data.groupId][res.data.channelId];
+          //   return dataCopy;
+          // });
 
           pushFlashMessage(res.data.messages);
           navigate(`/g/${selectedGroup.name}`);
@@ -104,12 +105,12 @@ function ChannelBadge(props) {
       .edit(props.data._id, channelData)
       .then((res) => {
         setGroupData((currData) => {
-          const dataCopy = [...currData];
+          const dataCopy = { ...currData };
           const channelIndex = dataHelpers.getChannelIndex(
             selectedGroup.id,
             res.data.channelData._id
           );
-          dataCopy[props.groupIndex].channels.text[channelIndex] =
+          dataCopy[res.data.groupId].channels.text[channelIndex] =
             res.data.channelData;
           return dataCopy;
         });

@@ -11,7 +11,6 @@ import ChannelBadge from "../components/channels/ChannelBadge";
 import MemberStatusBadge from "../components/channels/MemberStatusBadge";
 
 // utility hooks
-// import useLocalFallback from "./localFallback";
 import useSocket from "./socket";
 
 export function GroupStack() {
@@ -20,15 +19,9 @@ export function GroupStack() {
 
   const { group: groupParam } = useParams();
 
-  //   const { updateStored } = useLocalFallback();
-
   function groupChangeHandler(groupId) {
-    // console.log(groupData[groupId]);
     setSelectedGroup(groupData[groupId]);
     setSelectedChannel(null);
-    // console.log(localFallback);
-    // localFallback.update.lastGroup();
-    // updateStored.all();
   }
 
   const groupStack = [];
@@ -60,32 +53,19 @@ export function ChannelStack() {
   } = useContext(UiContext);
 
   const thisGroup = groupData[selectedGroup._id];
-  // const { channel: channelParam } = useParams();
 
-  //   function channelChangeHandler(channel) {
-  //     if (!channel) setSelectedChannel(null);
-  //     else setSelectedChannel(channel);
-  //   }
-
-  const channelStack = [];
-
-  //   console.log(selectedGroup);
-
-  //   for (const channel of selectedGroup.channels.text) {
   const isAdmin = thisGroup.administrators.some(
     (admin) => admin._id === localStorage.userId
   );
 
+  const channelStack = [];
+
   thisGroup.channels.text.forEach((channel) => {
     const selected = selectedChannel?.name === channel.name ? true : false;
-
-    // console.log(channel);
-    // console.log(channel.administrators);
 
     channelStack.push(
       <ChannelBadge
         data={channel}
-        // groupIndex={groupIndex}
         selected={selected}
         type="text"
         key={channel._id}
@@ -94,22 +74,6 @@ export function ChannelStack() {
       />
     );
   });
-  //   }
-
-  //   groupData[groupIndex].channels.text.map((channel) => {
-
-  //     return (
-  //       <ChannelBadge
-  //         data={channel}
-  //         groupIndex={groupIndex}
-  //         selected={selected}
-  //         type="text"
-  //         key={channel._id}
-  //         onClick={channelChangeHandler}
-  //         isAdmin={isAdmin}
-  //       />
-  //     );
-  //   });
 
   return channelStack;
 }
@@ -138,26 +102,12 @@ export function MemberStack() {
 // renders every cluster in the current chat
 export function ChatStack(params) {
   const { groupData } = useContext(DataContext);
-
-  //   const { target, actions } = params;
-  //   const { groupId, channelId } = target;
-  //   const { sendMessage, appendMessage } = actions;
-  //   const { Sender, Message } = components;
-
-  const {
-    //   setSelectedGroup,
-    //   setSelectedChannel,
-    selectedGroup,
-    selectedChannel,
-  } = useContext(UiContext);
+  const { selectedGroup, selectedChannel } = useContext(UiContext);
 
   const { sendMessage, appendMessage } = useSocket();
 
   const thisGroup = groupData[selectedGroup._id];
 
-  //   const { groupData } = useContext(DataContext);
-
-  //   const group = selectedGroup;
   const chatData = thisGroup.chatData[selectedChannel._id];
 
   const clusterStack = [];
@@ -216,7 +166,6 @@ export function ChatStack(params) {
   }
 
   chatData.forEach((cluster) => {
-    // console.log(cluster);
     clusterStack.push(
       <Sender
         sender={cluster.sender}

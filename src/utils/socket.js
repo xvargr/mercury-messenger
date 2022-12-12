@@ -4,7 +4,7 @@ import { DataContext } from "../components/context/DataContext";
 import { SocketContext } from "../components/context/SocketContext";
 
 export default function useSocket() {
-  const { chatData, setChatData } = useContext(DataContext);
+  const { groupData, setGroupData } = useContext(DataContext);
   const { socket } = useContext(SocketContext);
   const TIMEOUT = 7000;
 
@@ -24,64 +24,71 @@ export default function useSocket() {
     };
 
     // push unsaved, non-failed cluster to message stack, failed messages property gets reset to null on retry
-    setChatData((prevStack) => {
+    setGroupData((prevStack) => {
       const dataCopy = { ...prevStack };
+      const stackCopy = [...dataCopy[target.group].chatData[target.channel]];
 
-      if (!failed) dataCopy[target.group][target.channel].push(pendingCluster);
+      if (!failed) stackCopy.push(pendingCluster);
       else {
-        const clusterIndex = dataCopy[target.group][target.channel].findIndex(
+        const clusterIndex = stackCopy.findIndex(
           (cluster) => cluster.clusterTimestamp === message.timestamp
         );
 
-        dataCopy[target.group][target.channel][clusterIndex].content[0].failed =
-          null;
+        stackCopy[clusterIndex].content[0].failed = null;
       }
+
+      dataCopy[target.group].chatData[target.channel] = stackCopy;
 
       return dataCopy;
     });
 
     function genesisAcknowledged(res) {
-      setChatData((prevStack) => {
+      setGroupData((prevStack) => {
         // setState expression is used to access the latest pending state before rerender
         // spread so that the values instead of the pointer is referenced by the new variable
         // else state will see no change since the pointer doesn't change even if the values did
         // make a copy of the whole chatData and the specific chat being modified
         const dataCopy = { ...prevStack };
-        const stackCopy = [...prevStack[res.target.group][res.target.channel]];
+        const stackCopy = [
+          ...dataCopy[res.target.group].chatData[res.target.channel],
+        ];
 
-        const index = stackCopy.findIndex(
+        const clusterIndex = stackCopy.findIndex(
           (message) => message.clusterTimestamp === res.data.clusterTimestamp
         );
 
-        const contentCopy =
-          dataCopy[res.target.group][res.target.channel][index].content;
+        const contentCopy = stackCopy[clusterIndex].content;
 
         contentCopy[0] = res.data.content[0];
 
-        dataCopy[res.target.group][res.target.channel][index] = res.data;
-        dataCopy[res.target.group][res.target.channel][index].content =
-          contentCopy;
+        // copy and move previous content with acknowledged content added
+        stackCopy[clusterIndex] = res.data;
+        stackCopy[clusterIndex].content = contentCopy;
+
+        dataCopy[res.target.group].chatData[res.target.channel] = stackCopy;
 
         return dataCopy;
       });
     }
 
     function genesisTimedOut() {
-      setChatData((prevStack) => {
+      setGroupData((prevStack) => {
         const dataCopy = { ...prevStack };
-        const stackCopy = [...prevStack[target.group][target.channel]];
+        const stackCopy = [...dataCopy[target.group].chatData[target.channel]];
 
-        const index = stackCopy.findIndex(
+        const clusterIndex = stackCopy.findIndex(
           (message) =>
             message.clusterTimestamp === pendingCluster.clusterTimestamp
         );
 
-        dataCopy[target.group][target.channel][index].content[0].failed = {
+        stackCopy[clusterIndex].content[0].failed = {
           // was just setting {failed = res} here, that results in a circular reference that fails json.stringify in emit method
           message: { ...message },
           target: { ...target },
           status: true,
         };
+
+        dataCopy[target.group].chatData[target.channel] = stackCopy;
 
         return dataCopy;
       });
@@ -117,11 +124,11 @@ export default function useSocket() {
     // find the index of the parent to be append locally,
     let clusterIndex;
     if (appendObject.target.cluster.id) {
-      clusterIndex = chatData[target.group][target.channel].findIndex(
+      clusterIndex = groupData[target.group].chatData[target.channel].findIndex(
         (cluster) => cluster._id === appendObject.target.cluster.id
       );
     } else {
-      clusterIndex = chatData[target.group][target.channel].findIndex(
+      clusterIndex = groupData[target.group].chatData[target.channel].findIndex(
         (cluster) =>
           cluster.clusterTimestamp === appendObject.target.cluster.timestamp
       );
@@ -131,9 +138,10 @@ export default function useSocket() {
     let pendingIndex;
     if (!failed) {
       pendingIndex =
-        chatData[target.group][target.channel][clusterIndex].content.length;
+        groupData[target.group].chatData[target.channel][clusterIndex].content
+          .length;
     } else {
-      pendingIndex = chatData[target.group][target.channel][
+      pendingIndex = groupData[target.group].chatData[target.channel][
         clusterIndex
       ].content.findIndex((content) => content.timestamp === message.timestamp);
     }
@@ -141,17 +149,18 @@ export default function useSocket() {
     appendObject.target.index = pendingIndex; // index of message in cluster for backend parity
 
     // update local data with temporary data, if is a retry, reset failed property
-    setChatData((prevStack) => {
+    setGroupData((prevStack) => {
       const dataCopy = { ...prevStack };
 
       if (!failed) {
         const updatedCluster =
-          dataCopy[target.group][target.channel][clusterIndex];
+          dataCopy[target.group].chatData[target.channel][clusterIndex];
         updatedCluster.content.push(message);
 
-        dataCopy[target.group][target.channel][clusterIndex] = updatedCluster;
+        dataCopy[target.group].chatData[target.channel][clusterIndex] =
+          updatedCluster;
       } else {
-        dataCopy[target.group][target.channel][clusterIndex].content[
+        dataCopy[target.group].chatData[target.channel][clusterIndex].content[
           pendingIndex
         ].failed = null;
       }
@@ -160,39 +169,41 @@ export default function useSocket() {
     });
 
     function appendAcknowledged(res) {
-      setChatData((prevStack) => {
+      setGroupData((prevStack) => {
         const dataCopy = { ...prevStack };
-        const stackCopy = [...prevStack[res.target.group][res.target.channel]];
+        const stackCopy = [
+          ...prevStack[res.target.group].chatData[res.target.channel],
+        ];
 
         const clusterIndex = stackCopy.findIndex(
           (cluster) => cluster.id === res.target.cluster.id
         );
 
         // find pending message
-        let messageIndex = stackCopy[clusterIndex].content.findIndex(
+        const messageIndex = stackCopy[clusterIndex].content.findIndex(
           (message) =>
             message.timestamp === (res.err ? res.err : res.data.timestamp)
         ); // index always 0 because ternary and operator precedence, use parentheses to eval right side first
 
-        dataCopy[res.target.group][res.target.channel][clusterIndex].content[
-          messageIndex
-        ] = res.data;
+        dataCopy[res.target.group].chatData[res.target.channel][
+          clusterIndex
+        ].content[messageIndex] = res.data;
 
         return dataCopy;
       });
     }
 
     function appendTimedOut() {
-      setChatData((prevStack) => {
+      setGroupData((prevStack) => {
         const dataCopy = { ...prevStack };
-        const stackCopy = [...prevStack[target.group][target.channel]];
+        const stackCopy = [...prevStack[target.group].chatData[target.channel]];
 
         const clusterIndex = stackCopy.findIndex(
           (cluster) =>
             cluster.clusterTimestamp === appendObject.target.cluster.timestamp
         );
 
-        dataCopy[target.group][target.channel][clusterIndex].content[
+        dataCopy[target.group].chatData[target.channel][clusterIndex].content[
           appendObject.target.index
         ].failed = {
           message: { ...message },
@@ -214,11 +225,13 @@ export default function useSocket() {
 
   function fetchMore(fetchParams) {
     function fetchReceived(res) {
-      setChatData((prevStack) => {
+      setGroupData((prevStack) => {
         const dataCopy = { ...prevStack };
-        const stackCopy = [...prevStack[res.target.group][res.target.channel]];
+        const stackCopy = [
+          ...prevStack[res.target.group].chatData[res.target.channel],
+        ];
 
-        dataCopy[res.target.group][res.target.channel] = [
+        dataCopy[res.target.group].chatData[res.target.channel] = [
           ...res.data,
           ...stackCopy,
         ];
