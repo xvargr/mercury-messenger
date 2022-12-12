@@ -18,7 +18,7 @@ import { SkeletonMemberOptions } from "../components/ui/SkeletonLoaders";
 import axiosInstance from "../utils/axios";
 
 function GroupSettingsPage() {
-  const { selectedGroup, setSelectedGroup } = useContext(UiContext);
+  const { selectedGroup, setSelectedGroup, isAdmin } = useContext(UiContext);
   const { dataHelpers } = useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -35,27 +35,13 @@ function GroupSettingsPage() {
   const navigate = useNavigate();
   const { userGroups } = axiosInstance();
 
-  // ! reroute on unauthorized move to main??
-  // useEffect(() => {
-  //   if (
-  //     dataReady &&
-  //     !selectedGroup?.administrators.some(
-  //       (administrator) => administrator._id === localStorage.userId
-  //     )
-  //   ) {
-  //     pushFlashMessage([{ message: "Unauthorized", type: "error" }]);
-  //     navigate(`/g/${selectedGroup.name}`);
-  //   } else if (selectedGroup) {
-  //     setFormData((prevData) => {
-  //       return {
-  //         ...prevData,
-  //         name: selectedGroup.name,
-  //         image: null,
-  //       };
-  //     });
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedGroup]);
+  useEffect(() => {
+    if (!isAdmin()) {
+      pushFlashMessage([{ message: "Access denied", type: "error" }]);
+      navigate("/");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGroup]);
 
   const updateForm = {
     name() {

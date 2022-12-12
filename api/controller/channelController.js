@@ -70,6 +70,7 @@ export async function editChannel(req, res) {
 
   res.json({
     channelData: channel,
+    groupId: group._id,
     messages: [{ message: "Successfully edited channel", type: "success" }],
   });
 }

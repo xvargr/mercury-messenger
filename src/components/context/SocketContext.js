@@ -1,5 +1,5 @@
 import { useState, createContext, useContext, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
 import { FlashContext } from "./FlashContext";
@@ -8,21 +8,15 @@ import { UiContext } from "./UiContext";
 
 // utility hooks
 import axiosInstance from "../../utils/axios";
-import useLocalFallback from "../../utils/localFallback";
 
 export const SocketContext = createContext();
 
 export function SocketStateProvider(props) {
   const [socket, setSocket] = useState(null);
   const [socketIsConnected, setSocketIsConnected] = useState(false);
-
   const { pushFlashMessage } = useContext(FlashContext);
 
-  const { retrieveStored, updateStored } = useLocalFallback();
-
   const {
-    // setChatMounted,
-    // setChatData,
     setGroupData,
     dataMounted,
     setDataMounted,
@@ -30,6 +24,7 @@ export function SocketStateProvider(props) {
     setPeerData,
     dataHelpers,
     isLoggedIn,
+    setIsLoggedIn,
   } = useContext(DataContext);
 
   const {
@@ -40,8 +35,6 @@ export function SocketStateProvider(props) {
     setSelectedGroup,
     clearSelected,
   } = useContext(UiContext);
-
-  const { group: groupParam, channel: channelParam } = useParams();
 
   const { userGroups } = axiosInstance();
 
@@ -63,10 +56,6 @@ export function SocketStateProvider(props) {
       })
     );
   }
-
-  // function disconnectSocket() {
-  //   socket?.disconnect();
-  // }
 
   // initial connection
   useEffect(() => {
@@ -91,7 +80,7 @@ export function SocketStateProvider(props) {
   if (socket && !socket?._callbacks) {
     socket.on("connect", function (/*don't redefine socket here*/) {
       // "connect" not "connected"
-      // console.log(`connected to socketio as ${socket.id}`);
+      console.log(`connected to socketio as ${socket.id}`);
 
       userGroups
         .fetch()
@@ -99,34 +88,6 @@ export function SocketStateProvider(props) {
           const groupData = res.data;
           setGroupData(() => groupData);
           setDataMounted(true);
-
-          // ! responsible for refresh preservation
-          if (groupParam) {
-            const currentGroup = groupData[retrieveStored.groupId];
-            if (!currentGroup) {
-              pushFlashMessage([
-                { message: "Group does not exist", type: "error" },
-              ]);
-              setSelectedGroup(null);
-              setSelectedChannel(null);
-              updateStored.all();
-            } else setSelectedGroup(() => currentGroup);
-
-            if (channelParam) {
-              const currentChannel =
-                groupData[retrieveStored.groupId].channels.text[
-                  retrieveStored.channelId
-                ];
-              if (!currentChannel) {
-                pushFlashMessage([
-                  { message: "Channel does not exist", type: "error" },
-                ]);
-                setSelectedChannel(null);
-                updateStored.channel();
-                navigate(`/g/${setSelectedGroup.name}`);
-              } else setSelectedChannel(() => currentChannel);
-            }
-          }
         })
         .catch((e) => e); // axios abort throws error unless it's caught here
 
@@ -135,6 +96,10 @@ export function SocketStateProvider(props) {
 
     socket.on("connect_error", (err) => {
       // console.log("iooooo"); // todo set error already connected, force connection here
+      console.dir(err);
+      if (err.data.code === 401) {
+        setIsLoggedIn(false);
+      }
       setSocketIsConnected(false);
     });
 
@@ -149,10 +114,6 @@ export function SocketStateProvider(props) {
         mount.chat(res.chatData);
         setPeerData(res.peerData);
       }
-
-      // setChatData(res.chatData);
-      // setPeerData(res.peerData);
-      // setChatMounted(true);
     });
 
     socket.on("newMessage", function (res) {
@@ -163,11 +124,15 @@ export function SocketStateProvider(props) {
         notification.play();
       }
 
-      // setChatData((prevData) => {
-      //   const dataCopy = { ...prevData };
-      //   dataCopy[res.group._id][res.channel._id].push(res);
-      //   return dataCopy;
-      // });
+      setGroupData((prevData) => {
+        const dataCopy = { ...prevData };
+
+        console.log("res", res);
+        console.log("dataCopy", dataCopy);
+
+        dataCopy[res.group._id].chatData[res.channel._id].push(res);
+        return dataCopy;
+      });
     });
 
     socket.on("appendMessage", function (res) {
@@ -178,20 +143,21 @@ export function SocketStateProvider(props) {
         notification.play();
       }
 
-      // setChatData((prevStack) => {
-      //   const dataCopy = { ...prevStack };
-      //   const stackCopy = dataCopy[res.target.group][res.target.channel];
+      setGroupData((prevStack) => {
+        const dataCopy = { ...prevStack };
+        const stackCopy =
+          dataCopy[res.target.group].chatData[res.target.channel];
 
-      //   const clusterIndex = stackCopy.findIndex(
-      //     (cluster) => cluster._id === res.target.cluster.id
-      //   );
+        const clusterIndex = stackCopy.findIndex(
+          (cluster) => cluster._id === res.target.cluster.id
+        );
 
-      //   // update stack to contain verified message
-      //   stackCopy[clusterIndex].content[res.target.index] = res.data;
-      //   dataCopy[res.target.group][res.target.channel] = stackCopy;
+        // update stack to contain verified message
+        stackCopy[clusterIndex].content[res.target.index] = res.data;
+        dataCopy[res.target.group].chatData[res.target.channel] = stackCopy;
 
-      //   return dataCopy;
-      // });
+        return dataCopy;
+      });
     });
 
     socket.on("structureChange", function (res) {
@@ -202,29 +168,23 @@ export function SocketStateProvider(props) {
 
       function createChannel() {
         setGroupData((currentData) => {
-          const dataCopy = [...currentData];
-          const parentIndex = dataHelpers.getGroupIndex(target.parent);
+          const dataCopy = { ...currentData };
 
-          dataCopy[parentIndex].channels.text.push(change.data);
+          dataCopy[target.parent].channels.text.push(change.data);
+          dataCopy[target.parent].chatData[target.id] = [];
           return dataCopy;
         });
-
-        // setChatData((currentData) => {
-        //   const dataCopy = { ...currentData };
-        //   dataCopy[target.parent][target.id] = [];
-        //   return dataCopy;
-        // });
       }
 
       function editChannel() {
         setGroupData((currentData) => {
-          const dataCopy = [...currentData];
-          const parentIndex = dataHelpers.getGroupIndex(target.parent);
+          const dataCopy = { ...currentData };
           const channelIndex = dataHelpers.getChannelIndex(
             target.parent,
             target.id
           );
-          dataCopy[parentIndex].channels.text[channelIndex] = change.data;
+
+          dataCopy[target.parent].channels.text[channelIndex] = change.data;
           return dataCopy;
         });
 
@@ -235,23 +195,16 @@ export function SocketStateProvider(props) {
       }
 
       function deleteChannel() {
-        // setChatData((currentData) => {
-        //   const dataCopy = { ...currentData };
-        //   delete dataCopy[target.parent][target.id];
-        //   return dataCopy;
-        // });
-
         setGroupData((currentData) => {
-          const dataCopy = [...currentData];
-          const parentIndex = dataHelpers.getGroupIndex(
-            target.parent ?? target.id
-          );
+          const dataCopy = { ...currentData };
           const channelIndex = dataHelpers.getChannelIndex(
             target.parent,
             target.id
           );
 
-          dataCopy[parentIndex].channels.text.splice(channelIndex, 1);
+          dataCopy[target.parent].channels.text.splice(channelIndex, 1);
+          delete dataCopy[target.parent].chatData[target.id];
+
           return dataCopy;
         });
 
@@ -263,28 +216,26 @@ export function SocketStateProvider(props) {
 
       function createGroup() {
         setGroupData((currentData) => {
-          const dataCopy = [...currentData];
+          const dataCopy = { ...currentData };
           dataCopy.push(change.data);
+          dataCopy[target.parent].chatData[target.id] = [];
           return dataCopy;
         });
-
-        // setChatData((currentData) => {
-        //   const dataCopy = { ...currentData };
-        //   dataCopy[target.parent] = {};
-        //   dataCopy[target.parent][target.id] = [];
-        //   return dataCopy;
-        // });
       }
 
       function editGroup() {
         const isKicked = change.extra?.toKick?.includes(localStorage.userId);
 
         setGroupData((currentData) => {
-          const dataCopy = [...currentData];
-          const groupIndex = dataHelpers.getGroupIndex(target.id);
+          const dataCopy = { ...currentData };
 
-          if (isKicked) dataCopy.splice(groupIndex, 1);
-          else dataCopy[groupIndex] = change.data;
+          if (isKicked) delete dataCopy[target.id];
+          else {
+            // move old chat to new group
+            const chatCopy = dataCopy[target.id].chatData;
+            dataCopy[target.id] = change.data;
+            dataCopy[target.id].chatData = chatCopy;
+          }
 
           return dataCopy;
         });
@@ -310,16 +261,9 @@ export function SocketStateProvider(props) {
       }
 
       function deleteGroup() {
-        // setChatData((currentData) => {
-        //   const dataCopy = { ...currentData };
-        //   delete dataCopy[target.id];
-        //   return dataCopy;
-        // });
-
         setGroupData((currentData) => {
-          const dataCopy = [...currentData];
-          const groupIndex = dataHelpers.getGroupIndex(target.id);
-          dataCopy.splice(groupIndex, 1);
+          const dataCopy = { ...currentData };
+          delete dataCopy[target.id];
           return dataCopy;
         });
 
@@ -331,24 +275,22 @@ export function SocketStateProvider(props) {
 
       function joinedGroup() {
         setGroupData((currentData) => {
-          const dataCopy = [...currentData];
-          const groupIndex = dataHelpers.getGroupIndex(target.id);
-          dataCopy[groupIndex].members.push(change.extra.user);
+          const dataCopy = { ...currentData };
+          dataCopy[target.id].members.push(change.extra.user);
           return dataCopy;
         });
       }
 
       function leftGroup(params) {
         setGroupData((currentData) => {
-          const dataCopy = [...currentData];
-          const groupIndex = dataHelpers.getGroupIndex(target.id);
+          const dataCopy = { ...currentData };
 
-          dataCopy[groupIndex].members = dataCopy[groupIndex].members.filter(
+          dataCopy[target.id].members = dataCopy[target.id].members.filter(
             (member) => member._id !== change.extra.userId
           );
 
-          dataCopy[groupIndex].administrators = dataCopy[
-            groupIndex
+          dataCopy[target.id].administrators = dataCopy[
+            target.id
           ].members.filter((admin) => admin._id !== change.extra.userId);
 
           return dataCopy;
@@ -378,9 +320,6 @@ export function SocketStateProvider(props) {
       // }
     });
   }
-
-  // todo users online
-  // * see socket.io room events, create delete join leave
 
   const socketInstance = {
     socket,

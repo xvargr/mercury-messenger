@@ -196,7 +196,7 @@ export async function joinWithCode(req, res) {
     },
   ]);
 
-  const chatData = await socketSync.groupEmit({
+  const initData = await socketSync.groupEmit({
     target: { type: "group", id: group._id },
     change: { type: "join", data: group, extra: { user } },
     messages: [
@@ -207,7 +207,8 @@ export async function joinWithCode(req, res) {
   });
 
   res.status(200).json({
-    chatData,
+    chatData: initData.chatData,
+    peerData: initData.peerData,
     joinedGroup: group,
     messages: [{ message: "successfully joined channel", type: "success" }],
   });

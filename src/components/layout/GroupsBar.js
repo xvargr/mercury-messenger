@@ -8,13 +8,10 @@ import { SkeletonGroup } from "../ui/SkeletonLoaders";
 import { GroupStack } from "../../utils/iterableComponents";
 
 // context
-// import { UiContext } from "../context/UiContext";
 import { DataContext } from "../context/DataContext";
 
 export default function GroupsBar() {
-  // const { group } = useParams();
   const { dataReady } = useContext(DataContext);
-  // const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
 
   if (!dataReady) {
     return (

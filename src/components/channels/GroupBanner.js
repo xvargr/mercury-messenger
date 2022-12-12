@@ -17,19 +17,15 @@ function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { pushFlashMessage } = useContext(FlashContext);
   const { dataReady, dataHelpers } = useContext(DataContext);
-  const { selectedGroup, setSelectedChannel, clearSelected } =
+  const { selectedGroup, setSelectedChannel, clearSelected, isAdmin } =
     useContext(UiContext);
   const navigate = useNavigate();
   const { userGroups } = axiosInstance();
 
   let inviteLink;
-  let isAdmin;
+
   if (dataReady && selectedGroup) {
     inviteLink = selectedGroup.inviteLink;
-
-    isAdmin = selectedGroup.administrators.some(
-      (admin) => admin._id === localStorage.userId
-    );
   }
 
   // close dropdown on group change
@@ -97,7 +93,7 @@ function GroupBanner(props) {
     return (
       <div className="w-full px-2 py-4 bg-gray-900 text-gray-400 rounded-b-md shadow-md absolute top-10 flex flex-col justify-center items-center z-10">
         <InviteButton inviteLink={inviteLink} />
-        {isAdmin ? <AdminOptions /> : null}
+        {isAdmin() ? <AdminOptions /> : null}
         <button
           className="w-5/6 mx-4 my-1 px-4 py-1 text-center rounded-lg shadow-md bg-gray-700 hover:bg-gray-600 transition-colors ease-in duration-75"
           onClick={leaveGroup}

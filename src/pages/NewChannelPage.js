@@ -1,17 +1,20 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 // components
 import NewChannelForm from "../components/forms/NewChannelForm";
+
 //context
 import { UiContext } from "../components/context/UiContext";
 import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
+
 // utility hooks
 import axiosInstance from "../utils/axios";
 
 function NewChannelPage() {
-  const { setGroupData, dataHelpers, setChatData } = useContext(DataContext);
-  const { selectedGroup, setSelectedChannel } = useContext(UiContext);
+  const { setGroupData } = useContext(DataContext);
+  const { selectedGroup, setSelectedChannel, isAdmin } = useContext(UiContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const [axiosErr, setAxiosErr] = useState({
     message: null,
@@ -20,6 +23,15 @@ function NewChannelPage() {
   const { userChannels } = axiosInstance();
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isAdmin()) {
+      pushFlashMessage([{ message: "Access denied", type: "error" }]);
+      navigate("/");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGroup]);
+
   function newChannelHandler(channelObject) {
     let newChannelData = new FormData();
     newChannelData.append("group", channelObject.group);
@@ -32,15 +44,10 @@ function NewChannelPage() {
         setSelectedChannel(null);
 
         setGroupData((prevData) => {
-          const dataCopy = [...prevData];
-          const groupIndex = dataHelpers.getGroupIndex(res.data.groupId);
-          dataCopy[groupIndex].channels.text.push(res.data.channelData);
-          return dataCopy;
-        });
+          const dataCopy = { ...prevData };
 
-        setChatData((currData) => {
-          const dataCopy = { ...currData };
-          dataCopy[res.data.groupId][res.data.channelData._id] = [];
+          dataCopy[res.data.groupId].channels.text.push(res.data.channelData);
+          dataCopy[res.data.groupId].chatData[res.data.channelData._id] = [];
           return dataCopy;
         });
 
@@ -48,7 +55,6 @@ function NewChannelPage() {
         navigate(`/g/${selectedGroup.name}`);
       })
       .catch((err) => {
-        // pushFlashMessage(err.response.data.messages);
         setAxiosErr({
           message: err.response.data.messages[0].message,
           status: err.response.status,

@@ -4,8 +4,6 @@ import { XIcon, CheckIcon } from "@heroicons/react/outline";
 import InputBox from "./InputBox";
 import Dots from "../ui/Dots";
 
-// import { SocketContext } from "../context/SocketContext";
-
 const spinnerSvg = (
   <svg
     className="animate-spin h-6 w-6 text-gray-300"
@@ -83,7 +81,6 @@ export function DeleteUserModal(props) {
 
 export function ReconnectingModal(params) {
   const { isReconnecting } = params;
-  // const { socketIsConnected, socket } = useContext(SocketContext);
   const [transform, setTransform] = useState("-translate-y-12");
   const [opacity, setOpacity] = useState("-translate-y-12");
 

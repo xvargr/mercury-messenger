@@ -23,7 +23,7 @@ import useStateRestore from "../utils/restoreState";
 
 function MainWindow() {
   const navigate = useNavigate();
-  const { socketIsConnected, disconnectSocket } = useContext(SocketContext);
+  const { socketIsConnected, socket } = useContext(SocketContext);
   const { setWindowIsFocused } = useContext(UiContext);
   const { dataReady, isLoggedIn, setIsLoggedIn } = useContext(DataContext);
   const { flashMessages, setFlashMessages } = useContext(FlashContext);
@@ -34,35 +34,12 @@ function MainWindow() {
 
   // redirect to login if not logged in
   useEffect(() => {
-    if (!isLoggedIn && !localStorage.username) navigate("/login");
+    if (!localStorage.username) navigate("/login");
+    else if (socket && !isLoggedIn) navigate("/login");
     else setIsLoggedIn(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   });
 
-  // // force disconnect socket on refresh, without this, sometimes socket is still marked connected after refresh and will infinitely wait for reconnection
-  // useEffect(() => {
-  //   window.onbeforeunload = function () {
-  //     disconnectSocket();
-  //   };
-
-  //   return () => {
-  //     window.onbeforeunload = null;
-  //   };
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
-
-  // ! store last grp/ch in local? load them back here?
-  // useEffect(() => {
-  //         // localStorage.setItem("lastGroup", groupObject._id);
-
-  //         // localStorage.setItem("lastChannel", channelObject._id);
-
-  //   // return () => {
-  //   //   second
-  //   // }
-  // }, [selectedGroup, selectedChannel])
-
-  // load flash messages if any
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // if the local message stack is not the same as in context, move it
