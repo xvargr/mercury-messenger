@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useInView } from "react-intersection-observer";
 
 // components
@@ -8,7 +8,7 @@ import ChannelBanner from "../chat/ChatBanner";
 // import Sender from "../chat/SenderWrapper";
 // import Message from "../chat/Message";
 import GoToBottomButton from "../chat/GoToBottomButton";
-// import Dots from "../ui/Dots";
+import Dots from "../ui/Dots";
 
 // context
 import { DataContext } from "../context/DataContext";
@@ -23,13 +23,13 @@ function ChatWindow() {
   const { channel } = useParams();
 
   // context
-  const { dataReady, chatData, dataHelpers } = useContext(DataContext);
-  const { selectedGroup, selectedChannel, setSelectedChannel } =
-    useContext(UiContext);
+  const { dataReady, chatMounted, chatData, dataHelpers } =
+    useContext(DataContext);
+  const { selectedGroup, selectedChannel } = useContext(UiContext);
 
   // states
   const [lastUpdate, setLastUpdate] = useState(Date.now());
-  const [topIntersected, setTopIntersected] = useState(false);
+  // const [topIntersected, setTopIntersected] = useState(false);
 
   // refs
   const topOfPageRef = useRef(null);
@@ -47,50 +47,19 @@ function ChatWindow() {
 
   // misc
   const { sendMessage, appendMessage, fetchMore } = useSocket();
-  const navigate = useNavigate();
 
-  // stores the chat stack, used to detect changes in this chat specifically
-  // const thisChatStack = useMemo(() => {
-  //   return chatMounted && selectedGroup && selectedChannel
-  //     ? dataHelpers.renderChatStack({
-  //         target: {
-  //           groupId: selectedGroup._id,
-  //           channelId: selectedChannel._id,
-  //         },
-  //         actions: { sendMessage, appendMessage },
-  //         components: { Sender, Message },
-  //       })
-  //     : null;
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [chatMounted, chatData, selectedGroup, selectedChannel]);
+  const memoizedSkeleton = useMemo(() => <ChatSkeletonLoader count={15} />, []);
 
-  // preserve selected channel on refresh
-  // const channelFound = useMemo(() => {
-  //   const groupIndex =
-  //     groupData && selectedGroup
-  //       ? dataHelpers.getGroupIndex(selectedGroup._id)
-  //       : null;
-
-  //   if (groupData && groupIndex !== null && groupIndex >= 0) {
-  //     return groupData[groupIndex].channels.text.find(
-  //       (grp) => grp.name === channel
-  //     );
-  //   } else return null;
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [channel, groupData, selectedGroup]);
-
-  // ! A bit messy with this many useEffects
-
-  // redirect and refresh position preservation
-  // useEffect(() => {
-  //   if (dataReady && selectedGroup) {
-  //     if (channelFound === undefined) navigate("/404");
-  //     else if (channelFound) setSelectedChannel(channelFound);
-  //     else if (!selectedGroup) navigate("/");
-  //   }
-  //   return () => setTopIntersected(false);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [dataReady, chatMounted, channelFound]);
+  useEffect(() => {
+    // console.log(chatWindowRef.current);
+    if (chatWindowRef.current) {
+      console.log("LLLLLLLLLL");
+      // chatWindowRef.current?.scrollHeight = 0
+      const chatWindow = document.querySelector("#chatWindow");
+      console.log(chatWindow);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+  }, [dataReady]);
 
   // scroll to bottom on every new message if already latched to the bottom,
   function goToBottom() {
@@ -100,6 +69,7 @@ function ChatWindow() {
       inline: "start",
     });
   }
+
   // useEffect(() => {
   //   if (bottomOfPageRef.current && bottomOfPageIsVisible) goToBottom();
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -117,13 +87,15 @@ function ChatWindow() {
 
   // fetch more messages on scroll hit top of page, scroll to bottom on first load
   useEffect(() => {
-    if (topOfPageIsVisible && topIntersected) {
+    if (topOfPageIsVisible) {
       console.log("fetching");
-      fetchMore({
-        target: { group: selectedGroup._id, channel: selectedChannel._id },
-        last: chatData[selectedGroup._id][selectedChannel._id][0]
-          .clusterTimestamp,
-      });
+
+      // ! timer before fetch?
+      // fetchMore({
+      //   target: { group: selectedGroup._id, channel: selectedChannel._id },
+      //   last: chatData[selectedGroup._id][selectedChannel._id][0]
+      //     .clusterTimestamp,
+      // });
     }
     // else if (chatMounted && !topIntersected) { // !!!! WHYYYY
     //   setTopIntersected(true);
@@ -131,13 +103,6 @@ function ChatWindow() {
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topOfPageIsVisible]);
-
-  // useEffect(() => {
-  //   if (bottomOfPageRef?.current) {
-  //     setTopIntersected(true);
-  //     goToBottom();
-  //   }
-  // }, [chatMounted]);
 
   function sendOut(sendObj) {
     if (dataReady) {
@@ -165,7 +130,7 @@ function ChatWindow() {
   function handleScroll() {
     function setPositionOnTimeout() {
       scrollTimerRef.current = setTimeout(() => {
-        console.log("scroll pos set");
+        // console.log("scroll pos set");
         // console.log(window.innerHeight);
         // console.log(documen);
         // console.dir(chatWindowRef.current);
@@ -200,24 +165,17 @@ function ChatWindow() {
     }
   }
 
-  // console.log(selectedChannel);
-
-  // if (!dataReady || !chatMounted || !selectedChannel) {
-  if (!selectedChannel) {
+  if (!dataReady || !chatMounted) {
     return (
       <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
         <ChannelBanner name={channel} />
 
         <div className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth">
-          <ChatSkeletonLoader count={15} />
-
-          <ChatInputBox return={null} />
+          {memoizedSkeleton}
         </div>
       </section>
     );
   } else {
-    // dataHelpers.getGroupDataFromId(selectedGroup._id);
-    // dataHelpers.getChannelDataFromId(selectedChannel._id);
     return (
       <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
         {/* // firefox does not respect flex shrink without width min 0 ! */}
@@ -226,28 +184,21 @@ function ChatWindow() {
 
         <div
           className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth"
+          id="chatWindow"
           onScroll={() => handleScroll()}
-          // onWheel={() => console.log("wheeling")}
           ref={chatWindowRef}
         >
-          {/* {thisChatStack.length > 0 ? (
-            <div
-              className="w-full h-20 flex justify-center items-center"
-              ref={(el) => {
-                topOfPageRef.current = el;
-                topVisibleRef(el);
-              }}
-            >
-              <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-500" />
-            </div>
-          ) : null} */}
-          {
-            // ! loader
-          }
+          <div
+            className="w-full h-20 flex justify-center items-center"
+            ref={(el) => {
+              topOfPageRef.current = el;
+              topVisibleRef(el);
+            }}
+          >
+            <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-500" />
+          </div>
 
           <ChatStack />
-
-          {/* {thisChatStack} */}
 
           <GoToBottomButton
             visible={bottomOfPageIsVisible}

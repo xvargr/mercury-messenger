@@ -1,5 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
 
+// context
+import { SocketContext } from "../context/SocketContext";
+
+// components
 import { XIcon, CheckIcon } from "@heroicons/react/outline";
 import InputBox from "./InputBox";
 import Dots from "../ui/Dots";
@@ -80,12 +84,14 @@ export function DeleteUserModal(props) {
 }
 
 export function ReconnectingModal(params) {
-  const { isReconnecting } = params;
+  // const { isReconnecting } = params;
   const [transform, setTransform] = useState("-translate-y-12");
   const [opacity, setOpacity] = useState("-translate-y-12");
 
+  const { socket } = useContext(SocketContext);
+
   useEffect(() => {
-    if (isReconnecting) {
+    if (!socket?.connected) {
       setTimeout(() => {
         setTransform("translate-y-0");
         setOpacity("opacity-40");
@@ -96,19 +102,16 @@ export function ReconnectingModal(params) {
         setOpacity("opacity-0 pointer-events-none");
       }, 75);
     }
-  }, [isReconnecting]);
+  }, [socket?.connected]);
 
   return (
     <>
       <div
-        className={`absolute justify-self-center justify-around font-bold bg-gray-500 text-gray-900 h-12 w-2/5 max-w-2xl p-1 rounded-b-md shadow-md transition-transform ease-out transform ${transform} z-50`}
+        className={`absolute justify-self-center justify-around font-bold bg-gray-500 text-gray-900 h-12 w-1/3 max-w-lg p-1 rounded-b-md shadow-md transition-transform ease-out transform ${transform} z-50`}
       >
-        <span className="h-full w-full flex justify-center items-center">
+        <span className="h-full w-full flex justify-center items-center p-1">
           reconnecting
-          {/* {console.log(socketIsConnected)} */}
-          {/* {console.log(socket)} */}
-          {/* {socket.disconnect()} */}
-          <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-700" />
+          <Dots className="flex w-10 justify-around items-center p-0.5 m-2 fill-gray-700" />
         </span>
       </div>
       <div

@@ -13,14 +13,19 @@ export const SocketContext = createContext();
 
 export function SocketStateProvider(props) {
   const [socket, setSocket] = useState(null);
-  const [socketIsConnected, setSocketIsConnected] = useState(false);
+  const [socketStatus, setSocketStatus] = useState({
+    connected: false,
+    message: null,
+    code: null,
+  });
   const { pushFlashMessage } = useContext(FlashContext);
 
   const {
     setGroupData,
+    setChatMounted,
     dataMounted,
     setDataMounted,
-    mount,
+    mountChat,
     setPeerData,
     dataHelpers,
     isLoggedIn,
@@ -59,7 +64,8 @@ export function SocketStateProvider(props) {
 
   // initial connection
   useEffect(() => {
-    if (isLoggedIn && socketIsConnected === false) {
+    if (isLoggedIn && !socketStatus.connected) {
+      console.log("CONNECTING SOCKET");
       connectSocket();
     }
     return () => {
@@ -71,7 +77,7 @@ export function SocketStateProvider(props) {
   function socketClear() {
     if (socket !== null) socket.disconnect();
     setSocket(null);
-    setSocketIsConnected(false);
+    setSocketStatus({ connected: true, message: null, code: null });
   }
 
   // this should only run once to avoid multiple instances of socket event listeners
@@ -91,27 +97,42 @@ export function SocketStateProvider(props) {
         })
         .catch((e) => e); // axios abort throws error unless it's caught here
 
-      setSocketIsConnected(true);
+      setSocketStatus({ connected: true, code: null, message: null });
+    });
+
+    socket.on("disconnect", () => {
+      // setDataMounted(false);
+      setChatMounted(false);
+      setSocketStatus({ connected: false, code: 503, message: null });
     });
 
     socket.on("connect_error", (err) => {
-      // console.log("iooooo"); // todo set error already connected, force connection here
-      console.dir(err);
-      if (err.data.code === 401) {
+      if (err.message === "xhr poll error") {
+        setSocketStatus({
+          connected: false,
+          message: "Server unreachable",
+          code: 503,
+        });
+      } else if (err.data.code === 403) {
+        setSocketStatus({
+          connected: false,
+          message: err.data.message,
+          code: err.data.code,
+        });
+      } else if (err.data.code === 401) {
         setIsLoggedIn(false);
       }
-      setSocketIsConnected(false);
     });
 
     socket.on("initialize", (res) => {
       if (!dataMounted) {
         console.warn("trying to set chat before group is initialized");
         setTimeout(() => {
-          mount.chat(res.chatData);
+          mountChat(res.chatData);
           setPeerData(res.peerData);
         }, 50);
       } else {
-        mount.chat(res.chatData);
+        mountChat(res.chatData);
         setPeerData(res.peerData);
       }
     });
@@ -126,9 +147,6 @@ export function SocketStateProvider(props) {
 
       setGroupData((prevData) => {
         const dataCopy = { ...prevData };
-
-        console.log("res", res);
-        console.log("dataCopy", dataCopy);
 
         dataCopy[res.group._id].chatData[res.channel._id].push(res);
         return dataCopy;
@@ -324,7 +342,7 @@ export function SocketStateProvider(props) {
   const socketInstance = {
     socket,
     connectSocket,
-    socketIsConnected,
+    socketStatus,
     socketClear,
   };
 

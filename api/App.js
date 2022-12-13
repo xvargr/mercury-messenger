@@ -3,11 +3,13 @@ import express from "express";
 import "dotenv/config";
 import mongoose from "mongoose";
 import cors from "cors";
-import passport from "./utils/passportDefine.js";
 import MongoStore from "connect-mongo";
 import session from "express-session";
 import { createServer } from "http";
-import { socketInstance } from "./utils/socket.js";
+
+// utils
+import passport from "./utils/passportDefine.js";
+import socketInstance from "./socket/socket.js";
 
 // models
 import User from "./models/User.js";
