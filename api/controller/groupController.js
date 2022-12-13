@@ -6,7 +6,7 @@ import Channel from "../models/Channel.js";
 
 // utils
 import ExpressError from "../utils/ExpressError.js";
-import { socketSync } from "../utils/socket.js";
+import socketSync from "../socket/socket.js";
 
 export async function fetchGroups(req, res) {
   const result = await Group.find({ members: req.user }).populate([
@@ -27,6 +27,7 @@ export async function fetchGroups(req, res) {
   const groupData = {};
   for (const group of result) {
     groupData[group._id] = group;
+    groupData[group._id].chatData = {};
   }
 
   res.json(groupData);

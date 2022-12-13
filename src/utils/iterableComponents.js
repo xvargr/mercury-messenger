@@ -100,7 +100,7 @@ export function MemberStack() {
 }
 
 // renders every cluster in the current chat
-export function ChatStack(params) {
+export function ChatStack() {
   const { groupData } = useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
 

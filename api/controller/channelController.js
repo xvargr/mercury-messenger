@@ -2,7 +2,7 @@ import Group from "../models/Group.js";
 import Channel from "../models/Channel.js";
 
 import ExpressError from "../utils/ExpressError.js";
-import { socketSync } from "../utils/socket.js";
+import socketSync from "../socket/socket.js";
 
 export async function newChannel(req, res) {
   const parentGroup = await Group.findById({ _id: req.body.group });

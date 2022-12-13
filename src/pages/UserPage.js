@@ -25,23 +25,21 @@ const userForm = {
 
 function UserPage() {
   const navigate = useNavigate();
-  const {
-    setIsLoggedIn,
-    setGroupData,
-    setChatData,
-    setDataMounted,
-    setChatMounted,
-  } = useContext(DataContext);
+  const { setIsLoggedIn, setDataMounted, setChatMounted } =
+    useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const { socketClear } = useContext(SocketContext);
+
   const [inpErr, setInpErr] = useState(true);
   const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
   const [buttonText, setButtonText] = useState("Keep changes");
   const [feedback, setFeedback] = useState("");
   const [passwordFeedback, setPasswordFeedback] = useState(null);
   const [passwordInput, setPasswordInput] = useState("");
+
   const nameInputRef = useRef();
   const colorPreviewRef = useRef();
+
   const { userAccount } = axiosInstance();
 
   useEffect(() => {
@@ -55,8 +53,6 @@ function UserPage() {
         localStorage.clear();
         socketClear();
         setIsLoggedIn(false);
-        setGroupData(null);
-        setChatData(null);
         setDataMounted(false);
         setChatMounted(false);
         navigate("/login");
@@ -79,9 +75,9 @@ function UserPage() {
           localStorage.clear();
           socketClear();
           setIsLoggedIn(false);
-          setGroupData(null);
-          setChatData(null);
+          setIsLoggedIn(false);
           setDataMounted(false);
+          setChatMounted(false);
           navigate("/login");
         })
         .catch((err) =>

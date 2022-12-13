@@ -5,10 +5,11 @@ export const DataContext = createContext(); // use this to access the values her
 // use this to wrap around components that needs to access the values here
 export function DataStateProvider(props) {
   const [groupData, setGroupData] = useState(null);
-  const [initialized, setInitialized] = useState(false);
-  const [peerData, setPeerData] = useState(null);
+  const [peerData, setPeerData] = useState({});
+  // const [initialized, setInitialized] = useState(false);
   const [dataMounted, setDataMounted] = useState(false);
   const [chatMounted, setChatMounted] = useState(false);
+  const [stateRestored, setStateRestored] = useState(false);
   const [dataReady, setDataReady] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -18,25 +19,12 @@ export function DataStateProvider(props) {
     groupDataRef.current = groupData;
   }, [groupData]);
 
+  // set if everything is ready to show
   useEffect(() => {
-    if (dataMounted && chatMounted) setDataReady(true);
+    // console.log(stateRestored);
+    if (dataMounted && chatMounted && stateRestored) setDataReady(true);
     else setDataReady(false);
-  }, [dataMounted, chatMounted]);
-
-  // initialize chat data and peer data structure @ first load
-  if (groupData && !initialized /*&& chatData === null*/) {
-    for (const groupId in groupData) {
-      groupData[groupId].chatData = {};
-      groupData[groupId].channels.text.forEach(
-        (channel) => (groupData[groupId].chatData[channel._id] = [])
-      );
-    }
-
-    const initPeerData = {};
-
-    setPeerData(initPeerData);
-    setInitialized(true);
-  }
+  }, [dataMounted, chatMounted, stateRestored]);
 
   function mountChat(data) {
     setGroupData((prevData) => {
@@ -142,12 +130,16 @@ export function DataStateProvider(props) {
     setGroupData,
     dataMounted,
     setDataMounted,
+    chatMounted,
+    setChatMounted,
     isLoggedIn,
     setIsLoggedIn,
     peerData,
     setPeerData,
     dataReady,
-    mount: { chat: mountChat },
+    stateRestored,
+    setStateRestored,
+    mountChat,
     dataHelpers: {
       getChannelIndex,
       addNewGroup,

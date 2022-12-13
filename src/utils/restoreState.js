@@ -7,7 +7,13 @@ import { UiContext } from "../components/context/UiContext";
 import useLocalFallback from "./localFallback";
 
 export default function useStateRestore() {
-  const { groupData, dataReady } = useContext(DataContext);
+  const {
+    groupData,
+    dataMounted,
+    chatMounted,
+    stateRestored,
+    setStateRestored,
+  } = useContext(DataContext);
   const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
   const { group: groupParam, channel: channelParam } = useParams();
   const navigate = useNavigate();
@@ -15,7 +21,11 @@ export default function useStateRestore() {
   const { retrieveStored } = useLocalFallback();
 
   useEffect(() => {
-    if (dataReady) {
+    // console.log("dataMounted", dataMounted);
+    // console.log("chatMounted", chatMounted);
+    // console.log("stateRestored", stateRestored);
+    if (dataMounted && chatMounted && !stateRestored) {
+      // console.log("restoringState");
       const cachedGroupId = retrieveStored.groupId();
       const cachedChannelId = retrieveStored.channelId();
 
@@ -27,6 +37,7 @@ export default function useStateRestore() {
       if (groupParam && cachedGroupId) {
         if (groupParam !== cachedGroupName) navigate("/");
         const restoredGroup = groupData[cachedGroupId];
+        // console.log(restoredGroup);
         if (!restoredGroup) navigate("/");
         setSelectedGroup(restoredGroup);
       }
@@ -36,10 +47,14 @@ export default function useStateRestore() {
         const restoredChannel = groupData[cachedGroupId].channels.text.find(
           (channel) => channel._id === cachedChannelId
         );
+        // console.log(restoredChannel);
         if (!restoredChannel) navigate("/");
         setSelectedChannel(restoredChannel);
       }
+
+      // console.log(setStateRestored);
+      setStateRestored(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataReady]);
+  }, [dataMounted, chatMounted]);
 }

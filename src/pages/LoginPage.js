@@ -15,7 +15,8 @@ function LoginPage() {
   const [feedback, setFeedback] = useState("");
   const [buttonStatus, setButtonStatus] = useState("error");
   const [formState, setFormState] = useState("login");
-  const { setDataMounted, setIsLoggedIn } = useContext(DataContext);
+  const { setDataMounted, setChatMounted, setIsLoggedIn } =
+    useContext(DataContext);
   const { clearSelected } = useContext(UiContext);
   const [userData, setUserData] = useState({
     username: "",
@@ -106,6 +107,7 @@ function LoginPage() {
         .then((res) => {
           clearSelected();
           setDataMounted(false);
+          setChatMounted(false);
           setIsLoggedIn(true);
 
           localStorage.setItem("username", res.data.userData.username);

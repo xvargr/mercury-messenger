@@ -23,9 +23,9 @@ import useStateRestore from "../utils/restoreState";
 
 function MainWindow() {
   const navigate = useNavigate();
-  const { socketIsConnected, socket } = useContext(SocketContext);
+  const { socket } = useContext(SocketContext);
   const { setWindowIsFocused } = useContext(UiContext);
-  const { dataReady, isLoggedIn, setIsLoggedIn } = useContext(DataContext);
+  const { isLoggedIn, setIsLoggedIn } = useContext(DataContext);
   const { flashMessages, setFlashMessages } = useContext(FlashContext);
   const [messageStack, setMessageStack] = useState([]);
   const { abortAll } = axiosInstance();
@@ -82,7 +82,7 @@ function MainWindow() {
 
   return (
     <main className="w-screen h-screen font-nunito overflow-hidden flex justify-center bgHeroTopo">
-      <ReconnectingModal isReconnecting={!socketIsConnected || !dataReady} />
+      <ReconnectingModal />
       <FlashMessageWrapper>
         {messageStack?.map((message) => {
           const position = messageStack.indexOf(message);
