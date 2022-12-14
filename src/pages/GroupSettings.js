@@ -19,7 +19,7 @@ import axiosInstance from "../utils/axios";
 
 function GroupSettingsPage() {
   const { selectedGroup, setSelectedGroup, isAdmin } = useContext(UiContext);
-  const { dataHelpers } = useContext(DataContext);
+  const { dataHelpers, dataReady } = useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [formIsPending, setFormIsPending] = useState(false);
@@ -36,9 +36,11 @@ function GroupSettingsPage() {
   const { userGroups } = axiosInstance();
 
   useEffect(() => {
-    if (!isAdmin()) {
-      pushFlashMessage([{ message: "Access denied", type: "error" }]);
-      navigate("/");
+    if (selectedGroup) {
+      if (!isAdmin()) {
+        pushFlashMessage([{ message: "Access denied", type: "error" }]);
+        navigate("/");
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGroup]);
@@ -163,6 +165,7 @@ function GroupSettingsPage() {
           dataHelpers.patchGroup(res.data.group);
           setSelectedGroup(res.data.group);
           pushFlashMessage(res.data.messages);
+
           updateForm.revertFields();
           setFormIsPending(false);
           navigate(`/g/${res.data.group.name}`);
@@ -209,7 +212,7 @@ function GroupSettingsPage() {
     },
   };
 
-  if (!selectedGroup) {
+  if (!dataReady) {
     return (
       <div className="w-full flex flex-col bg-gray-600 items-center relative">
         <ChannelBanner />

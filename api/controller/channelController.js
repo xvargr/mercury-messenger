@@ -2,7 +2,7 @@ import Group from "../models/Group.js";
 import Channel from "../models/Channel.js";
 
 import ExpressError from "../utils/ExpressError.js";
-import socketSync from "../socket/socket.js";
+import socketSync from "../socket/socketSync.js";
 
 export async function newChannel(req, res) {
   const parentGroup = await Group.findById({ _id: req.body.group });
@@ -26,7 +26,6 @@ export async function newChannel(req, res) {
       { message: `Channel "${newChannel.name}" was created`, type: "alert" },
     ],
     initiator: req.user,
-    origin: req.ip,
   });
 
   res.status(201).json({
@@ -65,7 +64,6 @@ export async function editChannel(req, res) {
       { message: `Channel "${channel.name}" was modified`, type: "alert" },
     ],
     initiator: req.user,
-    origin: req.ip,
   });
 
   res.json({
@@ -108,7 +106,6 @@ export async function deleteChannel(req, res) {
       { message: `Channel "${channel.name}" was deleted`, type: "alert" },
     ],
     initiator: req.user,
-    origin: req.ip,
   });
 
   res.json({

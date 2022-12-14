@@ -27,7 +27,7 @@ export default function ImageSelectorPreview(props) {
 
   if (loading || !imageSrc) {
     return (
-      <div className="w-72 h-72 rounded-full bg-gray-500 animate-pulse"></div>
+      <div className="w-72 h-72 grow-0 shrink-0 rounded-full bg-gray-500 animate-pulse"></div>
     );
   } else {
     return (

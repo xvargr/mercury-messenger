@@ -158,7 +158,9 @@ function ChannelBadge(props) {
             />
           </form>
           {showDialogue ? (
-            <div className="w-full bg-gray-600 -m-6">Delete channel?</div>
+            <div className="w-full bg-gray-600 -m-6 truncate">
+              Delete channel?
+            </div>
           ) : null}
         </div>
         <TrashIcon

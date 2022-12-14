@@ -1,5 +1,4 @@
 import { useContext } from "react";
-import { useParams } from "react-router-dom";
 
 import { DataContext } from "../components/context/DataContext";
 import { UiContext } from "../components/context/UiContext";
@@ -15,9 +14,8 @@ import useSocket from "./socket";
 
 export function GroupStack() {
   const { groupData } = useContext(DataContext);
-  const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
-
-  const { group: groupParam } = useParams();
+  const { selectedGroup, setSelectedGroup, setSelectedChannel } =
+    useContext(UiContext);
 
   function groupChangeHandler(groupId) {
     setSelectedGroup(groupData[groupId]);
@@ -26,9 +24,9 @@ export function GroupStack() {
 
   const groupStack = [];
 
-  for (const group in groupData) {
-    const thisGroup = groupData[group];
-    const selected = groupParam === thisGroup.name;
+  for (const groupId in groupData) {
+    const thisGroup = groupData[groupId];
+    const selected = groupId === selectedGroup?._id;
 
     groupStack.push(
       <GroupBadge
@@ -61,7 +59,7 @@ export function ChannelStack() {
   const channelStack = [];
 
   thisGroup.channels.text.forEach((channel) => {
-    const selected = selectedChannel?.name === channel.name ? true : false;
+    const selected = selectedChannel?._id === channel._id ? true : false;
 
     channelStack.push(
       <ChannelBadge

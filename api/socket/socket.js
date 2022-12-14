@@ -65,6 +65,7 @@ const socketInstance = {
 
     io.on("connection", async function (socket) {
       console.log("currently connected: ", socketUsers.connectedUsers);
+      console.log("users connected: ", socketUsers.connectedUsers.length);
 
       // todo use connectedUsers array to show if user is online
       // todo private messages and friends

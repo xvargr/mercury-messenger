@@ -25,9 +25,11 @@ function NewChannelPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAdmin()) {
-      pushFlashMessage([{ message: "Access denied", type: "error" }]);
-      navigate("/");
+    if (selectedGroup) {
+      if (!isAdmin()) {
+        pushFlashMessage([{ message: "Access denied", type: "error" }]);
+        navigate("/");
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGroup]);
