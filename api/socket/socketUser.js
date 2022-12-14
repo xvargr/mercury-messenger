@@ -17,8 +17,6 @@ const socketUsers = {
   disconnect(params) {
     const { userId, socket } = params;
 
-    // console.log(params);
-
     let index;
     if (socket) {
       index = this.connectedUsers.findIndex(
@@ -54,20 +52,10 @@ const socketUsers = {
   //     return result;
   //   },
 
-  // getSockets(idArray) {
-  //   const result = [];
-
-  //   idArray.forEach((id) => {
-  //     const index = this.connectedUsers.findIndex((user) => user.userId === id);
-  //     if (index !== -1) {
-  //       this.connectedUsers[index].instances.forEach((instance) =>
-  //         result.push(instance.socket)
-  //       );
-  //     } else return null;
-  //   });
-
-  //   return result;
-  // },
+  getSocketId(idString) {
+    const result = this.connectedUsers.find((user) => user.userId === idString);
+    return result.socket.id;
+  },
 
   getStatus(idString) {
     const user = this.connectedUsers.find((user) => {

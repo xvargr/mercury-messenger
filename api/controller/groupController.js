@@ -6,7 +6,7 @@ import Channel from "../models/Channel.js";
 
 // utils
 import ExpressError from "../utils/ExpressError.js";
-import socketSync from "../socket/socket.js";
+import socketSync from "../socket/socketSync.js";
 
 export async function fetchGroups(req, res) {
   const result = await Group.find({ members: req.user }).populate([
@@ -59,7 +59,6 @@ export async function newGroup(req, res) {
     target: { type: "group", id: newGroup._id },
     change: { type: "create", data: newGroup },
     initiator: req.user,
-    origin: req.ip,
   });
 
   res.status(201).json({
@@ -87,7 +86,6 @@ export async function deleteGroup(req, res) {
     change: { type: "delete", data: group },
     messages: [{ message: `Group "${group.name}" was deleted`, type: "alert" }],
     initiator: req.user,
-    origin: req.ip,
   });
 
   await group.remove();
@@ -155,7 +153,6 @@ export async function editGroup(req, res) {
       { message: `Group "${group.name}" was modified`, type: "alert" },
     ],
     initiator: req.user,
-    origin: req.ip,
   });
 
   res.json({
@@ -204,7 +201,6 @@ export async function joinWithCode(req, res) {
       { message: `${user.username} joined "${group.name}"`, type: "alert" },
     ],
     initiator: req.user,
-    origin: req.ip,
   });
 
   res.status(200).json({
@@ -260,7 +256,6 @@ export async function groupRemoveUser(req, res) {
       { message: `${req.user.username} left ${group.name}`, type: "alert" },
     ],
     initiator: req.user,
-    origin: req.ip,
   });
 
   res.json({

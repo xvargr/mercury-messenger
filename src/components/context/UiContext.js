@@ -12,11 +12,13 @@ export function UiStateProvider(props) {
   const [windowIsFocused, setWindowIsFocused] = useState(true);
   const { updateStored } = useLocalFallback();
 
+  // backup each time context changes
   useEffect(() => {
     if (selectedGroup) updateStored.group(selectedGroup);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGroup]);
 
+  // backup each time context changes
   useEffect(() => {
     if (selectedChannel) updateStored.channel(selectedChannel);
     // eslint-disable-next-line react-hooks/exhaustive-deps

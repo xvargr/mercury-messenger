@@ -65,7 +65,6 @@ export function SocketStateProvider(props) {
   // initial connection
   useEffect(() => {
     if (isLoggedIn && !socketStatus.connected) {
-      console.log("CONNECTING SOCKET");
       connectSocket();
     }
     return () => {
@@ -86,7 +85,6 @@ export function SocketStateProvider(props) {
   if (socket && !socket?._callbacks) {
     socket.on("connect", function (/*don't redefine socket here*/) {
       // "connect" not "connected"
-      console.log(`connected to socketio as ${socket.id}`);
 
       userGroups
         .fetch()
@@ -181,8 +179,8 @@ export function SocketStateProvider(props) {
     socket.on("structureChange", function (res) {
       const { target, change, messages } = res;
 
-      console.log(`${change.type} signal received for `);
-      console.log(res);
+      // console.log(`${change.type} signal received`);
+      // console.log(res);
 
       function createChannel() {
         setGroupData((currentData) => {

@@ -5,8 +5,6 @@ import { useInView } from "react-intersection-observer";
 // components
 import ChatInputBox from "../chat/ChatInputBox";
 import ChannelBanner from "../chat/ChatBanner";
-// import Sender from "../chat/SenderWrapper";
-// import Message from "../chat/Message";
 import GoToBottomButton from "../chat/GoToBottomButton";
 import Dots from "../ui/Dots";
 
@@ -23,8 +21,7 @@ function ChatWindow() {
   const { channel } = useParams();
 
   // context
-  const { dataReady, chatMounted, chatData, dataHelpers } =
-    useContext(DataContext);
+  const { dataReady, chatMounted, dataHelpers } = useContext(DataContext);
   const { selectedGroup, selectedChannel } = useContext(UiContext);
 
   // states
@@ -50,6 +47,7 @@ function ChatWindow() {
 
   const memoizedSkeleton = useMemo(() => <ChatSkeletonLoader count={15} />, []);
 
+  // scroll to bottom on first load
   useEffect(() => {
     // console.log(chatWindowRef.current);
     if (chatWindowRef.current) {
@@ -91,11 +89,13 @@ function ChatWindow() {
       console.log("fetching");
 
       // ! timer before fetch?
-      // fetchMore({
-      //   target: { group: selectedGroup._id, channel: selectedChannel._id },
-      //   last: chatData[selectedGroup._id][selectedChannel._id][0]
-      //     .clusterTimestamp,
-      // });
+      setTimeout(() => {
+        // fetchMore({
+        //   target: { group: selectedGroup._id, channel: selectedChannel._id },
+        //   last: chatData[selectedGroup._id][selectedChannel._id][0]
+        //     .clusterTimestamp,
+        // });
+      }, 100);
     }
     // else if (chatMounted && !topIntersected) { // !!!! WHYYYY
     //   setTopIntersected(true);

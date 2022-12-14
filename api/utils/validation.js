@@ -118,8 +118,8 @@ async function validateChannel(req, res, next) {
     },
   ]);
 
-  const requesterIsAdmin = result.administrators.some(
-    (administrator) => administrator._id === req.user._id
+  const requesterIsAdmin = result.administrators.some((administrator) =>
+    administrator._id.equals(req.user.id)
   );
 
   if (
