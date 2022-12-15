@@ -65,10 +65,16 @@ export function SocketStateProvider(props) {
   // initial connection
   useEffect(() => {
     if (isLoggedIn && !socketStatus.connected) {
+      console.log("requesting connection");
       connectSocket();
     }
     return () => {
       socket?.disconnect();
+      setSocketStatus({
+        connected: false,
+        message: null,
+        code: null,
+      });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, dataMounted]);
@@ -126,7 +132,7 @@ export function SocketStateProvider(props) {
       if (!dataMounted) {
         console.warn("trying to set chat before group is initialized");
         setTimeout(() => {
-          mountChat(res.chatData);
+          mountChat(res.chatData, res.chatDepleted);
           setPeerData(res.peerData);
         }, 50);
       } else {

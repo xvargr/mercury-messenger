@@ -35,7 +35,7 @@ const socketInstance = {
     io.use(async function (socket, next) {
       if (!socket.request.isAuthenticated()) {
         // not authenticated
-        console.log("NOT AUTH");
+        // console.log("NOT AUTH");
         const err = new ExpressError("Unauthorized", 401);
         err.data = {
           message: "UNAUTHORIZED",
@@ -44,7 +44,7 @@ const socketInstance = {
         next(err); // refuse connection
       } else if (socketUsers.isConnected(socket)) {
         // already connected
-        console.log("CON DUPE");
+        // console.log("CON DUPE");
 
         const prevUser = socketUsers.connectedUsers.find(
           (user) => user.userId === socket.request.user._id.toString()
