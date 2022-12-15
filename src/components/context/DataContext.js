@@ -26,13 +26,18 @@ export function DataStateProvider(props) {
     else setDataReady(false);
   }, [dataMounted, chatMounted, stateRestored]);
 
-  function mountChat(data) {
+  function mountChat(chatObject, depletedObject) {
     setGroupData((prevData) => {
       const dataCopy = { ...prevData };
 
-      for (const groupId in data) {
-        dataCopy[groupId].chatData = { ...data[groupId] };
+      for (const groupId in chatObject) {
+        dataCopy[groupId].chatData = { ...chatObject[groupId] };
       }
+
+      for (const groupId in depletedObject) {
+        dataCopy[groupId].chatDepleted = { ...depletedObject[groupId] };
+      }
+
       return dataCopy;
     });
 

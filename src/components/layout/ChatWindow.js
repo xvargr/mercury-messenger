@@ -32,6 +32,7 @@ function ChatWindow() {
   const topOfPageRef = useRef(null);
   const bottomOfPageRef = useRef(null);
   const chatWindowRef = useRef(null);
+  const fetchTimerRef = useRef(null);
 
   // scrollRefs
   const scrollElapsedRef = useRef(null);
@@ -45,23 +46,37 @@ function ChatWindow() {
   // misc
   const { sendMessage, appendMessage, fetchMore } = useSocket();
 
+  // memoized
   const memoizedSkeleton = useMemo(() => <ChatSkeletonLoader count={15} />, []);
+
+  // const chatContainer = useMemo(
+  //   () => document.querySelector("#chatWindow"),
+  //   []
+  // );
+
+  const chatIsDepleted = useMemo(() => {
+    if (selectedChannel) {
+      return selectedGroup.chatDepleted[selectedChannel._id];
+    } else return false;
+  }, [selectedChannel, selectedGroup?.chatDepleted]);
 
   // scroll to bottom on first load
   useEffect(() => {
     // console.log(chatWindowRef.current);
     if (chatWindowRef.current) {
-      console.log("LLLLLLLLLL");
+      // console.log("LLLLLLLLLL")
       // chatWindowRef.current?.scrollHeight = 0
       const chatWindow = document.querySelector("#chatWindow");
-      console.log(chatWindow);
+      // console.log(chatWindow);
       chatWindow.scrollTop = chatWindow.scrollHeight;
     }
-  }, [dataReady]);
+  }, [dataReady, selectedChannel]);
 
   // scroll to bottom on every new message if already latched to the bottom,
   function goToBottom() {
     // bottomOfPageRef.current.scrollIntoView();
+    // const chatWindow = document.querySelector("#chatWindow");
+    // chatWindow.scrollTop = chatWindow.scrollHeight;
     bottomOfPageRef.current.scrollIntoView({
       block: "end",
       inline: "start",
@@ -86,18 +101,21 @@ function ChatWindow() {
   // fetch more messages on scroll hit top of page, scroll to bottom on first load
   useEffect(() => {
     if (topOfPageIsVisible) {
-      console.log("fetching");
-
-      // ! timer before fetch?
-      setTimeout(() => {
+      fetchTimerRef.current = setTimeout(() => {
+        console.log("fetching");
         // fetchMore({
         //   target: { group: selectedGroup._id, channel: selectedChannel._id },
         //   last: chatData[selectedGroup._id][selectedChannel._id][0]
         //     .clusterTimestamp,
         // });
-      }, 100);
+      }, 1000);
+    } else {
+      console.log("cancelling fetch");
+      console.log(fetchTimerRef);
+      clearTimeout(fetchTimerRef.current);
+      fetchTimerRef.current = null;
     }
-    // else if (chatMounted && !topIntersected) { // !!!! WHYYYY
+    // else if (chatMounted && !topIntersected) {
     //   setTopIntersected(true);
     //   goToBottom();
     // }
@@ -135,11 +153,12 @@ function ChatWindow() {
         // console.log(documen);
         // console.dir(chatWindowRef.current);
         // console.dir(chatWindowRef.current.offsetHeight);
-        console.dir(chatWindowRef.current.scrollTopMax);
+        // console.dir(chatWindowRef.current.scrollTopMax);
         // console.dir(
         // chatWindowRef.current.scrollHeight - chatWindowRef.offsetHeight
         // );
         // console.dir(chatWindowRef.current.scrollHeight);
+        // * below is working
         console.log(
           chatWindowRef.current.scrollTop,
           "/",
@@ -188,15 +207,21 @@ function ChatWindow() {
           onScroll={() => handleScroll()}
           ref={chatWindowRef}
         >
-          <div
-            className="w-full h-20 flex justify-center items-center"
-            ref={(el) => {
-              topOfPageRef.current = el;
-              topVisibleRef(el);
-            }}
-          >
-            <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-500" />
-          </div>
+          {chatIsDepleted ? (
+            <div className="w-full h-20 flex justify-center items-center opacity-40">
+              no more messages
+            </div>
+          ) : (
+            <div
+              className="w-full h-20 flex justify-center items-center"
+              ref={(el) => {
+                topOfPageRef.current = el;
+                topVisibleRef(el);
+              }}
+            >
+              <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-500" />
+            </div>
+          )}
 
           <ChatStack />
 

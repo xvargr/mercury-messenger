@@ -29,9 +29,13 @@ export async function constructInitData(args) {
   // forEach is not async friendly, use for of
   const chatData = {};
   const peerData = {};
+  const chatDepleted = {};
+
   for (const group of userGroups) {
     if (!single) socket.join(`g:${group.id}`);
     chatData[group.id] = {};
+    chatDepleted[group.id] = {};
+
     for (const channel of group.channels.text) {
       if (!single) socket.join(`c:${channel.id}`);
       chatData[group.id][channel.id] = [];
@@ -45,7 +49,14 @@ export async function constructInitData(args) {
           path: "sender",
           select: ["userImage", "username", "userColor"],
         })
-        .limit(NUM_TO_LOAD);
+        .limit(NUM_TO_LOAD + 1);
+
+      // the extra 1 document is used to check if there are at least 1 more document after the ones that were sent
+      if (clusters.length < NUM_TO_LOAD + 1) {
+        chatDepleted[group.id][channel.id] = true;
+      } else if (clusters.length === NUM_TO_LOAD + 1) {
+        clusters.splice(clusters.length - 1, 1);
+      }
 
       for (const cluster of await clusters) {
         chatData[group.id][channel.id].unshift(cluster);
@@ -56,7 +67,7 @@ export async function constructInitData(args) {
     }
   }
 
-  return { chatData, peerData };
+  return { chatData, peerData, chatDepleted };
 }
 
 export async function newCluster(args) {
@@ -173,6 +184,7 @@ export async function appendCluster(args) {
 export async function fetchMoreMessages(args) {
   const { socket, sender, fetchParams, callback } = args;
 
+  let depleted = false;
   const partialChat = [];
 
   const clusters = await Message.find({
@@ -187,19 +199,23 @@ export async function fetchMoreMessages(args) {
       path: "sender",
       select: ["userImage", "username", "userColor"],
     })
-    .limit(NUM_TO_LOAD);
-  // .lean();
+    .limit(NUM_TO_LOAD + 1);
+
+  if (clusters.length < NUM_TO_LOAD + 1) {
+    depleted = true;
+  } else if (clusters.length === NUM_TO_LOAD + 1) {
+    clusters.splice(clusters.length - 1, 1);
+  }
 
   for (const cluster of await clusters) {
     partialChat.unshift(cluster);
   }
 
-  // console.log(partialChat);
   console.log(partialChat.length);
-  //
+
   callback({
     target: fetchParams.target,
     data: partialChat,
-    clustersDepleted: partialChat.length < NUM_TO_LOAD,
+    depleted,
   });
 }
