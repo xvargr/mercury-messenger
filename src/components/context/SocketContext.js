@@ -4,7 +4,6 @@ import { io } from "socket.io-client";
 
 import { FlashContext } from "./FlashContext";
 import { DataContext } from "./DataContext";
-import { UiContext } from "./UiContext";
 
 // utility hooks
 import axiosInstance from "../../utils/axios";
@@ -21,6 +20,12 @@ export function SocketStateProvider(props) {
   const { pushFlashMessage } = useContext(FlashContext);
 
   const {
+    windowIsFocused,
+    selectedChannel,
+    selectedGroup,
+    setSelectedChannel,
+    setSelectedGroup,
+    clearSelected,
     setGroupData,
     setChatMounted,
     dataMounted,
@@ -31,15 +36,6 @@ export function SocketStateProvider(props) {
     isLoggedIn,
     setIsLoggedIn,
   } = useContext(DataContext);
-
-  const {
-    windowIsFocused,
-    selectedChannel,
-    selectedGroup,
-    setSelectedChannel,
-    setSelectedGroup,
-    clearSelected,
-  } = useContext(UiContext);
 
   const { userGroups } = axiosInstance();
 
@@ -54,18 +50,9 @@ export function SocketStateProvider(props) {
   const navigate = useNavigate();
   const notification = new Audio("/beep.mp3");
 
-  function connectSocket() {
-    setSocket(
-      io(`${window.location.protocol}//${window.location.hostname}:3100`, {
-        withCredentials: true,
-      })
-    );
-  }
-
-  // initial connection
+  // initial socket io connection
   useEffect(() => {
     if (isLoggedIn && !socketStatus.connected) {
-      console.log("requesting connection");
       connectSocket();
     }
     return () => {
@@ -78,6 +65,14 @@ export function SocketStateProvider(props) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, dataMounted]);
+
+  function connectSocket() {
+    setSocket(
+      io(`${window.location.protocol}//${window.location.hostname}:3100`, {
+        withCredentials: true,
+      })
+    );
+  }
 
   function socketClear() {
     if (socket !== null) socket.disconnect();
@@ -96,7 +91,17 @@ export function SocketStateProvider(props) {
         .fetch()
         .then((res) => {
           const groupData = res.data;
+
           setGroupData(() => groupData);
+
+          socket.emit("requestInitData", {}, (res, err) => {
+            if (err || res.failed) return err;
+            else {
+              setPeerData(res.peerData);
+              mountChat(res.chatData, res.chatDepleted);
+            }
+          });
+
           setDataMounted(true);
         })
         .catch((e) => e); // axios abort throws error unless it's caught here
@@ -105,7 +110,6 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("disconnect", () => {
-      // setDataMounted(false);
       setChatMounted(false);
       setSocketStatus({ connected: false, code: 503, message: null });
     });
@@ -128,20 +132,8 @@ export function SocketStateProvider(props) {
       }
     });
 
-    socket.on("initialize", (res) => {
-      if (!dataMounted) {
-        console.warn("trying to set chat before group is initialized");
-        setTimeout(() => {
-          mountChat(res.chatData, res.chatDepleted);
-          setPeerData(res.peerData);
-        }, 50);
-      } else {
-        mountChat(res.chatData);
-        setPeerData(res.peerData);
-      }
-    });
-
     socket.on("newMessage", function (res) {
+      console.log("focused??", windowIsFocused);
       if (
         windowIsFocused ||
         selectedChannelRef.current._id !== res.channel._id
@@ -158,6 +150,7 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("appendMessage", function (res) {
+      console.log("focused??", windowIsFocused);
       if (
         windowIsFocused ||
         selectedChannelRef.current._id !== res.target.channel

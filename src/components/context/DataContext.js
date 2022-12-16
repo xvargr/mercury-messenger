@@ -1,17 +1,30 @@
 import { useState, createContext, useEffect, useRef } from "react";
 
+// utility hooks
+import useLocalFallback from "../../utils/localFallback";
+
 export const DataContext = createContext(); // use this to access the values here
 
 // use this to wrap around components that needs to access the values here
 export function DataStateProvider(props) {
   const [groupData, setGroupData] = useState(null);
   const [peerData, setPeerData] = useState({});
-  // const [initialized, setInitialized] = useState(false);
   const [dataMounted, setDataMounted] = useState(false);
   const [chatMounted, setChatMounted] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [selectedChannel, setSelectedChannel] = useState(null);
+  const [selectedChatIsDepleted, setSelectedChatIsDepleted] = useState(true);
   const [stateRestored, setStateRestored] = useState(false);
   const [dataReady, setDataReady] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [windowIsFocused, setWindowIsFocused] = useState(true);
+  const { updateStored } = useLocalFallback();
+
+  // let monitoredGroup;
+  // if (dataMounted && selectedGroup) {
+  //   monitoredGroup = groupData[selectedGroup._id];
+  // }
+  // const monitoredChannel =  groupData[selectedGroup._id].channels
 
   // this ref is used to prevent stale closure in the helper functions below
   const groupDataRef = useRef(groupData);
@@ -19,12 +32,72 @@ export function DataStateProvider(props) {
     groupDataRef.current = groupData;
   }, [groupData]);
 
+  // backup selected context id on change
+  useEffect(() => {
+    if (selectedGroup) updateStored.group(selectedGroup);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGroup]);
+  useEffect(() => {
+    if (selectedChannel) updateStored.channel(selectedChannel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedChannel]);
+
+  // ! UNTESTED check if chat is depleted on each channel change
+  useEffect(() => {
+    console.log(selectedGroup);
+    if (!selectedGroup || !selectedChannel) setSelectedChatIsDepleted(false);
+    else {
+      const isDepleted =
+        groupData[selectedGroup._id].chatDepleted[selectedChannel._id] || false;
+      setSelectedChatIsDepleted(isDepleted);
+    }
+
+    // return () => {
+    //   second
+    // }
+  }, [selectedChannel]);
+
+  // updates selected channel/group on main groupData change
+  // useEffect(() => {
+  //   console.log("GD change");
+  //   // setSelectedGroup();
+  //   // setSelectedChannel();
+
+  //   return () => {
+  //     console.log("clear");
+  //   };
+  // }, [monitoredGroup]);
+
+  // todo change selected context if main grpData changes
+
+  // window is focused detection used for notification sounds
+  useEffect(() => {
+    window.addEventListener("focus", () => setWindowIsFocused(true));
+    window.addEventListener("blur", () => setWindowIsFocused(false));
+    return () => {
+      window.addEventListener("focus", () => setWindowIsFocused(true));
+      window.addEventListener("blur", () => setWindowIsFocused(false));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // set if everything is ready to show
   useEffect(() => {
     // console.log(stateRestored);
     if (dataMounted && chatMounted && stateRestored) setDataReady(true);
     else setDataReady(false);
   }, [dataMounted, chatMounted, stateRestored]);
+
+  function isAdmin() {
+    return selectedGroup?.administrators.some(
+      (admin) => admin._id === localStorage.userId
+    );
+  }
+
+  function clearSelected() {
+    setSelectedChannel(null);
+    setSelectedGroup(null);
+  }
 
   function mountChat(chatObject, depletedObject) {
     setGroupData((prevData) => {
@@ -145,6 +218,16 @@ export function DataStateProvider(props) {
     stateRestored,
     setStateRestored,
     mountChat,
+    selectedGroup,
+    setSelectedGroup,
+    selectedChannel,
+    setSelectedChannel,
+    windowIsFocused,
+    setWindowIsFocused,
+    clearSelected,
+    isAdmin,
+    selectedChatIsDepleted,
+
     dataHelpers: {
       getChannelIndex,
       addNewGroup,
@@ -153,6 +236,7 @@ export function DataStateProvider(props) {
       getLastInfo,
       mergePeers,
     },
+
     peerHelpers: {
       getStatus,
       changeStatus,

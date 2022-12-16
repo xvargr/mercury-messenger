@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import NewChannelForm from "../components/forms/NewChannelForm";
 
 //context
-import { UiContext } from "../components/context/UiContext";
 import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
 
@@ -13,8 +12,8 @@ import { FlashContext } from "../components/context/FlashContext";
 import axiosInstance from "../utils/axios";
 
 function NewChannelPage() {
-  const { setGroupData } = useContext(DataContext);
-  const { selectedGroup, setSelectedChannel, isAdmin } = useContext(UiContext);
+  const { setGroupData, selectedGroup, setSelectedChannel, isAdmin } =
+    useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const [axiosErr, setAxiosErr] = useState({
     message: null,

@@ -7,7 +7,8 @@ import User from "../models/User.js";
 import socketUsers from "./socketUser.js";
 import ExpressError from "../utils/ExpressError.js";
 import {
-  constructInitData,
+  // constructInitData,
+  sendInitData,
   newCluster,
   appendCluster,
   fetchMoreMessages,
@@ -35,7 +36,6 @@ const socketInstance = {
     io.use(async function (socket, next) {
       if (!socket.request.isAuthenticated()) {
         // not authenticated
-        // console.log("NOT AUTH");
         const err = new ExpressError("Unauthorized", 401);
         err.data = {
           message: "UNAUTHORIZED",
@@ -44,7 +44,6 @@ const socketInstance = {
         next(err); // refuse connection
       } else if (socketUsers.isConnected(socket)) {
         // already connected
-        // console.log("CON DUPE");
 
         const prevUser = socketUsers.connectedUsers.find(
           (user) => user.userId === socket.request.user._id.toString()
@@ -74,10 +73,10 @@ const socketInstance = {
         .select("username")
         .lean();
 
-      const initData = await constructInitData({ socket, sender });
-
       // sends chat data of all groups that user is a part of
-      socket.emit("initialize", initData);
+      socket.on("requestInitData", (clusterData, callback) => {
+        sendInitData({ socket, sender, callback });
+      });
 
       // new message handler
       socket.on("newCluster", (clusterData, callback) => {
@@ -90,37 +89,19 @@ const socketInstance = {
       );
 
       socket.on("fetchMore", (fetchParams, callback) => {
-        console.log("fetch signal received");
-        // fetchMoreMessages({ socket, sender, fetchParams, callback });
+        fetchMoreMessages({ socket, sender, fetchParams, callback });
       });
 
-      // user online status change
+      // todo user online status change
       socket.on("statusChange", (statusData) => {
         const { change } = statusData;
       });
 
-      // todo connection status
       socket.on("disconnect", function () {
-        // console.log(socket.rooms); // * already empty by this point
-        // ? use room events? socket on join-room leave-room
-
         socketUsers.disconnect({ socket });
         console.log("currently connected: ", socketUsers.connectedUsers);
       });
     });
-    // console.log(this.io.engine);
-    // this.io.engine.on("close", (reason) => console.log(reason));
-
-    // room events below are used to sync up member's status with clients on front end
-    // ? by joins and leave rooms or on connect and dc
-    // this.io.of("/").adapter.on("join-room", (room, id) => {
-    //   if (room.includes("g:"))
-    //     console.log(`socket ${id} has joined room ${room}`);
-    // });
-
-    // this.io.of("/").adapter.on("leave-room", (room, id) => {
-    //   console.log(`socket ${id} has left room ${room}`);
-    // });
   },
 };
 

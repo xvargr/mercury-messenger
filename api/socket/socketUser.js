@@ -53,7 +53,12 @@ const socketUsers = {
   //   },
 
   getSocketId(idString) {
+    console.log(idString);
+
     const result = this.connectedUsers.find((user) => user.userId === idString);
+    console.log(this.connectedUsers);
+    console.log(result);
+
     return result.socket.id;
   },
 

@@ -5,7 +5,7 @@ import CardFloat from "../ui/CardFloat";
 import CircleButton from "../ui/CircleButton";
 
 // context
-import { UiContext } from "../context/UiContext";
+import { DataContext } from "../context/DataContext";
 
 // SVG
 import { ArrowRightIcon } from "@heroicons/react/solid";
@@ -18,7 +18,7 @@ function NewChannelForm(props) {
   const [inpErr, setInpErr] = useState(true);
   const [feedback, setFeedback] = useState("");
   const [buttonStatus, setButtonStatus] = useState("error");
-  const { selectedGroup } = useContext(UiContext);
+  const { selectedGroup } = useContext(DataContext);
   // const { groupData } = useContext(DataContext);
 
   useEffect(() => {

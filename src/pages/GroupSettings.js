@@ -2,7 +2,6 @@ import { useState, useContext, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 // context
-import { UiContext } from "../components/context/UiContext";
 import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
 
@@ -18,8 +17,8 @@ import { SkeletonMemberOptions } from "../components/ui/SkeletonLoaders";
 import axiosInstance from "../utils/axios";
 
 function GroupSettingsPage() {
-  const { selectedGroup, setSelectedGroup, isAdmin } = useContext(UiContext);
-  const { dataHelpers, dataReady } = useContext(DataContext);
+  const { dataHelpers, dataReady, selectedGroup, setSelectedGroup, isAdmin } =
+    useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [formIsPending, setFormIsPending] = useState(false);

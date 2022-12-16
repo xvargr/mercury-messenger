@@ -4,15 +4,14 @@ import { useContext, useState } from "react";
 import NewGroupForm from "../components/forms/NewGroupForm";
 import JoinByInvite from "../components/forms/JoinByInvite";
 // context
-import { UiContext } from "../components/context/UiContext";
 import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
 // utility hooks
 import axiosInstance from "../utils/axios";
 
 function NewGroupPage() {
-  const { dataHelpers } = useContext(DataContext);
-  const { setSelectedGroup, setSelectedChannel } = useContext(UiContext);
+  const { dataHelpers, setSelectedGroup, setSelectedChannel } =
+    useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const [axiosCreateErr, setAxiosCreateErr] = useState({
     message: null,
