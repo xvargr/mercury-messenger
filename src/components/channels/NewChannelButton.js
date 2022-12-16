@@ -2,10 +2,10 @@ import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { PlusIcon } from "@heroicons/react/outline";
 
-import { UiContext } from "../context/UiContext";
+import { DataContext } from "../context/DataContext";
 
 function NewChannelButton(props) {
-  const { setSelectedChannel } = useContext(UiContext);
+  const { setSelectedChannel } = useContext(DataContext);
 
   return (
     <Link

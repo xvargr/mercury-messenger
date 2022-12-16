@@ -1,21 +1,46 @@
 import { useContext } from "react";
 
 import { DataContext } from "../components/context/DataContext";
-import { UiContext } from "../components/context/UiContext";
+import { FlashContext } from "../components/context/FlashContext";
 
 import Sender from "../components/chat/SenderWrapper";
 import Message from "../components/chat/Message";
 import GroupBadge from "../components/groups/GroupBadge";
 import ChannelBadge from "../components/channels/ChannelBadge";
 import MemberStatusBadge from "../components/channels/MemberStatusBadge";
+import {
+  FlashMessageWrapper,
+  FlashMessage,
+} from "../components/ui/FlashMessage";
 
 // utility hooks
 import useSocket from "./socket";
 
+export function FlashStack() {
+  const { messageStack, unmountFlash } = useContext(FlashContext);
+  const stack = [];
+
+  messageStack?.forEach((message) => {
+    // messageStack?.map((message) => {
+    const position = messageStack.indexOf(message);
+
+    stack.push(
+      <FlashMessage
+        type={message.type}
+        message={message.message}
+        key={position}
+        position={position}
+        unmount={unmountFlash}
+      />
+    );
+  });
+
+  return <FlashMessageWrapper>{stack}</FlashMessageWrapper>;
+}
+
 export function GroupStack() {
-  const { groupData } = useContext(DataContext);
-  const { selectedGroup, setSelectedGroup, setSelectedChannel } =
-    useContext(UiContext);
+  const { groupData, selectedGroup, setSelectedGroup, setSelectedChannel } =
+    useContext(DataContext);
 
   function groupChangeHandler(groupId) {
     setSelectedGroup(groupData[groupId]);
@@ -42,13 +67,8 @@ export function GroupStack() {
 }
 
 export function ChannelStack() {
-  const { groupData } = useContext(DataContext);
-  const {
-    // setSelectedGroup,
-    setSelectedChannel,
-    selectedGroup,
-    selectedChannel,
-  } = useContext(UiContext);
+  const { groupData, setSelectedChannel, selectedGroup, selectedChannel } =
+    useContext(DataContext);
 
   const thisGroup = groupData[selectedGroup._id];
 
@@ -77,8 +97,7 @@ export function ChannelStack() {
 }
 
 export function MemberStack() {
-  const { groupData } = useContext(DataContext);
-  const { selectedGroup } = useContext(UiContext);
+  const { groupData, selectedGroup } = useContext(DataContext);
   const { peerHelpers } = useContext(DataContext);
 
   const thisGroup = groupData[selectedGroup._id];
@@ -99,8 +118,7 @@ export function MemberStack() {
 
 // renders every cluster in the current chat
 export function ChatStack() {
-  const { groupData } = useContext(DataContext);
-  const { selectedGroup, selectedChannel } = useContext(UiContext);
+  const { groupData, selectedGroup, selectedChannel } = useContext(DataContext);
 
   const { sendMessage, appendMessage } = useSocket();
 

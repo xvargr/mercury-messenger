@@ -6,15 +6,13 @@ import NewChannelButton from "../channels/NewChannelButton";
 import GroupBanner from "../channels/GroupBanner";
 
 // context
-import { UiContext } from "../context/UiContext";
 import { DataContext } from "../context/DataContext";
 import { SkeletonChannel } from "../ui/SkeletonLoaders";
 import { ChannelStack, MemberStack } from "../../utils/iterableComponents";
 
 function ChannelsBar() {
   const { group } = useParams();
-  const { dataReady } = useContext(DataContext);
-  const { selectedGroup, isAdmin } = useContext(UiContext);
+  const { dataReady, selectedGroup, isAdmin } = useContext(DataContext);
 
   if (!dataReady || !selectedGroup) {
     return (

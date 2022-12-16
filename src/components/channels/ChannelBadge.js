@@ -13,7 +13,6 @@ import {
 // context
 import { DataContext } from "../context/DataContext";
 import { FlashContext } from "../context/FlashContext";
-import { UiContext } from "../context/UiContext";
 
 // utility hooks
 import axiosInstance from "../../utils/axios";
@@ -25,10 +24,13 @@ function ChannelBadge(props) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDialogue, setShowDialogue] = useState(false);
 
-  const { setGroupData, dataHelpers } = useContext(DataContext);
-
-  const { selectedGroup, selectedChannel, setSelectedChannel } =
-    useContext(UiContext);
+  const {
+    selectedGroup,
+    selectedChannel,
+    setSelectedChannel,
+    setGroupData,
+    dataHelpers,
+  } = useContext(DataContext);
 
   const { pushFlashMessage } = useContext(FlashContext);
 
@@ -77,12 +79,6 @@ function ChannelBadge(props) {
             delete dataCopy[res.data.groupId].chatData[res.data.channelId];
             return dataCopy;
           });
-
-          // setChatData((prevData) => {
-          //   const dataCopy = { ...prevData };
-          //   delete dataCopy[res.data.groupId][res.data.channelId];
-          //   return dataCopy;
-          // });
 
           pushFlashMessage(res.data.messages);
           navigate(`/g/${selectedGroup.name}`);

@@ -10,7 +10,6 @@ import Dots from "../ui/Dots";
 
 // context
 import { DataContext } from "../context/DataContext";
-import { UiContext } from "../context/UiContext";
 import { ChatSkeletonLoader } from "../ui/SkeletonLoaders";
 
 // utility hooks
@@ -21,8 +20,19 @@ function ChatWindow() {
   const { channel } = useParams();
 
   // context
-  const { dataReady, chatMounted, dataHelpers } = useContext(DataContext);
-  const { selectedGroup, selectedChannel } = useContext(UiContext);
+  const {
+    dataReady,
+    chatMounted,
+    stateRestored,
+    dataHelpers,
+    selectedGroup,
+    selectedChannel,
+    selectedChatIsDepleted,
+  } = useContext(DataContext);
+
+  console.log(stateRestored);
+  console.log(selectedGroup);
+  console.log(selectedChannel);
 
   // states
   const [lastUpdate, setLastUpdate] = useState(Date.now());
@@ -49,26 +59,23 @@ function ChatWindow() {
   // memoized
   const memoizedSkeleton = useMemo(() => <ChatSkeletonLoader count={15} />, []);
 
-  // const chatContainer = useMemo(
-  //   () => document.querySelector("#chatWindow"),
-  //   []
-  // );
+  // const chatIsDepleted = useMemo(() => {
+  //   if (selectedChannel) {
+  //     console.log("refreshing depletion");
+  //     console.log(selectedGroup);
+  //     return selectedGroup.chatDepleted[selectedChannel._id];
+  //   } else return false;
+  // }, [selectedChannel, selectedGroup]); // ? or should this be a context
 
-  const chatIsDepleted = useMemo(() => {
-    if (selectedChannel) {
-      return selectedGroup.chatDepleted[selectedChannel._id];
-    } else return false;
-  }, [selectedChannel, selectedGroup?.chatDepleted]);
+  // console.log(selectedGroup);
+  // console.log(chatIsDepleted);
 
   // scroll to bottom on first load
   useEffect(() => {
-    // console.log(chatWindowRef.current);
     if (chatWindowRef.current) {
-      // console.log("LLLLLLLLLL")
-      // chatWindowRef.current?.scrollHeight = 0
-      const chatWindow = document.querySelector("#chatWindow");
-      // console.log(chatWindow);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
+      goToBottom();
+      // const chatWindow = document.querySelector("#chatWindow");
+      // chatWindow.scrollTop = chatWindow.scrollHeight;
     }
   }, [dataReady, selectedChannel]);
 
@@ -83,10 +90,11 @@ function ChatWindow() {
     });
   }
 
-  // useEffect(() => {
-  //   if (bottomOfPageRef.current && bottomOfPageIsVisible) goToBottom();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [thisChatStack]);
+  useEffect(() => {
+    // console.log("chatStack changed");
+    if (bottomOfPageRef.current && bottomOfPageIsVisible) goToBottom();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
 
   // rerender every 30 sec to update timestamps
   useEffect(() => {
@@ -98,27 +106,22 @@ function ChatWindow() {
   }, [lastUpdate]);
   // console.log(topIntersected);
 
-  // fetch more messages on scroll hit top of page, scroll to bottom on first load
+  // fetch more messages on scroll hit top of page
   useEffect(() => {
-    if (topOfPageIsVisible) {
+    if (topOfPageIsVisible && !selectedChatIsDepleted) {
       fetchTimerRef.current = setTimeout(() => {
         console.log("fetching");
-        // fetchMore({
-        //   target: { group: selectedGroup._id, channel: selectedChannel._id },
-        //   last: chatData[selectedGroup._id][selectedChannel._id][0]
-        //     .clusterTimestamp,
-        // });
+        fetchMore({
+          target: { group: selectedGroup._id, channel: selectedChannel._id },
+          last: selectedGroup.chatData[selectedChannel._id][0].clusterTimestamp,
+        });
       }, 1000);
     } else {
-      console.log("cancelling fetch");
-      console.log(fetchTimerRef);
+      // console.log("cancelling fetch");
+      // console.log(fetchTimerRef);
       clearTimeout(fetchTimerRef.current);
       fetchTimerRef.current = null;
     }
-    // else if (chatMounted && !topIntersected) {
-    //   setTopIntersected(true);
-    //   goToBottom();
-    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topOfPageIsVisible]);
 
@@ -184,7 +187,7 @@ function ChatWindow() {
     }
   }
 
-  if (!dataReady || !chatMounted) {
+  if (!dataReady || !chatMounted || !stateRestored) {
     return (
       <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
         <ChannelBanner name={channel} />
@@ -207,7 +210,7 @@ function ChatWindow() {
           onScroll={() => handleScroll()}
           ref={chatWindowRef}
         >
-          {chatIsDepleted ? (
+          {selectedChatIsDepleted ? (
             <div className="w-full h-20 flex justify-center items-center opacity-40">
               no more messages
             </div>

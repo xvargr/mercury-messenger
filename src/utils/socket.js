@@ -224,22 +224,32 @@ export default function useSocket() {
   }
 
   function fetchMore(fetchParams) {
-    function fetchReceived(res) {
-      setGroupData((prevStack) => {
-        const dataCopy = { ...prevStack };
-        const stackCopy = [
-          ...prevStack[res.target.group].chatData[res.target.channel],
-        ];
+    function patchChat(params) {
+      const { partialChat, target, depleted = false } = params;
 
-        dataCopy[res.target.group].chatData[res.target.channel] = [
-          ...res.data,
-          ...stackCopy,
-        ];
+      setGroupData((prevData) => {
+        const dataCopy = { ...prevData };
+        const groupCopy = { ...dataCopy[target.group] };
+        const stackCopy = [...groupCopy.chatData[target.channel]];
 
+        groupCopy.chatData[target.channel] = [...partialChat, ...stackCopy];
+        if (depleted) {
+          groupCopy.chatDepleted[target.channel] = true;
+        }
+
+        dataCopy[target.group] = groupCopy;
+
+        // console.log(dataCopy);
         return dataCopy;
       });
+    }
 
-      return { clustersDepleted: res.clustersDepleted };
+    function fetchReceived(res) {
+      patchChat({
+        partialChat: res.data,
+        target: res.target,
+        depleted: res.depleted,
+      });
     }
 
     socket.timeout(TIMEOUT).emit("fetchMore", fetchParams, (err, res) => {

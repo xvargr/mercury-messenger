@@ -70,6 +70,14 @@ export async function constructInitData(args) {
   return { chatData, peerData, chatDepleted };
 }
 
+export async function sendInitData(args) {
+  const { socket, sender, callback } = args;
+
+  const initData = await constructInitData({ socket, sender });
+
+  callback(initData);
+}
+
 export async function newCluster(args) {
   const { socket, sender, clusterData, callback } = args;
   const channel = await Channel.findById(clusterData.target.channel);
@@ -210,8 +218,6 @@ export async function fetchMoreMessages(args) {
   for (const cluster of await clusters) {
     partialChat.unshift(cluster);
   }
-
-  console.log(partialChat.length);
 
   callback({
     target: fetchParams.target,

@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 
 // context
 import { DataContext } from "../context/DataContext";
-import { UiContext } from "../context/UiContext";
 import { FlashContext } from "../context/FlashContext";
 
 // components
@@ -16,9 +15,14 @@ import axiosInstance from "../../utils/axios";
 function GroupBanner(props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { pushFlashMessage } = useContext(FlashContext);
-  const { dataReady, dataHelpers } = useContext(DataContext);
-  const { selectedGroup, setSelectedChannel, clearSelected, isAdmin } =
-    useContext(UiContext);
+  const {
+    dataReady,
+    dataHelpers,
+    selectedGroup,
+    setSelectedChannel,
+    clearSelected,
+    isAdmin,
+  } = useContext(DataContext);
   const navigate = useNavigate();
   const { userGroups } = axiosInstance();
 

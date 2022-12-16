@@ -1,12 +1,14 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+// ui
 import InputBox from "../components/ui/InputBox";
-import { DataContext } from "../components/context/DataContext";
-import { UiContext } from "../components/context/UiContext";
-
 import CircleButton from "../components/ui/CircleButton";
 
+// context
+import { DataContext } from "../components/context/DataContext";
+
+// utils
 import axiosInstance from "../utils/axios";
 
 function LoginPage() {
@@ -15,9 +17,8 @@ function LoginPage() {
   const [feedback, setFeedback] = useState("");
   const [buttonStatus, setButtonStatus] = useState("error");
   const [formState, setFormState] = useState("login");
-  const { setDataMounted, setChatMounted, setIsLoggedIn } =
+  const { setDataMounted, setChatMounted, setIsLoggedIn, clearSelected } =
     useContext(DataContext);
-  const { clearSelected } = useContext(UiContext);
   const [userData, setUserData] = useState({
     username: "",
     password: "",

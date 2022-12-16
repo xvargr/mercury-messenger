@@ -282,6 +282,7 @@ export default function useAxiosInstance() {
   function abortEditUser() {
     editUserController.abort();
   }
+  // todo: set aborts
   function abortAll() {
     fetchController.abort();
     deleteChannelController.abort();
