@@ -30,19 +30,13 @@ function ChatWindow() {
     selectedChatIsDepleted,
   } = useContext(DataContext);
 
-  console.log(stateRestored);
-  console.log(selectedGroup);
-  console.log(selectedChannel);
-
   // states
   const [lastUpdate, setLastUpdate] = useState(Date.now());
-  // const [topIntersected, setTopIntersected] = useState(false);
 
   // refs
   const topOfPageRef = useRef(null);
   const bottomOfPageRef = useRef(null);
   const chatWindowRef = useRef(null);
-  const fetchTimerRef = useRef(null);
 
   // scrollRefs
   const scrollElapsedRef = useRef(null);
@@ -50,51 +44,59 @@ function ChatWindow() {
   const scrollPositionRef = useRef(null);
 
   // intersection-observer
-  const [topVisibleRef, topOfPageIsVisible] = useInView();
   const [bottomVisibleRef, bottomOfPageIsVisible] = useInView();
 
-  // misc
+  // custom hooks
   const { sendMessage, appendMessage, fetchMore } = useSocket();
 
-  // memoized
+  // memos
   const memoizedSkeleton = useMemo(() => <ChatSkeletonLoader count={15} />, []);
 
-  // const chatIsDepleted = useMemo(() => {
-  //   if (selectedChannel) {
-  //     console.log("refreshing depletion");
-  //     console.log(selectedGroup);
-  //     return selectedGroup.chatDepleted[selectedChannel._id];
-  //   } else return false;
-  // }, [selectedChannel, selectedGroup]); // ? or should this be a context
+  // scroll to bottom on every new message if already latched to the bottom,
+  function goToBottom(params) {
+    if (params?.smooth) {
+      bottomOfPageRef.current.scrollIntoView({
+        block: "end",
+        inline: "start",
+      });
+    } else {
+      const chatWindow = document.querySelector("#chatWindow");
 
-  // console.log(selectedGroup);
-  // console.log(chatIsDepleted);
+      chatWindow.scrollTo({
+        top: chatWindow.scrollHeight,
+        behavior: "instant",
+      });
+    }
+  }
 
   // scroll to bottom on first load
   useEffect(() => {
     if (chatWindowRef.current) {
       goToBottom();
-      // const chatWindow = document.querySelector("#chatWindow");
-      // chatWindow.scrollTop = chatWindow.scrollHeight;
     }
   }, [dataReady, selectedChannel]);
 
-  // scroll to bottom on every new message if already latched to the bottom,
-  function goToBottom() {
-    // bottomOfPageRef.current.scrollIntoView();
-    // const chatWindow = document.querySelector("#chatWindow");
-    // chatWindow.scrollTop = chatWindow.scrollHeight;
-    bottomOfPageRef.current.scrollIntoView({
-      block: "end",
-      inline: "start",
-    });
-  }
-
+  // scroll to bottom on new message if latched to the bottom
   useEffect(() => {
-    // console.log("chatStack changed");
-    if (bottomOfPageRef.current && bottomOfPageIsVisible) goToBottom();
+    if (bottomOfPageRef.current && bottomOfPageIsVisible) {
+      goToBottom({ smooth: true });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   });
+
+  // scroll position preservation on fetchMore
+  useEffect(() => {
+    const chatWindow = document.querySelector("#chatWindow");
+    if (scrollPositionRef.current) {
+      const newPosition = chatWindow.scrollHeight - scrollPositionRef.current;
+
+      chatWindow.scrollTo({
+        top: newPosition,
+        behavior: "instant",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollPositionRef.current]);
 
   // rerender every 30 sec to update timestamps
   useEffect(() => {
@@ -104,26 +106,6 @@ function ChatWindow() {
     );
     return () => clearInterval(rerenderInterval);
   }, [lastUpdate]);
-  // console.log(topIntersected);
-
-  // fetch more messages on scroll hit top of page
-  useEffect(() => {
-    if (topOfPageIsVisible && !selectedChatIsDepleted) {
-      fetchTimerRef.current = setTimeout(() => {
-        console.log("fetching");
-        fetchMore({
-          target: { group: selectedGroup._id, channel: selectedChannel._id },
-          last: selectedGroup.chatData[selectedChannel._id][0].clusterTimestamp,
-        });
-      }, 1000);
-    } else {
-      // console.log("cancelling fetch");
-      // console.log(fetchTimerRef);
-      clearTimeout(fetchTimerRef.current);
-      fetchTimerRef.current = null;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [topOfPageIsVisible]);
 
   function sendOut(sendObj) {
     if (dataReady) {
@@ -143,33 +125,28 @@ function ChatWindow() {
           target: { group: selectedGroup._id, channel: selectedChannel._id },
         });
       }
-      goToBottom();
+      goToBottom({ smooth: true });
     }
   }
 
-  // save scroll position after set duration of last scroll event
+  // fetch more messages on scroll to top, and save scroll position
   function handleScroll() {
     function setPositionOnTimeout() {
       scrollTimerRef.current = setTimeout(() => {
-        // console.log("scroll pos set");
-        // console.log(window.innerHeight);
-        // console.log(documen);
-        // console.dir(chatWindowRef.current);
-        // console.dir(chatWindowRef.current.offsetHeight);
-        // console.dir(chatWindowRef.current.scrollTopMax);
-        // console.dir(
-        // chatWindowRef.current.scrollHeight - chatWindowRef.offsetHeight
-        // );
-        // console.dir(chatWindowRef.current.scrollHeight);
-        // * below is working
-        console.log(
-          chatWindowRef.current.scrollTop,
-          "/",
-          chatWindowRef.current.scrollHeight -
-            chatWindowRef.current.offsetHeight
-        );
-        scrollPositionRef.current = chatWindowRef.current.scrollTop;
         scrollElapsedRef.current = null;
+
+        if (chatWindowRef.current.scrollTop === 0 && !selectedChatIsDepleted) {
+          fetchMore({
+            target: {
+              group: selectedGroup._id,
+              channel: selectedChannel._id,
+            },
+            last: selectedGroup.chatData[selectedChannel._id][0]
+              .clusterTimestamp,
+          }).then(() => {
+            scrollPositionRef.current = chatWindowRef.current.scrollHeight;
+          });
+        }
       }, 250);
     }
 
@@ -179,7 +156,7 @@ function ChatWindow() {
       setPositionOnTimeout();
     }
 
-    // if time passed since last scroll evt <250ms ignore and reset timer
+    // throttler, if time passed since last scroll evt <250ms ignore and reset scroll timer
     else if (Date.now() - scrollElapsedRef.current < 250) {
       scrollElapsedRef.current = Date.now();
       clearTimeout(scrollTimerRef.current);
@@ -217,10 +194,7 @@ function ChatWindow() {
           ) : (
             <div
               className="w-full h-20 flex justify-center items-center"
-              ref={(el) => {
-                topOfPageRef.current = el;
-                topVisibleRef(el);
-              }}
+              ref={topOfPageRef}
             >
               <Dots className="flex w-10 justify-around items-center p-0.5 fill-gray-500" />
             </div>
@@ -230,7 +204,7 @@ function ChatWindow() {
 
           <GoToBottomButton
             visible={bottomOfPageIsVisible}
-            passOnClick={goToBottom}
+            passOnClick={() => goToBottom({ smooth: true })}
           />
 
           <div

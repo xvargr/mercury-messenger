@@ -20,12 +20,6 @@ export function DataStateProvider(props) {
   const [windowIsFocused, setWindowIsFocused] = useState(true);
   const { updateStored } = useLocalFallback();
 
-  // let monitoredGroup;
-  // if (dataMounted && selectedGroup) {
-  //   monitoredGroup = groupData[selectedGroup._id];
-  // }
-  // const monitoredChannel =  groupData[selectedGroup._id].channels
-
   // this ref is used to prevent stale closure in the helper functions below
   const groupDataRef = useRef(groupData);
   useEffect(() => {
@@ -42,31 +36,19 @@ export function DataStateProvider(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChannel]);
 
-  // ! UNTESTED check if chat is depleted on each channel change
+  // chatDepleted status updater
   useEffect(() => {
-    console.log(selectedGroup);
-    if (!selectedGroup || !selectedChannel) setSelectedChatIsDepleted(false);
-    else {
+    if (!selectedGroup || !selectedChannel || !chatMounted)
+      setSelectedChatIsDepleted(false);
+    else if (groupData[selectedGroup] !== selectedGroup) {
+      console.warn(groupData[selectedGroup._id]);
+      // console.warn("chatMounted", chatMounted);
       const isDepleted =
         groupData[selectedGroup._id].chatDepleted[selectedChannel._id] || false;
       setSelectedChatIsDepleted(isDepleted);
     }
-
-    // return () => {
-    //   second
-    // }
-  }, [selectedChannel]);
-
-  // updates selected channel/group on main groupData change
-  // useEffect(() => {
-  //   console.log("GD change");
-  //   // setSelectedGroup();
-  //   // setSelectedChannel();
-
-  //   return () => {
-  //     console.log("clear");
-  //   };
-  // }, [monitoredGroup]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedChannel, groupData]);
 
   // todo change selected context if main grpData changes
 

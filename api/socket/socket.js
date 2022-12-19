@@ -7,11 +7,11 @@ import User from "../models/User.js";
 import socketUsers from "./socketUser.js";
 import ExpressError from "../utils/ExpressError.js";
 import {
-  // constructInitData,
   sendInitData,
   newCluster,
   appendCluster,
   fetchMoreMessages,
+  broadcastStatusChange,
 } from "./socketEvents.js";
 
 const DOMAIN = process.env.APP_DOMAIN;
@@ -73,6 +73,9 @@ const socketInstance = {
         .select("username")
         .lean();
 
+      console.log("from mongo", sender);
+      console.log("in req", socket.request.user);
+
       // sends chat data of all groups that user is a part of
       socket.on("requestInitData", (clusterData, callback) => {
         sendInitData({ socket, sender, callback });
@@ -89,17 +92,23 @@ const socketInstance = {
       );
 
       socket.on("fetchMore", (fetchParams, callback) => {
-        fetchMoreMessages({ socket, sender, fetchParams, callback });
+        fetchMoreMessages({ fetchParams, callback });
       });
 
       // todo user online status change
       socket.on("statusChange", (statusData) => {
-        const { change } = statusData;
+        broadcastStatusChange({ status: statusData, sender });
+        const { status } = statusData;
+
+        // console.log(socket.request.user);
+
+        console.log(`${status} status change signal received`);
       });
 
       socket.on("disconnect", function () {
         socketUsers.disconnect({ socket });
         console.log("currently connected: ", socketUsers.connectedUsers);
+        console.log("users connected: ", socketUsers.connectedUsers.length);
       });
     });
   },

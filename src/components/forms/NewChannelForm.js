@@ -113,7 +113,7 @@ function NewChannelForm(props) {
                 />
                 <label
                   htmlFor="type"
-                  className="inline-flex justify-between items-center p-5 w-full text-gray-400 bg-gray-800 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:bg-gray-700"
+                  className="inline-flex justify-between items-center p-5 w-full text-gray-400 bg-gray-800 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-mexican-red-400 peer-checked:text-mexican-red-400 hover:bg-gray-700"
                 >
                   <div className="block">
                     <div className="w-full text-lg font-semibold">Text </div>
@@ -123,7 +123,10 @@ function NewChannelForm(props) {
                 </label>
               </li>
 
-              <li>
+              <li className="pointer-events-none flex justify-center items-center">
+                <div className="absolute text-2xl rotate-12 text-mexican-red-400">
+                  coming soon!
+                </div>
                 <input
                   type="radio"
                   id="task"
@@ -134,9 +137,9 @@ function NewChannelForm(props) {
                 ></input>
                 <label
                   htmlFor="task"
-                  className="inline-flex justify-between items-center p-5 w-full text-gray-400 bg-gray-800 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:bg-gray-700"
+                  className="inline-flex justify-between items-center p-5 w-full text-gray-400 bg-gray-800 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-mexican-red-400 peer-checked:text-mexican-red-400 hover:bg-gray-700"
                 >
-                  <div className="block">
+                  <div className="block opacity-40">
                     <div className="w-full text-lg font-semibold">Tasks </div>
                     <div className="w-full">Collaborate on tasks</div>
                   </div>

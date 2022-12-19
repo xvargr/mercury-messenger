@@ -14,11 +14,13 @@ import { SocketContext } from "../components/context/SocketContext";
 
 // utility
 import useStateRestore from "../utils/restoreState";
+import useSocket from "../utils/socket";
 
 function MainWindow() {
   const navigate = useNavigate();
   const { socket } = useContext(SocketContext);
   const { isLoggedIn, setIsLoggedIn } = useContext(DataContext);
+  const { statusUpdater } = useSocket();
 
   useStateRestore();
 
@@ -31,7 +33,11 @@ function MainWindow() {
   });
 
   return (
-    <main className="w-screen h-screen font-nunito overflow-hidden flex justify-center bgHeroTopo">
+    <main
+      className="w-screen h-screen font-nunito overflow-hidden flex justify-center bgHeroTopo"
+      onMouseMove={statusUpdater}
+      onLoad={statusUpdater}
+    >
       <ReconnectingModal />
       <FlashStack />
       <GroupsBar />
