@@ -37,21 +37,6 @@ const socketUsers = {
     );
   },
 
-  //   getInstances(idArray) {
-  //     const result = [];
-
-  //     idArray.forEach((id) => {
-  //       const index = this.connectedUsers.findIndex((user) => user.userId === id);
-  //       if (index !== -1) {
-  //         this.connectedUsers[index].instances.forEach((instance) =>
-  //           result.push(instance)
-  //         );
-  //       } else return null;
-  //     });
-
-  //     return result;
-  //   },
-
   getSocketId(idString) {
     console.log(idString);
 
@@ -71,7 +56,7 @@ const socketUsers = {
   },
 
   // ! here, emit on change?
-  changeStatus(idString, status) {
+  setStatus(idString, status) {
     if (typeof idString !== "string") idString = idString.toString();
     const index = this.connectedUsers.findIndex(
       (user) => user.userId === idString

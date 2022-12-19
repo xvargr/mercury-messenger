@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect, useRef } from "react";
 
 import { DataContext } from "../components/context/DataContext";
 import { SocketContext } from "../components/context/SocketContext";
@@ -6,7 +6,62 @@ import { SocketContext } from "../components/context/SocketContext";
 export default function useSocket() {
   const { groupData, setGroupData } = useContext(DataContext);
   const { socket } = useContext(SocketContext);
-  const TIMEOUT = 7000;
+  const SOCKET_TIMEOUT = 10000;
+  // const AWAY_TIMEOUT = 180000; // 3 minutes
+  const AWAY_TIMEOUT = 2000; // 3 minutes
+
+  // stale closure fix
+  const socketRef = useRef(socket);
+  useEffect(() => {
+    socketRef.current = socket;
+  }, [socket]);
+
+  // timers
+  const mouseMoveTimerRef = useRef(null);
+  const awayTimerRef = useRef(null);
+
+  // update the server on user status change
+  function statusUpdater() {
+    function emitStatus(params) {
+      const { status } = params;
+      const validStatuses = ["online", "away", "busy", "offline"];
+
+      if (!validStatuses.includes(status))
+        throw new Error("invalid status parameter");
+      // else if (!socket) {
+      //   console.warn("socket not ready");
+      //   return null;
+      // }
+
+      if (socket) socket.emit("statusChange", { status });
+      else if (socketRef.current)
+        socketRef.current.emit("statusChange", { status });
+      else console.warn("socket not ready");
+    }
+
+    function setAwayTimeout() {
+      awayTimerRef.current = setTimeout(() => {
+        console.log("AWAY");
+        emitStatus({ status: "away" });
+        mouseMoveTimerRef.current = null;
+      }, AWAY_TIMEOUT);
+    }
+
+    // if timer is not set, set it
+    if (!mouseMoveTimerRef?.current) {
+      console.log("ONLINE");
+      emitStatus({ status: "online" });
+      mouseMoveTimerRef.current = Date.now();
+      setAwayTimeout();
+    }
+
+    // throttler, if time passed since last scroll evt <250ms ignore and reset away timer
+    else if (Date.now() - mouseMoveTimerRef.current < 100) {
+      mouseMoveTimerRef.current = Date.now();
+      clearTimeout(awayTimerRef.current);
+      setAwayTimeout();
+    }
+  }
 
   function sendMessage(args) {
     const { message, target, failed } = args;
@@ -97,7 +152,7 @@ export default function useSocket() {
     // console.log(JSON.stringify(genesisCluster)); // emit fails with arg as failed object as it is a circular reference, fix by spread or reassigning
 
     socket
-      .timeout(TIMEOUT)
+      .timeout(SOCKET_TIMEOUT)
       .emit("newCluster", { ...genesisCluster }, (err, res) => {
         // set failed property on message if timed out or error
         if (err) genesisTimedOut();
@@ -216,11 +271,13 @@ export default function useSocket() {
       });
     }
 
-    socket.timeout(TIMEOUT).emit("appendCluster", appendObject, (err, res) => {
-      if (err || res.failed)
-        appendTimedOut(); // handle err if append fails on backend with res.failed in addition to timeout
-      else appendAcknowledged(res);
-    });
+    socket
+      .timeout(SOCKET_TIMEOUT)
+      .emit("appendCluster", appendObject, (err, res) => {
+        if (err || res.failed)
+          appendTimedOut(); // handle err if append fails on backend with res.failed in addition to timeout
+        else appendAcknowledged(res);
+      });
   }
 
   function fetchMore(fetchParams) {
@@ -239,7 +296,6 @@ export default function useSocket() {
 
         dataCopy[target.group] = groupCopy;
 
-        // console.log(dataCopy);
         return dataCopy;
       });
     }
@@ -252,9 +308,15 @@ export default function useSocket() {
       });
     }
 
-    socket.timeout(TIMEOUT).emit("fetchMore", fetchParams, (err, res) => {
-      if (err || res.failed) return { err: "timed out" };
-      else fetchReceived(res);
+    return new Promise((resolve, reject) => {
+      resolve(
+        socket
+          .timeout(SOCKET_TIMEOUT)
+          .emit("fetchMore", fetchParams, (err, res) => {
+            if (err || res.failed) return { err: "timed out" };
+            else fetchReceived(res);
+          })
+      );
     });
   }
 
@@ -262,5 +324,6 @@ export default function useSocket() {
     sendMessage,
     appendMessage,
     fetchMore,
+    statusUpdater,
   };
 }

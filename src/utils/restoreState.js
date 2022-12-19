@@ -25,7 +25,7 @@ export default function useStateRestore() {
 
   useEffect(() => {
     if (dataMounted && chatMounted && !stateRestored) {
-      console.log("restoringState");
+      // console.log("restoringState");
       const cachedGroupId = retrieveStored.groupId();
       const cachedChannelId = retrieveStored.channelId();
 
@@ -34,12 +34,11 @@ export default function useStateRestore() {
 
       // reroute to home is discrepancy exists between current location and backed up location
       // else, restore selected context
-      console.log(cachedChannelId);
-      console.log(cachedGroupId);
+      // console.log(cachedChannelId);
+      // console.log(cachedGroupId);
       if (groupParam && cachedGroupId) {
         if (groupParam !== cachedGroupName) navigate("/");
         const restoredGroup = groupData[cachedGroupId];
-        console.log(restoredGroup);
         if (!restoredGroup) navigate("/");
         setSelectedGroup(restoredGroup);
       }
@@ -49,7 +48,6 @@ export default function useStateRestore() {
         const restoredChannel = groupData[cachedGroupId].channels.text.find(
           (channel) => channel._id === cachedChannelId
         );
-        console.log(restoredChannel);
         if (!restoredChannel) navigate("/");
         setSelectedChannel(restoredChannel);
       }

@@ -190,7 +190,7 @@ export async function appendCluster(args) {
 }
 
 export async function fetchMoreMessages(args) {
-  const { socket, sender, fetchParams, callback } = args;
+  const { fetchParams, callback } = args;
 
   let depleted = false;
   const partialChat = [];
@@ -225,3 +225,5 @@ export async function fetchMoreMessages(args) {
     depleted,
   });
 }
+
+export function broadcastStatusChange() {}
