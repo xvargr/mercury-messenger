@@ -119,11 +119,9 @@ export function MemberStack() {
 // renders every cluster in the current chat
 export function ChatStack() {
   const { groupData, selectedGroup, selectedChannel } = useContext(DataContext);
-
   const { sendMessage, appendMessage } = useSocket();
 
   const thisGroup = groupData[selectedGroup._id];
-
   const chatData = thisGroup.chatData[selectedChannel._id];
 
   const clusterStack = [];

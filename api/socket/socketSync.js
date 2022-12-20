@@ -13,9 +13,6 @@ const socketSync = {
 
     // get initiator socket, used for ignoring sender
     const senderSocketId = socketUsers.getSocketId(initiator.id);
-    // const senderSocket = userInstance.find(
-    //   (instance) => instance.address === origin
-    // );
 
     if (change.type === "create") {
       // get relevant sockets to join new room
@@ -34,9 +31,6 @@ const socketSync = {
 
     // Post emit ↓↓↓
 
-    // ! admin that kicks user is not in room anymore??
-    // no socketsync signals and no long er gets emits to room
-
     if (change.type === "delete") {
       // leave all socket from room, thus deleting it
       io.in(`c:${target.id}`).socketsLeave(`c:${target.id}`);
@@ -48,31 +42,21 @@ const socketSync = {
     const { target, change, initiator, messages = [] } = args;
 
     const senderSocketId = socketUsers.getSocketId(initiator.id);
-    // const senderSocket = userInstances.find(
-    //   (instance) => instance.address === origin
-    // );
-    // const userSockets = userInstances.map((instance) =>
-    //   io.sockets.sockets.get(instance.id)
-    // );
     const senderSocket = io.sockets.sockets.get(senderSocketId);
-
-    // console.log("userInstances", userInstances);
-    // console.log("senderSocket", senderSocket);
-    // console.log(userSockets);
 
     if (change.type === "create" || change.type === "join") {
       // join the group's room
-      // userSockets.forEach((socket) => socket.join(`g:${target.id}`));
       senderSocket.join(`g:${target.id}`);
 
-      // join the rooms of each channel
-      // change.data.channels.text.forEach((channel) => {
-      //   userSockets.forEach((socket) => socket.join(`c:${channel.id}`));
-      // });
+      // join channel rooms
       change.data.channels.text.forEach((channel) => {
         senderSocket.join(`c:${channel.id}`);
       });
-      // senderSocket.join(`g:${target.id}`);
+
+      // join user status rooms
+      change.data.members.forEach((member) => {
+        senderSocket.join(`s:${member.id}`);
+      });
     }
 
     // pre emit ↑↑↑
@@ -93,8 +77,13 @@ const socketSync = {
 
       // leave the rooms of each channel
       change.data.channels.text.forEach((channel) => {
-        io.in(`c:${channel._id}`).socketsLeave(`c:${channel._id}`);
+        io.in(`c:${channel.id}`).socketsLeave(`c:${channel.id}`);
       });
+
+      // leave user status rooms, but what if user is in other group rooms too?
+      // change.data.members.forEach(member => {
+      // io.in(`s:${member.id}`).socketsLeave(`s:${member.id}`);
+      // })
     }
 
     if (change.type === "leave" || change.extra?.toKick) {
@@ -114,8 +103,13 @@ const socketSync = {
         leavingSocket.leave(`g:${target.id}`);
 
         change.data.channels.text.forEach((channel) => {
-          leavingSocket.leave(`c:${channel._id}`);
+          leavingSocket.leave(`c:${channel.id}`);
         });
+
+        // dupe users? handle
+        // change.data.members.forEach((member) => {
+        //   leavingSocket.leave(`s:${member.id}`);
+        // });
       });
     }
 
@@ -127,6 +121,19 @@ const socketSync = {
         single: target.id,
       });
     }
+  },
+
+  statusEmit(args) {
+    const io = socketInstance.io;
+    const { target, change } = args;
+
+    io.in(`s:${target}`)
+      // .except(senderSocketId)
+      .emit("statusChange", {
+        target,
+        change,
+        // messages: [...messages],
+      });
   },
 };
 

@@ -334,6 +334,11 @@ export function SocketStateProvider(props) {
       //   else if (change.type === "delete") deleteMessage();
       // }
     });
+
+    socket.on("statusChange", (res) => {
+      console.log(res);
+      // peerHelpers.changeStatus() // todo
+    });
   }
 
   const socketInstance = {

@@ -38,12 +38,7 @@ const socketUsers = {
   },
 
   getSocketId(idString) {
-    console.log(idString);
-
     const result = this.connectedUsers.find((user) => user.userId === idString);
-    console.log(this.connectedUsers);
-    console.log(result);
-
     return result.socket.id;
   },
 
@@ -55,9 +50,15 @@ const socketUsers = {
     else return "offline";
   },
 
-  // ! here, emit on change?
   setStatus(idString, status) {
+    const validStatuses = ["online", "away", "busy", "offline"];
+
     if (typeof idString !== "string") idString = idString.toString();
+
+    if (!validStatuses.includes(status)) {
+      throw new Error("invalid status parameter");
+    }
+
     const index = this.connectedUsers.findIndex(
       (user) => user.userId === idString
     );
