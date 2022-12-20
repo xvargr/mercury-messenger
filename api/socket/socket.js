@@ -69,12 +69,14 @@ const socketInstance = {
       // todo use connectedUsers array to show if user is online
       // todo private messages and friends
 
-      const sender = await User.findById(socket.request.user.id)
-        .select("username")
-        .lean();
+      // const sender = await User.findById(socket.request.user.id)
+      //   .select("username")
+      //   .lean(); // unnecessary db lookup
 
-      console.log("from mongo", sender);
-      console.log("in req", socket.request.user);
+      const sender = socket.request.user;
+
+      // console.log("from mongo", sender);
+      // console.log("in req", socket.request.user);
 
       // sends chat data of all groups that user is a part of
       socket.on("requestInitData", (clusterData, callback) => {
@@ -95,14 +97,9 @@ const socketInstance = {
         fetchMoreMessages({ fetchParams, callback });
       });
 
-      // todo user online status change
       socket.on("statusChange", (statusData) => {
-        broadcastStatusChange({ status: statusData, sender });
-        const { status } = statusData;
-
-        // console.log(socket.request.user);
-
-        console.log(`${status} status change signal received`);
+        // console.log(socket.rooms);
+        broadcastStatusChange({ statusData, sender });
       });
 
       socket.on("disconnect", function () {

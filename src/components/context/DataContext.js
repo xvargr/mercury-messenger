@@ -38,10 +38,10 @@ export function DataStateProvider(props) {
 
   // chatDepleted status updater
   useEffect(() => {
-    if (!selectedGroup || !selectedChannel || !chatMounted)
+    if (!selectedGroup || !selectedChannel || !dataReady)
       setSelectedChatIsDepleted(false);
     else if (groupData[selectedGroup] !== selectedGroup) {
-      console.warn(groupData[selectedGroup._id]);
+      // console.warn(groupData[selectedGroup._id]);
       // console.warn("chatMounted", chatMounted);
       const isDepleted =
         groupData[selectedGroup._id].chatDepleted[selectedChannel._id] || false;
@@ -65,7 +65,6 @@ export function DataStateProvider(props) {
 
   // set if everything is ready to show
   useEffect(() => {
-    // console.log(stateRestored);
     if (dataMounted && chatMounted && stateRestored) setDataReady(true);
     else setDataReady(false);
   }, [dataMounted, chatMounted, stateRestored]);

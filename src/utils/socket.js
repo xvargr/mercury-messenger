@@ -8,7 +8,7 @@ export default function useSocket() {
   const { socket } = useContext(SocketContext);
   const SOCKET_TIMEOUT = 10000;
   // const AWAY_TIMEOUT = 180000; // 3 minutes
-  const AWAY_TIMEOUT = 2000; // 3 minutes
+  const AWAY_TIMEOUT = 5000; // 3 minutes
 
   // stale closure fix
   const socketRef = useRef(socket);
@@ -25,18 +25,28 @@ export default function useSocket() {
     function emitStatus(params) {
       const { status } = params;
       const validStatuses = ["online", "away", "busy", "offline"];
+      let effectiveSocket;
+
+      // function statusChangeAcknowledged(res) {
+      //   console.log(res);
+      //   localStorage.setItem("userStatus", res.change);
+      // }
 
       if (!validStatuses.includes(status))
         throw new Error("invalid status parameter");
-      // else if (!socket) {
-      //   console.warn("socket not ready");
-      //   return null;
-      // }
 
-      if (socket) socket.emit("statusChange", { status });
-      else if (socketRef.current)
-        socketRef.current.emit("statusChange", { status });
-      else console.warn("socket not ready");
+      if (socket) effectiveSocket = socket;
+      else if (socketRef.current) {
+        effectiveSocket = socketRef.current;
+      } else {
+        console.warn("socket not ready");
+        return null;
+      }
+
+      effectiveSocket.emit("statusChange", { status });
+      // effectiveSocket.emit("statusChange", { status }, (res) => {
+      //   if (res) statusChangeAcknowledged(res);
+      // });
     }
 
     function setAwayTimeout() {

@@ -1,4 +1,5 @@
 import socketUsers from "./socketUser.js";
+import socketSync from "./socketSync.js";
 
 // models
 import Group from "../models/Group.js";
@@ -28,7 +29,9 @@ export async function constructInitData(args) {
   // join rooms of each channel and group associated with
   // forEach is not async friendly, use for of
   const chatData = {};
-  const peerData = {};
+  const peerData = {
+    [sender._id]: { status: socketUsers.getStatus(sender._id) },
+  };
   const chatDepleted = {};
 
   for (const group of userGroups) {
@@ -62,7 +65,10 @@ export async function constructInitData(args) {
         chatData[group.id][channel.id].unshift(cluster);
       }
     }
+
+    // get related user's status and joins their status rooms
     for (const member of group.members) {
+      if (!single) socket.join(`s:${member._id}`); // todo join own s: room
       peerData[member._id] = { status: socketUsers.getStatus(member._id) };
     }
   }
@@ -226,4 +232,11 @@ export async function fetchMoreMessages(args) {
   });
 }
 
-export function broadcastStatusChange() {}
+export function broadcastStatusChange(params) {
+  const { sender, statusData } = params;
+  socketUsers.setStatus(sender._id, statusData.status);
+  socketSync.statusEmit({ target: sender._id, change: statusData.status });
+  console.log(`${sender.username} => ${statusData.status}`);
+  // console.log(params);
+  // callback({ change: statusData.status });
+}

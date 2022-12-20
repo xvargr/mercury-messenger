@@ -36,7 +36,8 @@ function MainWindow() {
     <main
       className="w-screen h-screen font-nunito overflow-hidden flex justify-center bgHeroTopo"
       onMouseMove={statusUpdater}
-      onLoad={statusUpdater}
+      onKeyDown={statusUpdater}
+      onClick={statusUpdater}
     >
       <ReconnectingModal />
       <FlashStack />
