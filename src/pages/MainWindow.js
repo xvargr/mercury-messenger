@@ -38,6 +38,7 @@ function MainWindow() {
       onMouseMove={statusUpdater}
       onKeyDown={statusUpdater}
       onClick={statusUpdater}
+      onLoad={statusUpdater}
     >
       <ReconnectingModal />
       <FlashStack />

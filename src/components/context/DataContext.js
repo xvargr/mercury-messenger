@@ -163,7 +163,24 @@ export function DataStateProvider(props) {
     });
   }
 
-  function changeStatus(idString) {} // TODO
+  function changeStatus(params) {
+    const { target, change } = params;
+
+    const validStatuses = ["online", "away", "busy", "offline"];
+    if (!validStatuses.includes(change)) {
+      throw new Error("invalid status parameter");
+    }
+    if (!target) throw new Error("no id passed");
+
+    setPeerData((prevData) => {
+      const dataCopy = { ...prevData };
+
+      if (!dataCopy[target]) dataCopy[target] = { status: "offline" };
+      dataCopy[target].status = change;
+
+      return dataCopy;
+    });
+  } // TODO
 
   function getLastInfo(groupId, channelId) {
     const chatStack = groupData[groupId].chatData[channelId];

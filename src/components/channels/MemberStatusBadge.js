@@ -33,6 +33,7 @@ export default function MemberStatusBadge(props) {
         />
         <span
           className={`w-2 h-2 md:w-2.5 md:h-2.5 ${statusIndicator} rounded-full border-solid md:border-[3px] box-content border-gray-700 absolute right-1.5 bottom-0`}
+          title={status}
         ></span>
       </div>
       <div className="truncate">{member.username}</div>

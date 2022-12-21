@@ -2,47 +2,39 @@ import { useEffect, useState, useMemo, useContext } from "react";
 import { Link } from "react-router-dom";
 
 import { DataContext } from "../context/DataContext";
+import useSocket from "../../utils/socket";
 
 function UserBadge() {
-  // const [status, setStatus] = useState("offline");
   const { peerData, peerHelpers } = useContext(DataContext);
-  // console.log(peerData);
-  // console.log(localStorage.userId);
-  // console.log(peerData[localStorage.userId].status);
+  const { forceStatusUpdate } = useSocket();
 
   const userStatus = useMemo(
     () => peerHelpers.getStatus(localStorage.userId),
-    // return peerData[localStorage.userId]?.status ?? "offline";
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [peerData]
   );
 
-  // console.log(dataReady);
-  // console.log(peerData);
-  // console.log(localStorage.userId);
-  // console.log("userStatus", userStatus);
-  // console.log("getStatus", peerHelpers.getStatus(localStorage.userId));
-
-  // useEffect(() => {
-  //   setStatus(localStorage.userStatus);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [localStorage]);
-
   let statusIndicator;
+  let nextStatus;
   switch (userStatus) {
     case "online":
       statusIndicator = "border-2 bg-green-500 hover:bg-yellow-500";
+      nextStatus = "away";
       break;
 
     case "away":
       statusIndicator = "border-2 bg-yellow-500 hover:bg-red-500";
+      nextStatus = "busy";
       break;
 
     case "busy":
       statusIndicator = "border-2 bg-red-500 hover:bg-gray-500";
+      nextStatus = "offline";
       break;
 
     case "offline":
       statusIndicator = "border-2 bg-gray-600 hover:bg-green-500";
+      nextStatus = "online";
       break;
 
     default:
@@ -52,7 +44,9 @@ function UserBadge() {
   function StatusButton(params) {
     return (
       <span
+        title={`change status to ${nextStatus}`}
         className={`w-2.5 h-2.5 ${statusIndicator} rounded-full border-solid border-4 box-content border-gray-800 absolute right-1.5 bottom-1.5 transition-colors ease-in-out duration-200`}
+        onClick={() => forceStatusUpdate(nextStatus)}
       ></span>
     );
   }

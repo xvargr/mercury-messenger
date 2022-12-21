@@ -34,13 +34,15 @@ export async function constructInitData(args) {
   };
   const chatDepleted = {};
 
+  socket.join(`s:${sender._id}`); // join own status room
+
   for (const group of userGroups) {
-    if (!single) socket.join(`g:${group.id}`);
+    if (!single) socket.join(`g:${group.id}`); // join group room
     chatData[group.id] = {};
     chatDepleted[group.id] = {};
 
     for (const channel of group.channels.text) {
-      if (!single) socket.join(`c:${channel.id}`);
+      if (!single) socket.join(`c:${channel.id}`); // join channel room
       chatData[group.id][channel.id] = [];
 
       const clusters = await Message.find({ channel })
@@ -68,7 +70,7 @@ export async function constructInitData(args) {
 
     // get related user's status and joins their status rooms
     for (const member of group.members) {
-      if (!single) socket.join(`s:${member._id}`); // todo join own s: room
+      if (!single) socket.join(`s:${member._id}`); // join member status rooms
       peerData[member._id] = { status: socketUsers.getStatus(member._id) };
     }
   }
@@ -234,9 +236,16 @@ export async function fetchMoreMessages(args) {
 
 export function broadcastStatusChange(params) {
   const { sender, statusData } = params;
-  socketUsers.setStatus(sender._id, statusData.status);
-  socketSync.statusEmit({ target: sender._id, change: statusData.status });
-  console.log(`${sender.username} => ${statusData.status}`);
+  socketUsers.setStatus({
+    target: sender._id,
+    status: statusData.status,
+    forced: statusData.forced,
+  });
+  socketSync.statusEmit({
+    target: sender._id,
+    change: statusData.status,
+  });
+  // console.log(`${sender.username} => ${statusData.status}`);
   // console.log(params);
   // callback({ change: statusData.status });
 }

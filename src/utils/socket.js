@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 
 import { DataContext } from "../components/context/DataContext";
 import { SocketContext } from "../components/context/SocketContext";
@@ -6,6 +6,9 @@ import { SocketContext } from "../components/context/SocketContext";
 export default function useSocket() {
   const { groupData, setGroupData } = useContext(DataContext);
   const { socket } = useContext(SocketContext);
+
+  const [statusForced, setStatusForced] = useState(false);
+
   const SOCKET_TIMEOUT = 10000;
   // const AWAY_TIMEOUT = 180000; // 3 minutes
   const AWAY_TIMEOUT = 5000; // 3 minutes
@@ -15,10 +18,18 @@ export default function useSocket() {
   useEffect(() => {
     socketRef.current = socket;
   }, [socket]);
+  const statusForcedRef = useRef();
+  statusForcedRef.current = statusForced;
+  // const statusForcedRef = useRef(statusForced);
+  // useEffect(() => {
+  //   statusForcedRef.current = statusForced;
+  // }, [statusForced]);
 
   // timers
   const mouseMoveTimerRef = useRef(null);
   const awayTimerRef = useRef(null);
+
+  // console.log("statusForced out", statusForced);
 
   // update the server on user status change
   function statusUpdater() {
@@ -27,11 +38,6 @@ export default function useSocket() {
       const validStatuses = ["online", "away", "busy", "offline"];
       let effectiveSocket;
 
-      // function statusChangeAcknowledged(res) {
-      //   console.log(res);
-      //   localStorage.setItem("userStatus", res.change);
-      // }
-
       if (!validStatuses.includes(status))
         throw new Error("invalid status parameter");
 
@@ -39,28 +45,28 @@ export default function useSocket() {
       else if (socketRef.current) {
         effectiveSocket = socketRef.current;
       } else {
-        console.warn("socket not ready");
+        // console.warn("socket not ready");
         return null;
       }
 
       effectiveSocket.emit("statusChange", { status });
-      // effectiveSocket.emit("statusChange", { status }, (res) => {
-      //   if (res) statusChangeAcknowledged(res);
-      // });
     }
 
     function setAwayTimeout() {
       awayTimerRef.current = setTimeout(() => {
-        console.log("AWAY");
-        emitStatus({ status: "away" });
+        // console.log("AWAY");
+        if (!statusForced) emitStatus({ status: "away" });
         mouseMoveTimerRef.current = null;
       }, AWAY_TIMEOUT);
     }
 
+    console.log("statusForced", statusForced); // ! always false
+    // console.log("statusForcedRef", statusForcedRef.current); // ! always false
+
     // if timer is not set, set it
     if (!mouseMoveTimerRef?.current) {
-      console.log("ONLINE");
-      emitStatus({ status: "online" });
+      // console.log("ONLINE");
+      if (!statusForced) emitStatus({ status: "online" });
       mouseMoveTimerRef.current = Date.now();
       setAwayTimeout();
     }
@@ -71,6 +77,28 @@ export default function useSocket() {
       clearTimeout(awayTimerRef.current);
       setAwayTimeout();
     }
+  }
+
+  function forceStatusUpdate(status) {
+    console.log("force", status);
+
+    clearTimeout(awayTimerRef.current);
+    awayTimerRef.current = null;
+
+    // if (status === "online") {
+    //   console.log("statset false");
+    //   setStatusForced(false);
+    // } else {
+    //   console.log("statset true");
+    //   setStatusForced(true);
+    // }
+    setStatusForced(true);
+    console.log("ss", statusForced);
+
+    socket.emit("statusChange", {
+      status,
+      forced: status === "online" ? false : true,
+    });
   }
 
   function sendMessage(args) {
@@ -335,5 +363,6 @@ export default function useSocket() {
     appendMessage,
     fetchMore,
     statusUpdater,
+    forceStatusUpdate,
   };
 }
