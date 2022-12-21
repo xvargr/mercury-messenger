@@ -78,6 +78,11 @@ const socketInstance = {
       // console.log("from mongo", sender);
       // console.log("in req", socket.request.user);
 
+      // broadcastStatusChange({
+      //   statusData: { status: "online" },
+      //   sender,
+      // }); // !
+
       // sends chat data of all groups that user is a part of
       socket.on("requestInitData", (clusterData, callback) => {
         sendInitData({ socket, sender, callback });
@@ -99,11 +104,18 @@ const socketInstance = {
 
       socket.on("statusChange", (statusData) => {
         // console.log(socket.rooms);
+        console.log(statusData);
         broadcastStatusChange({ statusData, sender });
       });
 
+      // socket.on("statusChange", (statusData) => {
+      //   // console.log(socket.rooms);
+      //   broadcastStatusChange({ statusData, sender });
+      // });
+
       socket.on("disconnect", function () {
         socketUsers.disconnect({ socket });
+        // broadcastStatusChange({ statusData: { status: "offline" }, sender }); // !
         console.log("currently connected: ", socketUsers.connectedUsers);
         console.log("users connected: ", socketUsers.connectedUsers.length);
       });

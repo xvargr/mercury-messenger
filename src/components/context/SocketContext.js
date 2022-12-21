@@ -35,6 +35,7 @@ export function SocketStateProvider(props) {
     dataHelpers,
     isLoggedIn,
     setIsLoggedIn,
+    peerHelpers,
   } = useContext(DataContext);
 
   const { userGroups } = axiosInstance();
@@ -336,8 +337,7 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("statusChange", (res) => {
-      console.log(res);
-      // peerHelpers.changeStatus() // todo
+      peerHelpers.changeStatus({ target: res.target, change: res.change });
     });
   }
 
