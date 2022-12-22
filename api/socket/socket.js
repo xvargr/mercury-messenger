@@ -51,6 +51,7 @@ const socketInstance = {
 
         const prevSocket = io.sockets.sockets.get(prevUser.socket.id);
 
+        console.log("HHHHHHEEEERRRREEE");
         prevSocket?.disconnect();
         socketUsers.disconnect({ userId: socket.request.user._id });
 
@@ -104,8 +105,8 @@ const socketInstance = {
 
       socket.on("statusChange", (statusData) => {
         // console.log(socket.rooms);
-        console.log(statusData);
-        broadcastStatusChange({ statusData, sender });
+        // console.log(sender);
+        broadcastStatusChange({ statusData, target: sender._id });
       });
 
       // socket.on("statusChange", (statusData) => {
@@ -114,7 +115,8 @@ const socketInstance = {
       // });
 
       socket.on("disconnect", function () {
-        socketUsers.disconnect({ socket });
+        // console.log(socket.request.user._id);
+        socketUsers.disconnect({ userId: socket.request.user._id });
         // broadcastStatusChange({ statusData: { status: "offline" }, sender }); // !
         console.log("currently connected: ", socketUsers.connectedUsers);
         console.log("users connected: ", socketUsers.connectedUsers.length);

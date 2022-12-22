@@ -235,14 +235,15 @@ export async function fetchMoreMessages(args) {
 }
 
 export function broadcastStatusChange(params) {
-  const { sender, statusData } = params;
+  const { target, statusData } = params;
+  console.log("StatDt", statusData);
   socketUsers.setStatus({
-    target: sender._id,
+    target,
     status: statusData.status,
     forced: statusData.forced,
   });
   socketSync.statusEmit({
-    target: sender._id,
+    target,
     change: statusData.status,
   });
   // console.log(`${sender.username} => ${statusData.status}`);

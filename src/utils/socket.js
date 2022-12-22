@@ -4,10 +4,18 @@ import { DataContext } from "../components/context/DataContext";
 import { SocketContext } from "../components/context/SocketContext";
 
 export default function useSocket() {
-  const { groupData, setGroupData } = useContext(DataContext);
+  const {
+    groupData,
+    setGroupData,
+    statusForced,
+    setStatusForced,
+    peerHelpers,
+  } = useContext(DataContext);
   const { socket } = useContext(SocketContext);
 
-  const [statusForced, setStatusForced] = useState(false);
+  // const [statusForced, setStatusForced] = useState(false);
+
+  const userStatus = peerHelpers.getStatus(localStorage.userId);
 
   const SOCKET_TIMEOUT = 10000;
   // const AWAY_TIMEOUT = 180000; // 3 minutes
@@ -18,18 +26,14 @@ export default function useSocket() {
   useEffect(() => {
     socketRef.current = socket;
   }, [socket]);
-  const statusForcedRef = useRef();
-  statusForcedRef.current = statusForced;
-  // const statusForcedRef = useRef(statusForced);
-  // useEffect(() => {
-  //   statusForcedRef.current = statusForced;
-  // }, [statusForced]);
+  const statusForcedRef = useRef(statusForced);
+  useEffect(() => {
+    statusForcedRef.current = statusForced;
+  }, [statusForced]);
 
   // timers
   const mouseMoveTimerRef = useRef(null);
   const awayTimerRef = useRef(null);
-
-  // console.log("statusForced out", statusForced);
 
   // update the server on user status change
   function statusUpdater() {
@@ -49,30 +53,41 @@ export default function useSocket() {
         return null;
       }
 
+      console.log("timer status emit");
       effectiveSocket.emit("statusChange", { status });
     }
 
     function setAwayTimeout() {
       awayTimerRef.current = setTimeout(() => {
         // console.log("AWAY");
-        if (!statusForced) emitStatus({ status: "away" });
+        if (!statusForcedRef.current) emitStatus({ status: "away" });
         mouseMoveTimerRef.current = null;
       }, AWAY_TIMEOUT);
     }
 
-    console.log("statusForced", statusForced); // ! always false
-    // console.log("statusForcedRef", statusForcedRef.current); // ! always false
+    // console.log("ref", statusForcedRef.current, "state", statusForced); // always false
+    // big headache, turns out hooks like this are not like context providers, every time they're called,
+    // a new instance of this hook is created, so when the hook in userBadge updates it's forced state,
+    // the hook instance in the main window is not affected, and vice versa. Even refs don't update,
+    // because they are different instances, which is also why clearing timeouts doesn't work in the
+    // forceStatusUpdate function
+
+    console.log(statusForcedRef.current);
+    // console.log(userStatus);
 
     // if timer is not set, set it
     if (!mouseMoveTimerRef?.current) {
       // console.log("ONLINE");
-      if (!statusForced) emitStatus({ status: "online" });
+      // ! send online if activity, should only be when away?
+      if (!statusForcedRef.current && userStatus === "away") {
+        emitStatus({ status: "online" });
+      }
       mouseMoveTimerRef.current = Date.now();
       setAwayTimeout();
     }
 
-    // throttler, if time passed since last scroll evt <250ms ignore and reset away timer
-    else if (Date.now() - mouseMoveTimerRef.current < 100) {
+    // throttler, if time passed since last scroll evt <150ms ignore and reset away timer
+    else if (Date.now() - mouseMoveTimerRef.current < 150) {
       mouseMoveTimerRef.current = Date.now();
       clearTimeout(awayTimerRef.current);
       setAwayTimeout();
@@ -80,25 +95,25 @@ export default function useSocket() {
   }
 
   function forceStatusUpdate(status) {
-    console.log("force", status);
+    console.warn("force", status);
 
-    clearTimeout(awayTimerRef.current);
-    awayTimerRef.current = null;
+    // clearTimeout(awayTimerRef.current);
+    // awayTimerRef.current = null;
 
-    // if (status === "online") {
-    //   console.log("statset false");
-    //   setStatusForced(false);
-    // } else {
-    //   console.log("statset true");
-    //   setStatusForced(true);
-    // }
-    setStatusForced(true);
-    console.log("ss", statusForced);
+    console.log("status === 'online'", status === "online");
+
+    if (status === "online") setStatusForced(false);
+    else setStatusForced(true);
+
+    // statusForcedRef.current = true;
+    // console.log("1", statusForced);
+    // console.log("ss", statusForced);
 
     socket.emit("statusChange", {
       status,
       forced: status === "online" ? false : true,
     });
+    statusUpdater();
   }
 
   function sendMessage(args) {
