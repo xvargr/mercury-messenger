@@ -8,9 +8,13 @@ const socketUsers = {
 
   connect(socket) {
     const user = socket.request.user;
+
+    console.log("LOGINUSR");
+    console.log(user);
+
     this.connectedUsers.push({
       userId: socket.request.user.id,
-      status: "online",
+      status: "online", // !
       statusForced: false,
       socket: {
         id: socket.id,
@@ -18,41 +22,66 @@ const socketUsers = {
       },
     });
 
+    // console.log(user);
+
     broadcastStatusChange({
       statusData: { status: user.forcedStatus ?? "online" },
-      sender: user,
+      target: user._id,
     }); // ! untested
   },
 
   async disconnect(params) {
-    const { userId, socket } = params;
-    const user = socket.request.user;
+    const { userId } = params; // can disconnect by id, or by socket
+    // const userId = params.userId.toString();
 
-    console.log(user);
+    // if (!socket && !userId) {
+    //   throw new Error("either and id or socket is needed");
+    // }
 
-    let index;
-    if (socket) {
-      index = this.connectedUsers.findIndex(
-        (user) => user.socket.id === socket.id
-      );
-    } else if (userId) {
-      index = this.connectedUsers.findIndex(
-        (user) => user.socket.id === userId.toString()
-      );
-    }
+    // console.log("params", params);
+    // console.log("socket", socket);
+    // console.log("request", socket.request);
+    // const user = socket.request.user;
 
-    broadcastStatusChange({
-      statusData: { status: "offline" },
-      sender: user,
-    }); // ! untested
+    // console.log(user);
 
-    const statusIsForced = this.connectedUsers[index].statusForced;
+    // let index;
+    // if (socket) {
+    //   index = this.connectedUsers.findIndex(
+    //     (user) => user.socket.id === socket.id
+    //   );
+    // } else if (userId) {
+    const index = this.connectedUsers.findIndex(
+      (user) => user.userId === userId.toString()
+    );
+    // index = this.connectedUsers.findIndex(
+    //   (user) => user.socket.id === userId.toString()
+    // );
+    // }
+
+    // console.log(userId);
+    // console.log(this.connectedUsers);
+    // console.log(index); // ! -1
+
+    // console.log(this.connectedUsers[index].status);
+    if (this.connectedUsers[index].status !== "offline") {
+      broadcastStatusChange({
+        target: userId, // undefined
+        statusData: { status: "offline" },
+      });
+    } // ! untested
+
+    const statusIsForced = this.connectedUsers[index].statusForced; // ! can be undefined
 
     // ! untested
     console.log(this.connectedUsers[index]);
     if (statusIsForced) {
-      // user.forcedStatus = true;
-      // await user.save(); // !
+      const user = await User.findById(userId);
+      console.log("SAVE");
+      console.log(user);
+
+      user.forcedStatus = this.connectedUsers[index]; // ! crash here
+      await user.save(); // !
     }
 
     this.connectedUsers.splice(index, 1);
@@ -78,12 +107,16 @@ const socketUsers = {
   },
 
   setStatus(params) {
-    const { target, status, forced = false } = params;
+    const { status, forced = false } = params;
+    const target = params.target.toString();
+
     const validStatuses = ["online", "away", "busy", "offline"];
+
+    // console.log(params);
 
     // if (typeof target !== "string") target = target.toString();
 
-    console.log("forced", forced);
+    // console.log("forced", forced);
 
     if (!validStatuses.includes(status)) {
       throw new Error("invalid status parameter");
@@ -95,7 +128,7 @@ const socketUsers = {
 
     if (index !== -1) {
       this.connectedUsers[index].status = status;
-      if (forced) this.connectedUsers[index].statusForced = true;
+      if (forced) this.connectedUsers[index].statusForced = true; // ! not boolean, instead status type
     } else return null;
   },
 };

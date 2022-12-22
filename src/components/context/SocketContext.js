@@ -337,6 +337,7 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("statusChange", (res) => {
+      console.log(res.target, "=>", res.change);
       peerHelpers.changeStatus({ target: res.target, change: res.change });
     });
   }

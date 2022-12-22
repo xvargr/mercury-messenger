@@ -9,15 +9,21 @@ export const DataContext = createContext(); // use this to access the values her
 export function DataStateProvider(props) {
   const [groupData, setGroupData] = useState(null);
   const [peerData, setPeerData] = useState({});
+
   const [dataMounted, setDataMounted] = useState(false);
   const [chatMounted, setChatMounted] = useState(false);
+
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedChannel, setSelectedChannel] = useState(null);
+
   const [selectedChatIsDepleted, setSelectedChatIsDepleted] = useState(true);
   const [stateRestored, setStateRestored] = useState(false);
   const [dataReady, setDataReady] = useState(false);
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [windowIsFocused, setWindowIsFocused] = useState(true);
+  const [statusForced, setStatusForced] = useState(false);
+
   const { updateStored } = useLocalFallback();
 
   // this ref is used to prevent stale closure in the helper functions below
@@ -225,6 +231,8 @@ export function DataStateProvider(props) {
     clearSelected,
     isAdmin,
     selectedChatIsDepleted,
+    statusForced,
+    setStatusForced,
 
     dataHelpers: {
       getChannelIndex,
