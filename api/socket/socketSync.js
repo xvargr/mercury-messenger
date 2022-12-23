@@ -87,7 +87,6 @@ const socketSync = {
     }
 
     if (change.type === "leave" || change.extra?.toKick) {
-      console.log("change.extra", change.extra);
       const leavingSocketIds = [];
       if (change.type === "leave") {
         leavingSocketIds.push(socketUsers.getSocketId(change.extra.userId));

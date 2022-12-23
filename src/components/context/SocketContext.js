@@ -35,6 +35,7 @@ export function SocketStateProvider(props) {
     dataHelpers,
     isLoggedIn,
     setIsLoggedIn,
+    setStatusForced,
     peerHelpers,
   } = useContext(DataContext);
 
@@ -99,6 +100,9 @@ export function SocketStateProvider(props) {
             if (err || res.failed) return err;
             else {
               setPeerData(res.peerData);
+              if (res.peerData[localStorage.userId].status !== "online") {
+                setStatusForced(true);
+              }
               mountChat(res.chatData, res.chatDepleted);
             }
           });
@@ -337,7 +341,6 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("statusChange", (res) => {
-      console.log(res.target, "=>", res.change);
       peerHelpers.changeStatus({ target: res.target, change: res.change });
     });
   }
