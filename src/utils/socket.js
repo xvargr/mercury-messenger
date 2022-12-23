@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef } from "react";
 
 import { DataContext } from "../components/context/DataContext";
 import { SocketContext } from "../components/context/SocketContext";
@@ -13,13 +13,10 @@ export default function useSocket() {
   } = useContext(DataContext);
   const { socket } = useContext(SocketContext);
 
-  // const [statusForced, setStatusForced] = useState(false);
-
   const userStatus = peerHelpers.getStatus(localStorage.userId);
 
   const SOCKET_TIMEOUT = 10000;
-  // const AWAY_TIMEOUT = 180000; // 3 minutes
-  const AWAY_TIMEOUT = 5000; // 3 minutes
+  const AWAY_TIMEOUT = 180000; // 3 minutes
 
   // stale closure fix
   const socketRef = useRef(socket);
@@ -53,13 +50,11 @@ export default function useSocket() {
         return null;
       }
 
-      console.log("timer status emit");
       effectiveSocket.emit("statusChange", { status });
     }
 
     function setAwayTimeout() {
       awayTimerRef.current = setTimeout(() => {
-        // console.log("AWAY");
         if (!statusForcedRef.current) emitStatus({ status: "away" });
         mouseMoveTimerRef.current = null;
       }, AWAY_TIMEOUT);
@@ -72,13 +67,11 @@ export default function useSocket() {
     // because they are different instances, which is also why clearing timeouts doesn't work in the
     // forceStatusUpdate function
 
-    console.log(statusForcedRef.current);
+    // console.log(statusForcedRef.current);
     // console.log(userStatus);
 
     // if timer is not set, set it
     if (!mouseMoveTimerRef?.current) {
-      // console.log("ONLINE");
-      // ! send online if activity, should only be when away?
       if (!statusForcedRef.current && userStatus === "away") {
         emitStatus({ status: "online" });
       }
@@ -95,19 +88,8 @@ export default function useSocket() {
   }
 
   function forceStatusUpdate(status) {
-    console.warn("force", status);
-
-    // clearTimeout(awayTimerRef.current);
-    // awayTimerRef.current = null;
-
-    console.log("status === 'online'", status === "online");
-
     if (status === "online") setStatusForced(false);
     else setStatusForced(true);
-
-    // statusForcedRef.current = true;
-    // console.log("1", statusForced);
-    // console.log("ss", statusForced);
 
     socket.emit("statusChange", {
       status,

@@ -30,7 +30,7 @@ export async function constructInitData(args) {
   // forEach is not async friendly, use for of
   const chatData = {};
   const peerData = {
-    [sender._id]: { status: socketUsers.getStatus(sender._id) },
+    [sender._id]: { status: sender.forcedStatus ?? "online" },
   };
   const chatDepleted = {};
 
@@ -90,6 +90,8 @@ export async function newCluster(args) {
   const { socket, sender, clusterData, callback } = args;
   const channel = await Channel.findById(clusterData.target.channel);
   const group = await Group.findById(clusterData.target.group);
+
+  return null;
 
   const newMessageCluster = new Message({
     sender,
@@ -236,17 +238,15 @@ export async function fetchMoreMessages(args) {
 
 export function broadcastStatusChange(params) {
   const { target, statusData } = params;
-  console.log("StatDt", statusData);
+
   socketUsers.setStatus({
     target,
     status: statusData.status,
     forced: statusData.forced,
   });
+
   socketSync.statusEmit({
     target,
     change: statusData.status,
   });
-  // console.log(`${sender.username} => ${statusData.status}`);
-  // console.log(params);
-  // callback({ change: statusData.status });
 }

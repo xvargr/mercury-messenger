@@ -38,7 +38,7 @@ export function DataStateProvider(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGroup]);
   useEffect(() => {
-    if (selectedChannel) updateStored.channel(selectedChannel);
+    if (selectedChannel) updateStored.channel(selectedChannel); // !! groupData[selectedGroup._id].chatDepleted is undefined // after kicking member and clicking channel
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChannel]);
 

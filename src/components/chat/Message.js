@@ -6,7 +6,7 @@ import {
 } from "@heroicons/react/outline";
 
 function FailedActions(props) {
-  const { clusterData, actions, failedIndex } = props.retryObject;
+  const { clusterData, actions, failedIndex, chatLocation } = props.retryObject;
   const content = clusterData.content;
   const [opacity, setOpacity] = useState("");
 
@@ -29,11 +29,53 @@ function FailedActions(props) {
     });
   }
 
-  // todo deletion
-  function executeRemove() {
-    console.warn("remove not done");
-    console.log(clusterData);
-    // actions.removeLocally();
+  // todo deletion of failed messages
+  function executeLocalRemove() {
+    const deletionData = {
+      target: {
+        group: chatLocation.group,
+        channel: chatLocation.channel,
+        clusterTimestamp: clusterData.clusterTimestamp,
+      },
+      deleteCluster: false,
+      // timestamps: [], // ? or index?
+      indexes: [],
+    };
+
+    // console.log(deletionData);
+    // console.log(clusterData);
+    // console.log(chatLocation);
+    // console.log(props.retryObject);
+    // console.log(this);
+
+    // parent failed to send
+    if (failedIndex.includes(0)) {
+      deletionData.deleteCluster = true;
+    } else {
+      // delete unsent child
+      deletionData.indexes = [...failedIndex];
+    }
+
+    // failedIndex.forEach((index) => {});
+
+    console.log(deletionData);
+
+    // * array of objects
+    // actions.removeLocally(
+
+    //   deletionData
+    //   // [
+    //   //   {
+    //   //     target: {group:"", channel:""},
+    //   // timestamps: [1,2,3]
+
+    //   //   },
+    //   // ]
+
+    //   // message: { ...message },
+    //   // target: { ...target },
+    //   // parent: { ...parent },
+    // );
   }
 
   useEffect(() => {
@@ -50,13 +92,13 @@ function FailedActions(props) {
       className={`bg-gray-500 shadow-md w-1/4 max-w-[9rem] h-6 max-h-6 m-0.5 rounded-md flex justify-around shrink-0 self-baseline relative cursor-pointer ${props.className}`}
     >
       <div
-        className={`w-full h-[1.75rem] bg-mexican-red-400 text-center rounded-md font-semibold absolute z-10 pointer-events-none ${opacity} text-ellipsis`}
+        className={`w-full h-[1.75rem] bg-mexican-red-400 text-center rounded-md font-semibold absolute z-10 pointer-events-none ${opacity} text-ellipsis overflow-hidden`}
       >
         failed to send
       </div>
       <span
         className="w-full flex rounded-l-md justify-center hover:bg-gray-400 transition-colors duration-75 group"
-        onClick={executeRemove}
+        onClick={executeLocalRemove}
       >
         <TrashIcon className="h-full py-0.5 text-gray-900" />
       </span>

@@ -118,7 +118,12 @@ export function MemberStack() {
 
 // renders every cluster in the current chat
 export function ChatStack() {
-  const { groupData, selectedGroup, selectedChannel } = useContext(DataContext);
+  const {
+    groupData,
+    selectedGroup,
+    selectedChannel,
+    removeClusterLocally: removeLocally,
+  } = useContext(DataContext);
   const { sendMessage, appendMessage } = useSocket();
 
   const thisGroup = groupData[selectedGroup._id];
@@ -146,12 +151,15 @@ export function ChatStack() {
     // creates object with all necessary information for a retry if any failed
     if (someFailed) {
       retryObject = {
-        // genesisFailed: content[0].failed ? true : false,
         clusterData: cluster,
         actions: {
           sendMessage,
           appendMessage,
-          removeLocally: null,
+          removeLocally,
+        },
+        chatLocation: {
+          group: selectedGroup._id,
+          channel: selectedChannel._id,
         },
         failedIndex: content.reduce((result, message, index) => {
           if (message.failed) result.push(index);

@@ -1,8 +1,5 @@
 import { Server } from "socket.io";
 
-// models
-import User from "../models/User.js";
-
 // utils
 import socketUsers from "./socketUser.js";
 import ExpressError from "../utils/ExpressError.js";
@@ -51,7 +48,6 @@ const socketInstance = {
 
         const prevSocket = io.sockets.sockets.get(prevUser.socket.id);
 
-        console.log("HHHHHHEEEERRRREEE");
         prevSocket?.disconnect();
         socketUsers.disconnect({ userId: socket.request.user._id });
 
@@ -67,22 +63,7 @@ const socketInstance = {
       console.log("currently connected: ", socketUsers.connectedUsers);
       console.log("users connected: ", socketUsers.connectedUsers.length);
 
-      // todo use connectedUsers array to show if user is online
-      // todo private messages and friends
-
-      // const sender = await User.findById(socket.request.user.id)
-      //   .select("username")
-      //   .lean(); // unnecessary db lookup
-
       const sender = socket.request.user;
-
-      // console.log("from mongo", sender);
-      // console.log("in req", socket.request.user);
-
-      // broadcastStatusChange({
-      //   statusData: { status: "online" },
-      //   sender,
-      // }); // !
 
       // sends chat data of all groups that user is a part of
       socket.on("requestInitData", (clusterData, callback) => {
@@ -104,20 +85,11 @@ const socketInstance = {
       });
 
       socket.on("statusChange", (statusData) => {
-        // console.log(socket.rooms);
-        // console.log(sender);
         broadcastStatusChange({ statusData, target: sender._id });
       });
 
-      // socket.on("statusChange", (statusData) => {
-      //   // console.log(socket.rooms);
-      //   broadcastStatusChange({ statusData, sender });
-      // });
-
       socket.on("disconnect", function () {
-        // console.log(socket.request.user._id);
         socketUsers.disconnect({ userId: socket.request.user._id });
-        // broadcastStatusChange({ statusData: { status: "offline" }, sender }); // !
         console.log("currently connected: ", socketUsers.connectedUsers);
         console.log("users connected: ", socketUsers.connectedUsers.length);
       });
