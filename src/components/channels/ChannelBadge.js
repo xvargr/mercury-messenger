@@ -51,6 +51,16 @@ function ChannelBadge(props) {
       break;
   }
 
+  function UnreadBadge() {
+    if (props.unread <= 0) return null;
+    else
+      return (
+        <div className=" w-5 h-5 bg-red-500 rounded-full shadow-md flex justify-center items-center overflow-clip absolute">
+          {props.unread}
+        </div>
+      );
+  }
+
   // pass name to parent on click
   function passOnClick() {
     props.onClick(props.data);
@@ -174,11 +184,12 @@ function ChannelBadge(props) {
       <Link
         onClick={passOnClick}
         to={`c/${props.data.name}`}
-        className={`h-8 w-5/6 m-0.5 pl-1 py-1 pr-0 ${emphasis} rounded-lg flex justify-between items-center transition-colors ease-in duration-75 group`}
+        className={`h-8 w-5/6 m-0.5 pl-1 py-1 pr-0 ${emphasis} rounded-lg flex justify-between items-center transition-colors ease-in duration-75 group relative`}
       >
+        <UnreadBadge />
         <div className="max-w-[85%] flex items-center">
           {Charm}
-          <div className="truncate">{props.data.name}</div>
+          <div className="pl-1 truncate">{props.data.name}</div>
         </div>
         {props.isAdmin ? (
           <DotsVerticalIcon

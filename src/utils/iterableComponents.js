@@ -39,8 +39,13 @@ export function FlashStack() {
 }
 
 export function GroupStack() {
-  const { groupData, selectedGroup, setSelectedGroup, setSelectedChannel } =
-    useContext(DataContext);
+  const {
+    groupData,
+    selectedGroup,
+    setSelectedGroup,
+    setSelectedChannel,
+    dataHelpers,
+  } = useContext(DataContext);
 
   function groupChangeHandler(groupId) {
     setSelectedGroup(groupData[groupId]);
@@ -58,6 +63,7 @@ export function GroupStack() {
         name={thisGroup.name}
         img={thisGroup.image.thumbnail}
         selected={selected}
+        unread={dataHelpers.getUnread({ groupId })}
         key={thisGroup._id}
         onClick={() => groupChangeHandler(thisGroup._id)}
       />
@@ -67,8 +73,13 @@ export function GroupStack() {
 }
 
 export function ChannelStack() {
-  const { groupData, setSelectedChannel, selectedGroup, selectedChannel } =
-    useContext(DataContext);
+  const {
+    groupData,
+    setSelectedChannel,
+    selectedGroup,
+    selectedChannel,
+    dataHelpers,
+  } = useContext(DataContext);
 
   const thisGroup = groupData[selectedGroup._id];
 
@@ -86,6 +97,7 @@ export function ChannelStack() {
         data={channel}
         selected={selected}
         type="text"
+        unread={dataHelpers.getUnread({ channelId: channel._id })}
         key={channel._id}
         onClick={() => setSelectedChannel(channel)}
         isAdmin={isAdmin}
@@ -118,12 +130,8 @@ export function MemberStack() {
 
 // renders every cluster in the current chat
 export function ChatStack() {
-  const {
-    groupData,
-    selectedGroup,
-    selectedChannel,
-    removeClusterLocally: removeLocally,
-  } = useContext(DataContext);
+  const { groupData, selectedGroup, selectedChannel, dataHelpers } =
+    useContext(DataContext);
   const { sendMessage, appendMessage } = useSocket();
 
   const thisGroup = groupData[selectedGroup._id];
@@ -145,17 +153,20 @@ export function ChatStack() {
     const content = cluster.content;
     const messageStack = [];
     const someFailed = content.some((message) => message?.failed);
+    const allConfirmed = content.every(
+      (message) => message?.failed || message._id
+    ); // prevent retry actions if some messages are still pending
     let isGenesis = true;
     let retryObject = null;
 
     // creates object with all necessary information for a retry if any failed
-    if (someFailed) {
+    if (someFailed && allConfirmed) {
       retryObject = {
         clusterData: cluster,
         actions: {
           sendMessage,
           appendMessage,
-          removeLocally,
+          removeClusterLocally: dataHelpers.removeClusterLocally,
         },
         chatLocation: {
           group: selectedGroup._id,

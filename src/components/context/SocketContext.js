@@ -138,12 +138,16 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("newMessage", function (res) {
-      console.log("focused??", windowIsFocused);
-      if (
-        windowIsFocused ||
-        selectedChannelRef.current._id !== res.channel._id
-      ) {
+      const channelFocused =
+        selectedChannelRef.current?._id !== res.channel._id;
+
+      if (!windowIsFocused || channelFocused) {
         notification.play();
+      }
+
+      if (channelFocused) {
+        console.log("adding");
+        dataHelpers.setUnread({ add: true, channelId: res.channel._id }); // ! not working
       }
 
       setGroupData((prevData) => {
@@ -155,11 +159,10 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("appendMessage", function (res) {
-      console.log("focused??", windowIsFocused);
-      if (
-        windowIsFocused ||
-        selectedChannelRef.current._id !== res.target.channel
-      ) {
+      const channelFocused =
+        selectedChannelRef.current?._id !== res.channel._id;
+
+      if (windowIsFocused || channelFocused) {
         notification.play();
       }
 
@@ -183,8 +186,9 @@ export function SocketStateProvider(props) {
     socket.on("structureChange", function (res) {
       const { target, change, messages } = res;
 
-      // console.log(`${change.type} signal received`);
-      // console.log(res);
+      console.log(selectedGroup);
+      console.log(`${change.type} signal received`);
+      console.log(res);
 
       function createChannel() {
         setGroupData((currentData) => {
