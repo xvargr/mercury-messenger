@@ -29,7 +29,6 @@ function FailedActions(props) {
     });
   }
 
-  // todo deletion of failed messages
   function executeLocalRemove() {
     const deletionData = {
       target: {
@@ -37,45 +36,18 @@ function FailedActions(props) {
         channel: chatLocation.channel,
         clusterTimestamp: clusterData.clusterTimestamp,
       },
-      deleteCluster: false,
-      // timestamps: [], // ? or index?
-      indexes: [],
     };
-
-    // console.log(deletionData);
-    // console.log(clusterData);
-    // console.log(chatLocation);
-    // console.log(props.retryObject);
-    // console.log(this);
 
     // parent failed to send
     if (failedIndex.includes(0)) {
       deletionData.deleteCluster = true;
-    } else {
-      // delete unsent child
+    }
+    // child failed to send
+    else {
       deletionData.indexes = [...failedIndex];
     }
 
-    // failedIndex.forEach((index) => {});
-
-    console.log(deletionData);
-
-    // * array of objects
-    // actions.removeLocally(
-
-    //   deletionData
-    //   // [
-    //   //   {
-    //   //     target: {group:"", channel:""},
-    //   // timestamps: [1,2,3]
-
-    //   //   },
-    //   // ]
-
-    //   // message: { ...message },
-    //   // target: { ...target },
-    //   // parent: { ...parent },
-    // );
+    actions.removeClusterLocally(deletionData);
   }
 
   useEffect(() => {
@@ -92,11 +64,12 @@ function FailedActions(props) {
       className={`bg-gray-500 shadow-md w-1/4 max-w-[9rem] h-6 max-h-6 m-0.5 rounded-md flex justify-around shrink-0 self-baseline relative cursor-pointer ${props.className}`}
     >
       <div
-        className={`w-full h-[1.75rem] bg-mexican-red-400 text-center rounded-md font-semibold absolute z-10 pointer-events-none ${opacity} text-ellipsis overflow-hidden`}
+        className={`w-full h-6 bg-mexican-red-400 text-center rounded-md font-semibold absolute z-10 pointer-events-none ${opacity} text-ellipsis overflow-hidden`}
       >
         failed to send
       </div>
       <span
+        title="delete"
         className="w-full flex rounded-l-md justify-center hover:bg-gray-400 transition-colors duration-75 group"
         onClick={executeLocalRemove}
       >
@@ -104,6 +77,7 @@ function FailedActions(props) {
       </span>
       <span className="h-3/4 self-center outline outline-1 outline-gray-800 absolute"></span>
       <span
+        title="retry"
         className="w-full flex rounded-r-md justify-center hover:bg-gray-400 transition-colors duration-75 group"
         onClick={executeRetry}
       >

@@ -24,6 +24,8 @@ export function DataStateProvider(props) {
   const [windowIsFocused, setWindowIsFocused] = useState(true);
   const [statusForced, setStatusForced] = useState(false);
 
+  const [unreadState, setUnreadState] = useState({});
+
   const { updateStored } = useLocalFallback();
 
   // this ref is used to prevent stale closure in the helper functions below
@@ -38,7 +40,7 @@ export function DataStateProvider(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGroup]);
   useEffect(() => {
-    if (selectedChannel) updateStored.channel(selectedChannel); // !! groupData[selectedGroup._id].chatDepleted is undefined // after kicking member and clicking channel
+    if (selectedChannel) updateStored.channel(selectedChannel);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChannel]);
 
@@ -47,14 +49,21 @@ export function DataStateProvider(props) {
     if (!selectedGroup || !selectedChannel || !dataReady)
       setSelectedChatIsDepleted(false);
     else if (groupData[selectedGroup] !== selectedGroup) {
-      // console.warn(groupData[selectedGroup._id]);
-      // console.warn("chatMounted", chatMounted);
-      const isDepleted =
-        groupData[selectedGroup._id].chatDepleted[selectedChannel._id] || false;
+      let isDepleted; // ! unstable
+      if (
+        groupData[selectedGroup._id].chatData[selectedChannel._id]?.length <
+          20 ||
+        groupData[selectedGroup._id].chatDepleted?.[selectedChannel._id]
+      ) {
+        isDepleted = true;
+      } else {
+        isDepleted = false;
+      }
+
       setSelectedChatIsDepleted(isDepleted);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedChannel, groupData]);
+  }, [selectedChannel, groupData, dataReady]);
 
   // todo change selected context if main grpData changes
 
@@ -74,6 +83,48 @@ export function DataStateProvider(props) {
     if (dataMounted && chatMounted && stateRestored) setDataReady(true);
     else setDataReady(false);
   }, [dataMounted, chatMounted, stateRestored]);
+
+  function getUnread(params) {
+    const { groupId, channelId } = params;
+    let unreadCount;
+
+    console.log(params);
+
+    if (!groupId && !channelId) {
+      console.warn("invalid params");
+      return null;
+    }
+
+    if (channelId) {
+      unreadCount = unreadState[channelId];
+    } else if (groupId) {
+      const channels = groupData[groupId].channels.text;
+      unreadCount = channels.reduce(
+        (accumulator, channel) => accumulator + unreadState[channel._id] ?? 0,
+        0
+      );
+    }
+
+    return unreadCount > 0 ? unreadCount : 0;
+  }
+
+  function setUnread(params) {
+    const { channelId, add, clear } = params;
+    console.log(params);
+
+    setUnreadState((prevState) => {
+      const stateCopy = { ...prevState };
+
+      if (add) {
+        stateCopy[channelId] =
+          stateCopy?.[channelId] > 0 ? stateCopy[channelId]++ : 1;
+      } else if (clear) delete stateCopy[channelId];
+
+      console.log(stateCopy);
+
+      return stateCopy;
+    });
+  }
 
   function isAdmin() {
     return selectedGroup?.administrators.some(
@@ -124,12 +175,17 @@ export function DataStateProvider(props) {
     });
   }
 
-  function addNewGroup(groupObject, chatData) {
+  function addNewGroup(groupObject, chatData, chatDepleted) {
     setGroupData((prevData) => {
       const dataCopy = { ...prevData };
 
+      console.log("CDT", chatData);
+
       dataCopy[groupObject._id] = groupObject;
       dataCopy[groupObject._id].chatData = {};
+      dataCopy[groupObject._id].chatDepleted = {
+        ...chatDepleted,
+      };
 
       return dataCopy;
     });
@@ -151,12 +207,62 @@ export function DataStateProvider(props) {
     setGroupData((prevData) => {
       const dataCopy = { ...prevData };
       const chatCopy = { ...dataCopy[groupObject._id].chatData };
+      const depletedCopy = { ...dataCopy[groupObject._id].chatDepleted };
 
       dataCopy[groupObject._id] = groupObject;
       dataCopy[groupObject._id].chatData = chatCopy;
+      dataCopy[groupObject._id].chatDepleted = depletedCopy;
 
       return dataCopy;
     });
+  }
+
+  function removeClusterLocally(deletionParams) {
+    const { target, deleteCluster, indexes } = deletionParams;
+
+    if (!deleteCluster && !indexes) {
+      // throw new Error("invalid parameters");
+      console.error("invalid parameters");
+      return null;
+    }
+
+    if (deleteCluster) {
+      setGroupData((prevData) => {
+        const dataCopy = { ...prevData };
+        const stackCopy = [...dataCopy[target.group].chatData[target.channel]];
+
+        const filteredStack = stackCopy.filter(
+          (cluster) => cluster.clusterTimestamp !== target.clusterTimestamp
+        );
+
+        dataCopy[target.group].chatData[target.channel] = filteredStack;
+        return dataCopy;
+      });
+    } else if (indexes) {
+      setGroupData((prevData) => {
+        const dataCopy = { ...prevData };
+        const stackCopy = [...dataCopy[target.group].chatData[target.channel]];
+        let indexModifier = 0;
+
+        const clusterIndex = stackCopy.findIndex(
+          (cluster) => cluster.clusterTimestamp === target.clusterTimestamp
+        );
+
+        if (clusterIndex < 0) {
+          // throw new Error("cluster not found");
+          console.error("cluster not found");
+          return null;
+        }
+
+        indexes.forEach((index) => {
+          stackCopy[clusterIndex].content.splice(index - indexModifier, 1);
+          indexModifier++;
+        });
+
+        dataCopy[target.group].chatData[target.channel] = stackCopy;
+        return dataCopy;
+      });
+    }
   }
 
   function getStatus(idString) {
@@ -174,9 +280,15 @@ export function DataStateProvider(props) {
 
     const validStatuses = ["online", "away", "busy", "offline"];
     if (!validStatuses.includes(change)) {
-      throw new Error("invalid status parameter");
+      // throw new Error("invalid status parameter");
+      console.error("invalid status parameters");
+      return null;
     }
-    if (!target) throw new Error("no id passed");
+    if (!target) {
+      // throw new Error("no id passed");
+      console.error("id required");
+      return null;
+    }
 
     setPeerData((prevData) => {
       const dataCopy = { ...prevData };
@@ -186,7 +298,7 @@ export function DataStateProvider(props) {
 
       return dataCopy;
     });
-  } // TODO
+  }
 
   function getLastInfo(groupId, channelId) {
     const chatStack = groupData[groupId].chatData[channelId];
@@ -241,6 +353,9 @@ export function DataStateProvider(props) {
       patchGroup,
       getLastInfo,
       mergePeers,
+      removeClusterLocally,
+      getUnread,
+      setUnread,
     },
 
     peerHelpers: {

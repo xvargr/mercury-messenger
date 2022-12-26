@@ -32,18 +32,30 @@ const socketUsers = {
       (user) => user.userId === userId.toString()
     );
 
+    // user already disconnected before proper dismount
+    if (index < 0) {
+      // console.log("user disconnected unexpectedly");
+      broadcastStatusChange({
+        target: userId,
+        statusData: { status: "offline" },
+      });
+
+      return null;
+    }
+
     const statusIsForced = this.connectedUsers[index].statusForced;
-    console.log("sts frc", statusIsForced);
 
     const user = await User.findById(userId);
+
     if (statusIsForced) {
       user.forcedStatus = this.connectedUsers[index].status;
     } else {
       user.forcedStatus = undefined;
     }
+
     await user.save();
 
-    if (this.connectedUsers[index].status !== "offline") {
+    if (this.connectedUsers[index]?.status !== "offline") {
       broadcastStatusChange({
         target: userId,
         statusData: { status: "offline" },
@@ -88,7 +100,10 @@ const socketUsers = {
     if (index !== -1) {
       this.connectedUsers[index].status = status;
       if (forced) this.connectedUsers[index].statusForced = true;
-    } else throw new Error("user not found");
+    } else {
+      console.warn("!-> user not found");
+      // throw new Error("user not found");
+    }
   },
 };
 
