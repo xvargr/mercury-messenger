@@ -91,6 +91,8 @@ export async function newCluster(args) {
   const channel = await Channel.findById(clusterData.target.channel);
   const group = await Group.findById(clusterData.target.group);
 
+  console.log(clusterData);
+
   const newMessageCluster = new Message({
     sender,
     channel,
