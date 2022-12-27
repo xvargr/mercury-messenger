@@ -14,7 +14,7 @@ function GroupBadge(props) {
     if (props.unread <= 0) return null;
     else
       return (
-        <div className="w-5 h-5 top-0 right-0 bg-mexican-red-400 shadow-md rounded-bl-md font-semibold text-white absolute flex justify-center items-center">
+        <div className="w-5 h-5 top-0 right-0 bg-mexican-red-400 shadow-md rounded-bl-md font-semibold text-white absolute flex justify-center items-center pointer-events-none">
           {props.unread}
         </div>
       );

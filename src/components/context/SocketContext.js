@@ -159,8 +159,9 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("appendMessage", function (res) {
+      console.log(res);
       const channelFocused =
-        selectedChannelRef.current?._id !== res.channel._id;
+        selectedChannelRef.current?._id !== res.target.channel;
 
       if (windowIsFocused || channelFocused) {
         notification.play();
@@ -186,9 +187,9 @@ export function SocketStateProvider(props) {
     socket.on("structureChange", function (res) {
       const { target, change, messages } = res;
 
-      console.log(selectedGroup);
-      console.log(`${change.type} signal received`);
-      console.log(res);
+      // console.log(selectedGroup);
+      // console.log(`${change.type} signal received`);
+      // console.log(res);
 
       function createChannel() {
         setGroupData((currentData) => {

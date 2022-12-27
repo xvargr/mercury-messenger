@@ -35,12 +35,16 @@ export function DataStateProvider(props) {
   }, [groupData]);
 
   // backup selected context id on change
+  // clear unread on enter chat
   useEffect(() => {
     if (selectedGroup) updateStored.group(selectedGroup);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGroup]);
   useEffect(() => {
-    if (selectedChannel) updateStored.channel(selectedChannel);
+    if (selectedChannel) {
+      setUnread({ channelId: selectedChannel._id, clear: true });
+      updateStored.channel(selectedChannel);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChannel]);
 
@@ -88,8 +92,6 @@ export function DataStateProvider(props) {
     const { groupId, channelId } = params;
     let unreadCount;
 
-    console.log(params);
-
     if (!groupId && !channelId) {
       console.warn("invalid params");
       return null;
@@ -99,10 +101,9 @@ export function DataStateProvider(props) {
       unreadCount = unreadState[channelId];
     } else if (groupId) {
       const channels = groupData[groupId].channels.text;
-      unreadCount = channels.reduce(
-        (accumulator, channel) => accumulator + unreadState[channel._id] ?? 0,
-        0
-      );
+      unreadCount = channels.reduce((accumulator, channel) => {
+        return accumulator + (unreadState[channel._id] ?? 0);
+      }, 0);
     }
 
     return unreadCount > 0 ? unreadCount : 0;
@@ -110,17 +111,14 @@ export function DataStateProvider(props) {
 
   function setUnread(params) {
     const { channelId, add, clear } = params;
-    console.log(params);
 
     setUnreadState((prevState) => {
       const stateCopy = { ...prevState };
 
       if (add) {
         stateCopy[channelId] =
-          stateCopy?.[channelId] > 0 ? stateCopy[channelId]++ : 1;
+          stateCopy?.[channelId] > 0 ? stateCopy[channelId] + 1 : 1;
       } else if (clear) delete stateCopy[channelId];
-
-      console.log(stateCopy);
 
       return stateCopy;
     });
@@ -178,8 +176,6 @@ export function DataStateProvider(props) {
   function addNewGroup(groupObject, chatData, chatDepleted) {
     setGroupData((prevData) => {
       const dataCopy = { ...prevData };
-
-      console.log("CDT", chatData);
 
       dataCopy[groupObject._id] = groupObject;
       dataCopy[groupObject._id].chatData = {};

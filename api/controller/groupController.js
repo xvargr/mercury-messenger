@@ -55,10 +55,6 @@ export async function newGroup(req, res) {
   await newChannel.save();
   await newGroup.save();
 
-  newGroup.chatDepleted = { [newChannel._id]: true };
-
-  console.log(newGroup);
-
   socketSync.groupEmit({
     target: { type: "group", id: newGroup._id },
     change: { type: "create", data: newGroup },
