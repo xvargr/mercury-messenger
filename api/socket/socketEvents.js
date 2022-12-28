@@ -1,3 +1,7 @@
+import fs from "fs";
+import { v2 as cloudinary } from "cloudinary";
+import storage from "../utils/cloudinary.js";
+
 import socketUsers from "./socketUser.js";
 import socketSync from "./socketSync.js";
 
@@ -88,10 +92,55 @@ export async function sendInitData(args) {
 
 export async function newCluster(args) {
   const { socket, sender, clusterData, callback } = args;
+  const file = clusterData.data.file;
+
   const channel = await Channel.findById(clusterData.target.channel);
   const group = await Group.findById(clusterData.target.group);
 
-  console.log(clusterData);
+  // console.log("MSG", clusterData);
+
+  if (clusterData.data.file) {
+    console.log("FILE - Upload");
+    // console.log(typeof clusterData.data.file);
+    // console.log(cloudinary);
+    // cloudinary.uploader.upload(clusterData.data.file, storage);
+
+    console.log(clusterData.data.file);
+    // console.log(clusterData.data.file.byteOffset);
+
+    cloudinary.uploader
+      .upload_stream(
+        {
+          // resource_type: "raw",
+          folder: "mercury",
+          allowedFormats: ["jpeg", "png", "jpg"],
+        },
+        (err, res) => console.log(err, res)
+      )
+      .end(file);
+
+    // const uploadStream = cloudinary.uploader.upload_stream(
+    //   {
+    //     resource_type: "raw",
+    //     folder: "mercury",
+    //     allowedFormats: ["jpeg", "png", "jpg"],
+    //   },
+    //   (err, res) => console.log(err, res)
+    // ).end(file.buffer);
+
+    // const slicedBuffer = file.buffer.slice(
+    //   file.byteOffset,
+    //   file.byteOffset + file.byteLength
+    // );
+
+    // const slicedBuffer = new Uint8Array(file).buffer;
+
+    // console.log(slicedBuffer);
+
+    // const fileReader = fs.createReadStream(file).pipe(uploadStream);
+  }
+
+  return null;
 
   const newMessageCluster = new Message({
     sender,
@@ -124,6 +173,8 @@ export async function newCluster(args) {
 
 export async function appendCluster(args) {
   const { socket, clusterData, callback } = args;
+
+  return null;
 
   function appendAndEmit() {
     parentCluster.append(clusterData);

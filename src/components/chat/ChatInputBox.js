@@ -27,6 +27,7 @@ const AttachImageButton = forwardRef(function AttachImageButton(props, ref) {
 
 function ChatInputBox(props) {
   const [imageAttached, setImageAttached] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
 
   const textRef = useRef();
   const fileRef = useRef();
@@ -38,15 +39,13 @@ function ChatInputBox(props) {
 
   // eslint-disable-next-line
   useEffect(() => {
-    console.log(fileRef.current.value);
-    console.log(fileRef.current.files);
     if (fileRef.current.value) setImageAttached(true);
     else setImageAttached(false);
   });
 
   function returnMessageData(e) {
     e.preventDefault();
-    if (textRef.current.value) {
+    if (textRef.current.value || fileRef.current) {
       const messageData = {
         mentions: [],
         text: textRef.current.value || null,
@@ -67,29 +66,21 @@ function ChatInputBox(props) {
 
   function updateImageInput(e) {
     const selectedImage = e.target.files[0];
-    console.log(selectedImage);
+    setImageLoading(true);
+
     if (selectedImage) {
       const fileReader = new FileReader();
       fileReader.onload = (e) => {
-        // setReaderSrc(e.target.result);
-        imagePreviewRef.current = e.target.result;
-        console.log(e.target.result);
+        imagePreviewRef.current = {
+          image: e.target.result,
+          filename: selectedImage.name,
+        };
+
+        setImageLoading(false);
       };
       fileReader.readAsDataURL(e.target.files[0]);
-      // passData(e.target.files[0]);
-      // console.log(selectedImage);
-      // fileRef.current = selectedImage;
     }
   }
-
-  // function AttachFileButton() {
-  //   return (
-  //     <PaperClipIcon
-  //       className="h-6 w-6 mr-1 text-gray-800 hover:text-gray-700 cursor-pointer"
-  //       // ref={filesRef}
-  //     />
-  //   );
-  // }
 
   function BlurBackdrop() {
     let blurHeight;
@@ -111,30 +102,51 @@ function ChatInputBox(props) {
   function ChatImagePreview() {
     if (!imageAttached) return null;
 
-    return (
-      <div className="w-full h-36 p-4 absolute top-0 flex items-center">
-        <div className="w-28 h-28 p-1 bg-gray-600 rounded-md flex flex-col justify-between">
-          <div className="flex">
-            <div className="w-full overflow-hidden text-white">
-              verylongtitlenamefortheselectedfile
+    if (imageLoading) {
+      return (
+        <div className="w-full h-36 p-4 absolute top-0 flex items-center">
+          <div className="w-28 h-28 p-1 bg-gray-600 rounded-md flex flex-col justify-between">
+            <div className="flex">
+              <div className="w-full overflow-hidden text-gray-200">
+                loading...
+              </div>
+              <XIcon
+                className="h-6 w-6 text-mexican-red-500 hover:text-mexican-red-400 cursor-pointer"
+                onClick={() => {
+                  fileRef.current.value = null;
+                  setImageAttached(false);
+                }}
+              />
             </div>
-            <XIcon
-              className="h-6 w-6 text-mexican-red-500 hover:text-mexican-red-400 cursor-pointer"
-              onClick={() => {
-                fileRef.current.value = null;
-                setImageAttached(false);
-              }}
+            <div className="h-[5rem] w-full bg-gray-700 object-cover rounded-b-md animate-pulse"></div>
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="w-full h-36 p-4 absolute top-0 flex items-center">
+          <div className="w-28 h-28 p-1 bg-gray-600 rounded-md flex flex-col justify-between">
+            <div className="flex">
+              <div className="w-28 h-6 text-gray-200 overflow-hidden">
+                {imagePreviewRef.current?.filename}
+              </div>
+              <XIcon
+                className="h-6 w-6 text-mexican-red-500 hover:text-mexican-red-400 cursor-pointer"
+                onClick={() => {
+                  fileRef.current.value = null;
+                  setImageAttached(false);
+                }}
+              />
+            </div>
+            <img
+              src={imagePreviewRef.current.image}
+              alt="preview"
+              className="h-[5rem] object-cover rounded-b-md"
             />
           </div>
-          <img
-            src={imagePreviewRef.current}
-            alt="preview"
-            className="h-[5rem] object-cover rounded-b-md"
-          />
-          {/* <div className="grow bg-green-500">image</div> */}
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   return (
