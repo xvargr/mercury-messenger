@@ -1,9 +1,22 @@
 import mongoose from "mongoose";
 
+// nested schema, needed this to make a virtual .get for cloudinary image resizing
+const ImageSchema = new mongoose.Schema(
+  {
+    url: { type: String },
+    filename: { type: String },
+  },
+  { toObject: { virtuals: true }, toJSON: { virtuals: true } }
+);
+// virtual getter
+ImageSchema.virtual("reduced").get(function () {
+  return this.url.replace("/upload", "/upload/w_500");
+});
+
 const MessageSchema = new mongoose.Schema({
   mentions: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   text: { type: String, trim: true },
-  file: { type: String },
+  file: ImageSchema,
   dateString: { type: String, required: true },
   timestamp: { type: Number, required: true },
 });

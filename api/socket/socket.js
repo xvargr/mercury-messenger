@@ -19,6 +19,7 @@ const socketInstance = {
 
   connectServer(server) {
     this.io = new Server(server, {
+      maxHttpBufferSize: 5e6, // 5MB
       cors: {
         origin: [DOMAIN, "http://192.168.0.137:3000"],
         credentials: true,
