@@ -84,7 +84,6 @@ export function DeleteUserModal(props) {
 }
 
 export function ReconnectingModal(params) {
-  // const { isReconnecting } = params;
   const [transform, setTransform] = useState("-translate-y-12");
   const [opacity, setOpacity] = useState("-translate-y-12");
 
@@ -151,6 +150,23 @@ export function ConfirmChangesModal(props) {
           onClick={pending ? null : onReject}
         />
       </span>
+    </div>
+  );
+}
+
+export function ImageExpandedModal(params) {
+  const { imgSrc, toggle } = params;
+
+  return (
+    <div
+      // id="modalBackground"
+      // tabIndex="-1"
+      // ref={modalRef}
+      onClick={toggle}
+      // onKeyDown={toggle}
+      className="top-0 left-0 w-full h-full bg-black text-gray-500 fixed bg-opacity-70 flex justify-center items-center z-30"
+    >
+      <img className="max-w-[90%] max-h-[90%]" src={imgSrc} alt="full size" />;
     </div>
   );
 }

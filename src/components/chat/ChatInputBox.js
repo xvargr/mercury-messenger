@@ -18,16 +18,55 @@ const AttachImageButton = forwardRef(function AttachImageButton(props, ref) {
         id="chatImage"
         className="sr-only"
         accept=".jpg, .jpeg, .png, .gif"
-        onChange={props.onChange}
+        onChange={(e) => {
+          props.validate({ field: "file", input: e.target.files[0] });
+          props.onChange(e);
+        }}
         ref={ref}
       ></input>
     </label>
   );
 });
 
+function SubmitButton(params) {
+  const { onClick, errorState } = params;
+  const [errorOpacity, setErrorOpacity] = useState();
+  const [submitButtonStyle, setSubmitButtonStyle] = useState();
+  const [lastError, setLastError] = useState();
+
+  useEffect(() => {
+    if (errorState.fileError || errorState.textError) {
+      setErrorOpacity("opacity-100");
+      setSubmitButtonStyle("text-mexican-red-600 opacity-70");
+      setLastError(errorState.textError || errorState.fileError);
+    } else {
+      setErrorOpacity("opacity-0");
+      setSubmitButtonStyle("text-gray-800 hover:text-gray-700 cursor-pointer");
+    }
+  }, [errorState]);
+
+  return (
+    <>
+      <PaperAirplaneIcon
+        className={`${submitButtonStyle} h-6 w-6 rotate-90`}
+        onClick={onClick}
+      />
+      <div
+        className={`${errorOpacity} h-8 p-1 absolute right-5 -top-10 bg-mexican-red-500 text-gray-200 font-semibold rounded-lg rounded-br-none overflow-clip transition-opacity duration-200 ease-in`}
+      >
+        {lastError}
+      </div>
+    </>
+  );
+}
+
 function ChatInputBox(props) {
   const [imageAttached, setImageAttached] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [inputError, setInputError] = useState({
+    textError: null,
+    fileError: null,
+  });
 
   const textRef = useRef();
   const fileRef = useRef();
@@ -45,7 +84,13 @@ function ChatInputBox(props) {
 
   function returnMessageData(e) {
     e.preventDefault();
-    if (textRef.current.value || fileRef.current) {
+
+    const formValid =
+      textRef.current.value.length > 0 &&
+      !inputError.textError &&
+      !inputError.fileError;
+
+    if (formValid) {
       const messageData = {
         mentions: [],
         text: textRef.current.value || null,
@@ -54,13 +99,40 @@ function ChatInputBox(props) {
         timestamp: Date.now(),
       };
 
-      // messageData.text = textRef.current.value;
       textRef.current.value = null;
       fileRef.current.value = null;
 
-      console.log("messageData", messageData);
-
       props.return(messageData);
+    }
+  }
+
+  function validateInput(params) {
+    const { field, input } = params;
+
+    if (field === "text") {
+      setInputError((prevData) => {
+        const dataCopy = { ...prevData };
+
+        if (input.length > 250) {
+          dataCopy.textError = "Message exceeds 250 characters";
+        } else {
+          dataCopy.textError = null;
+        }
+        return dataCopy;
+      });
+    }
+
+    if (field === "file") {
+      setInputError((prevData) => {
+        const dataCopy = { ...prevData };
+
+        if (input.size > 5e6) {
+          dataCopy.fileError = "File exceeds 3MB";
+        } else {
+          dataCopy.fileError = null;
+        }
+        return dataCopy;
+      });
     }
   }
 
@@ -100,6 +172,16 @@ function ChatInputBox(props) {
   }
 
   function ChatImagePreview() {
+    function handleClearImage() {
+      fileRef.current.value = null;
+      setImageAttached(false);
+      setInputError((prevData) => {
+        const dataCopy = { ...prevData };
+        dataCopy.fileError = null;
+        return dataCopy;
+      });
+    }
+
     if (!imageAttached) return null;
 
     if (imageLoading) {
@@ -132,10 +214,7 @@ function ChatInputBox(props) {
               </div>
               <XIcon
                 className="h-6 w-6 text-mexican-red-500 hover:text-mexican-red-400 cursor-pointer"
-                onClick={() => {
-                  fileRef.current.value = null;
-                  setImageAttached(false);
-                }}
+                onClick={handleClearImage}
               />
             </div>
             <img
@@ -166,12 +245,16 @@ function ChatInputBox(props) {
           placeholder="Say something..."
           autoComplete="off"
           className="bg-inherit focus:outline-none flex-grow  font-nunito"
+          onChange={(e) =>
+            validateInput({ field: "text", input: e.target.value })
+          }
         />
-        <AttachImageButton onChange={updateImageInput} ref={fileRef} />
-        <PaperAirplaneIcon
-          className="h-6 w-6 rotate-90 text-gray-800 hover:text-gray-700 cursor-pointer"
-          onClick={returnMessageData}
+        <AttachImageButton
+          onChange={updateImageInput}
+          validate={validateInput}
+          ref={fileRef}
         />
+        <SubmitButton onClick={returnMessageData} errorState={inputError} />
       </div>
     </form>
   );

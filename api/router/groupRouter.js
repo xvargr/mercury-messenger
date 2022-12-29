@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 // utils
-import storage from "../utils/cloudinary.js";
+import { storage } from "../utils/cloudinary.js";
 import isLoggedIn from "../utils/isLoggedIn.js";
 import asyncErrorWrapper from "../utils/asyncErrorWrapper.js";
 import {

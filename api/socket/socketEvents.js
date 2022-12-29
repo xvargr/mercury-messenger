@@ -1,6 +1,4 @@
-import fs from "fs";
-import { v2 as cloudinary } from "cloudinary";
-import storage from "../utils/cloudinary.js";
+import { uploadFromBuffer } from "../utils/cloudinary.js";
 
 import socketUsers from "./socketUser.js";
 import socketSync from "./socketSync.js";
@@ -97,56 +95,28 @@ export async function newCluster(args) {
   const channel = await Channel.findById(clusterData.target.channel);
   const group = await Group.findById(clusterData.target.group);
 
-  // console.log("MSG", clusterData);
+  const messageContent = {
+    mentions: [...clusterData.data.mentions],
+    text: clusterData.data.text,
+    file: null,
+    dateString: clusterData.data.dateString,
+    timestamp: clusterData.data.timestamp,
+  };
 
-  if (clusterData.data.file) {
-    console.log("FILE - Upload");
-    // console.log(typeof clusterData.data.file);
-    // console.log(cloudinary);
-    // cloudinary.uploader.upload(clusterData.data.file, storage);
+  if (file) {
+    const imageData = await uploadFromBuffer(file);
 
-    console.log(clusterData.data.file);
-    // console.log(clusterData.data.file.byteOffset);
-
-    cloudinary.uploader
-      .upload_stream(
-        {
-          // resource_type: "raw",
-          folder: "mercury",
-          allowedFormats: ["jpeg", "png", "jpg"],
-        },
-        (err, res) => console.log(err, res)
-      )
-      .end(file);
-
-    // const uploadStream = cloudinary.uploader.upload_stream(
-    //   {
-    //     resource_type: "raw",
-    //     folder: "mercury",
-    //     allowedFormats: ["jpeg", "png", "jpg"],
-    //   },
-    //   (err, res) => console.log(err, res)
-    // ).end(file.buffer);
-
-    // const slicedBuffer = file.buffer.slice(
-    //   file.byteOffset,
-    //   file.byteOffset + file.byteLength
-    // );
-
-    // const slicedBuffer = new Uint8Array(file).buffer;
-
-    // console.log(slicedBuffer);
-
-    // const fileReader = fs.createReadStream(file).pipe(uploadStream);
+    messageContent.file = {
+      filename: imageData.public_id,
+      url: imageData.url,
+    };
   }
-
-  return null;
 
   const newMessageCluster = new Message({
     sender,
     channel,
     group,
-    content: [clusterData.data],
+    content: [messageContent],
   });
 
   await newMessageCluster.save();
@@ -173,11 +143,30 @@ export async function newCluster(args) {
 
 export async function appendCluster(args) {
   const { socket, clusterData, callback } = args;
+  const file = clusterData.content.file;
 
-  return null;
+  const messageContent = {
+    mentions: [...clusterData.content.mentions],
+    text: clusterData.content.text,
+    file: null,
+    dateString: clusterData.content.dateString,
+    timestamp: clusterData.content.timestamp,
+  };
+
+  if (file) {
+    const imageData = await uploadFromBuffer(file);
+
+    messageContent.file = {
+      filename: imageData.public_id,
+      url: imageData.url,
+    };
+  }
 
   function appendAndEmit() {
-    parentCluster.append(clusterData);
+    parentCluster.append({
+      content: messageContent,
+      target: clusterData.target,
+    });
 
     socket.to(`c:${parentCluster.channel}`).emit("appendMessage", {
       target: {
@@ -187,14 +176,19 @@ export async function appendCluster(args) {
           id: parentCluster._id,
         },
       },
+      // data: messageContent,
       data: parentCluster.content[clusterData.target.index],
     }); // sender still gets message // solution, use socket, not io to emit
+
+    console.log(messageContent);
+    console.log(parentCluster.content[clusterData.target.index]);
 
     callback({
       target: {
         ...clusterData.target,
         cluster: { id: parentCluster._id },
       },
+      // data: messageContent,
       data: parentCluster.content[clusterData.target.index],
     });
   }
