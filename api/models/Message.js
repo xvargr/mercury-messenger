@@ -1,16 +1,18 @@
+import { v2 as cloudinary } from "cloudinary";
 import mongoose from "mongoose";
 
 // nested schema, needed this to make a virtual .get for cloudinary image resizing
 const ImageSchema = new mongoose.Schema(
   {
-    url: { type: String },
-    filename: { type: String },
+    url: { type: String, required: true },
+    filename: { type: String, required: true },
   },
   { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 );
 // virtual getter
 ImageSchema.virtual("reduced").get(function () {
-  return this.url.replace("/upload", "/upload/w_500");
+  if (this.url) return this.url.replace("/upload", "/upload/w_300");
+  else return null;
 });
 
 const MessageSchema = new mongoose.Schema({
@@ -48,11 +50,13 @@ const ClusterSchema = new mongoose.Schema(
     toObject: { virtuals: true },
     toJSON: { virtuals: true },
     methods: {
-      async append(contentData) {
-        if (this.content.length === contentData.target.index) {
-          this.content.push(contentData.content);
+      async append(params) {
+        const { content, target } = params;
+
+        if (this.content.length === target.index) {
+          this.content.push(content);
         } else {
-          this.content[contentData.target.index] = contentData.content;
+          this.content[target.index] = content;
         }
         await this.save();
       },
@@ -67,6 +71,22 @@ ClusterSchema.virtual("lastMessage").get(function () {
 ClusterSchema.pre("validate", function () {
   if (!this.clusterTimestamp) {
     this.clusterTimestamp = this.content[0].timestamp;
+  }
+});
+
+// deletes attached images on connected channel/group deletion
+ClusterSchema.pre("deleteMany", async function () {
+  const deletedData = await Message.find(this._conditions).lean();
+  const imageIds = [];
+
+  deletedData.forEach((data) =>
+    data.content.forEach((content) => {
+      if (content.file) imageIds.push(content.file.filename);
+    })
+  );
+
+  if (imageIds.length > 0) {
+    cloudinary.api.delete_resources(imageIds).then((res) => console.log(res));
   }
 });
 

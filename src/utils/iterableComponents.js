@@ -186,7 +186,8 @@ export function ChatStack() {
         messageStack.push(
           <Message
             key={message.timestamp}
-            data={message.text}
+            text={message.text}
+            image={message.file}
             pending={message._id ? false : true}
             failed={message.failed} // indicates fails on messages
             retryObject={isGenesis ? retryObject : null} // enables retry actions on genesis message if any child failed

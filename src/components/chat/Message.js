@@ -5,6 +5,9 @@ import {
   ExclamationCircleIcon,
 } from "@heroicons/react/outline";
 
+// modal
+import { ImageExpandedModal } from "../ui/Modal";
+
 function FailedActions(props) {
   const { clusterData, actions, failedIndex, chatLocation } = props.retryObject;
   const content = clusterData.content;
@@ -87,8 +90,36 @@ function FailedActions(props) {
   );
 }
 
+function ImageThumbnail(props) {
+  const { imageObject, pending } = props;
+  const [imageExpanded, setImageExpanded] = useState(false);
+
+  if (pending) {
+    return (
+      <div className="w-36 h-24 my-1 rounded-md bg-gray-500 animate-pulse"></div>
+    );
+  }
+
+  return (
+    <>
+      {imageExpanded ? (
+        <ImageExpandedModal
+          imgSrc={imageObject.url}
+          toggle={() => setImageExpanded(!setImageExpanded)}
+        />
+      ) : null}
+      <img
+        className="w-1/3 max-w-[20rem] my-1 rounded-md"
+        src={imageObject.reduced}
+        alt="attached"
+        onClick={() => setImageExpanded(!imageExpanded)}
+      />
+    </>
+  );
+}
+
 function Message(props) {
-  const { data, failed, pending, retryObject } = props;
+  const { text, image, failed, pending, retryObject } = props;
 
   return (
     <div
@@ -96,9 +127,14 @@ function Message(props) {
         pending || failed ? "opacity-50" : null
       } flex justify-between items-center`}
     >
-      <span className="w-full pr-2 font-semibold text-md text-gray-900 break-words">
-        {data}
-      </span>
+      <div className="w-full">
+        {image ? (
+          <ImageThumbnail imageObject={image} pending={pending} />
+        ) : null}
+        <span className="w-full pr-2 font-semibold text-md text-gray-900 break-words">
+          {text}
+        </span>
+      </div>
       {retryObject ? (
         <FailedActions
           retryObject={retryObject}
