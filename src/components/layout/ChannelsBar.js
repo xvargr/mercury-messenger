@@ -8,7 +8,10 @@ import GroupBanner from "../channels/GroupBanner";
 // context
 import { DataContext } from "../context/DataContext";
 import { SkeletonChannel } from "../ui/SkeletonLoaders";
-import { ChannelStack, MemberStack } from "../../utils/iterableComponents";
+import {
+  ChannelStack,
+  MemberStatusStack,
+} from "../../utils/iterableComponents";
 
 function ChannelsBar() {
   const { group } = useParams();
@@ -50,7 +53,7 @@ function ChannelsBar() {
           <hr className="w-1/3 mb-2 mt-2 border-gray-800" />
 
           <div className="w-full h-1/2 py-1 flex flex-col items-center overflow-y-auto overflow-x-hidden scrollbar-dark">
-            <MemberStack />
+            <MemberStatusStack />
           </div>
         </div>
       </section>

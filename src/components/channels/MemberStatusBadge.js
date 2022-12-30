@@ -4,19 +4,19 @@ export default function MemberStatusBadge(props) {
   let statusIndicator;
   switch (status) {
     case "online":
-      statusIndicator = "border-2 bg-green-500";
+      statusIndicator = "bg-green-500";
       break;
 
     case "away":
-      statusIndicator = "border-2 bg-yellow-500";
+      statusIndicator = "bg-yellow-500";
       break;
 
     case "busy":
-      statusIndicator = "border-2 bg-red-500";
+      statusIndicator = "bg-red-500";
       break;
 
     case "offline":
-      statusIndicator = "border-2 bg-gray-600";
+      statusIndicator = "bg-gray-600";
       break;
 
     default:
@@ -32,7 +32,7 @@ export default function MemberStatusBadge(props) {
           alt="profile thumbnail"
         />
         <span
-          className={`w-2 h-2 md:w-2.5 md:h-2.5 ${statusIndicator} rounded-full border-solid md:border-[3px] box-content border-gray-700 absolute right-1.5 bottom-0`}
+          className={`w-2 h-2 md:w-2.5 md:h-2.5 ${statusIndicator} rounded-full border-solid border-2 md:border-[3px] box-content border-gray-700 absolute right-1.5 bottom-0`}
           title={status}
         ></span>
       </div>

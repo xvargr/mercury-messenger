@@ -55,7 +55,7 @@ function ChannelBadge(props) {
     if (props.unread <= 0) return null;
     else
       return (
-        <div className=" w-5 h-5 bg-red-500 text-white font-semibold rounded-full shadow-md flex justify-center items-center overflow-clip absolute">
+        <div className="w-5 h-5 bg-red-500 text-white font-semibold rounded-full shadow-md flex justify-center items-center overflow-clip absolute">
           {props.unread}
         </div>
       );

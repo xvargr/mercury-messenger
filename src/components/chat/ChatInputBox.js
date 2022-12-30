@@ -8,6 +8,8 @@ import {
   PaperAirplaneIcon,
 } from "@heroicons/react/outline";
 
+import { MentionsSelector } from "../../utils/iterableComponents";
+
 const AttachImageButton = forwardRef(function AttachImageButton(props, ref) {
   return (
     <label className="mx-1">
@@ -28,8 +30,43 @@ const AttachImageButton = forwardRef(function AttachImageButton(props, ref) {
   );
 });
 
-function SubmitButton(params) {
-  const { onClick, errorState } = params;
+function AddMentionsButton(props) {
+  const { passSelection } = props;
+  const [expanded, setExpanded] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState([]);
+
+  useEffect(() => {
+    passSelection(selectedMembers);
+    // eslint-disable-next-line
+  }, [selectedMembers]);
+
+  return (
+    <>
+      {!expanded || (
+        <div className="h-32 w-1/2 min-w-[10rem] p-1 absolute -top-[8.5rem] left-0 bg-gray-500 backdrop-blur-sm bg-opacity-70 rounded-lg shadow-md flex overflow-hidden">
+          <MentionsSelector
+            initialSelection={selectedMembers}
+            onSelectionChange={(selection) => setSelectedMembers(selection)}
+          />
+        </div>
+      )}
+      <div className="relative">
+        <AtSymbolIcon
+          className="h-6 w-6 mr-2 text-gray-800 hover:text-gray-700 cursor-pointer"
+          onClick={() => setExpanded(!expanded)}
+        />
+        {!selectedMembers.length > 0 || (
+          <div className="w-6 h-6 absolute bottom-0 left-0 bg-amber-500 font-semibold rounded-full shadow-md flex justify-center items-center overflow-clip pointer-events-none">
+            {selectedMembers.length}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function SubmitButton(props) {
+  const { onClick, errorState } = props;
   const [errorOpacity, setErrorOpacity] = useState();
   const [submitButtonStyle, setSubmitButtonStyle] = useState();
   const [lastError, setLastError] = useState();
@@ -52,7 +89,7 @@ function SubmitButton(params) {
         onClick={onClick}
       />
       <div
-        className={`${errorOpacity} h-8 p-1 absolute right-5 -top-10 bg-mexican-red-500 text-gray-200 font-semibold rounded-lg rounded-br-none overflow-clip transition-opacity duration-200 ease-in`}
+        className={`${errorOpacity} h-8 p-1 absolute right-5 -top-10 bg-mexican-red-500 text-gray-200 font-semibold rounded-lg rounded-br-none shadow-md overflow-clip transition-opacity duration-200 ease-in`}
       >
         {lastError}
       </div>
@@ -70,6 +107,7 @@ function ChatInputBox(props) {
 
   const textRef = useRef();
   const fileRef = useRef();
+  const mentionsRef = useRef();
   const imagePreviewRef = useRef();
 
   useEffect(() => {
@@ -85,14 +123,13 @@ function ChatInputBox(props) {
   function returnMessageData(e) {
     e.preventDefault();
 
-    const formValid =
-      textRef.current.value.length > 0 &&
-      !inputError.textError &&
-      !inputError.fileError;
+    const noError = !inputError.textError && !inputError.fileError;
+    const formHasContent =
+      textRef.current.value.length || fileRef.current.value;
 
-    if (formValid) {
+    if (formHasContent && noError) {
       const messageData = {
-        mentions: [],
+        mentions: mentionsRef.current || [],
         text: textRef.current.value || null,
         file: fileRef.current.files[0] || null,
         dateString: moment().format(),
@@ -101,8 +138,9 @@ function ChatInputBox(props) {
 
       textRef.current.value = null;
       fileRef.current.value = null;
+      mentionsRef.current.value = null;
 
-      props.return(messageData);
+      props.return(messageData); // todo clear mentions on send
     }
   }
 
@@ -162,10 +200,10 @@ function ChatInputBox(props) {
     return (
       <>
         <div
-          className={`w-full ml-2 ${blurHeight} backdrop-blur-sm bottom-0 -left-2 absolute blurMask45`}
+          className={`w-full ml-2 ${blurHeight} backdrop-blur-sm bottom-0 -left-2 absolute pointer-events-none blurMask45`}
         ></div>
         <div
-          className={`w-full ml-2 ${blurHeight} bg-gray-600 bottom-0 -left-2 absolute blurMask70`}
+          className={`w-full ml-2 ${blurHeight} bg-gray-600 bottom-0 -left-2 absolute pointer-events-none blurMask70`}
         ></div>
       </>
     );
@@ -237,7 +275,9 @@ function ChatInputBox(props) {
         } m-4 p-2 bg-gray-500 rounded-lg flex justify-around items-end shadow-lg absolute bottom-1`}
       >
         <ChatImagePreview />
-        <AtSymbolIcon className="h-6 w-6 mr-2 text-gray-800 hover:text-gray-700 cursor-pointer" />
+        <AddMentionsButton
+          passSelection={(selection) => (mentionsRef.current = selection)}
+        />
         <input
           type="text"
           id="text"

@@ -25,7 +25,7 @@ export function FlashMessage(props) {
           props.unmount(props.position);
           setFadeClass(""); // for some reason the component next in the list will have its fadeClass set if it is not set back to ""
         }, 700);
-      }, 4000);
+      }, 3000);
       // clear timeout on umount to prevent duplicate unmount calls, without this component will try to unmount multiple times
       return () => clearTimeout(selfUnmountTimer);
     }

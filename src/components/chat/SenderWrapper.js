@@ -10,14 +10,18 @@ function Sender(props) {
   } else timeText = moment(timestamp).calendar();
 
   let emphasis;
+  let emphasisBackground;
   if (props.type === "mention") {
     emphasis = "bg-amber-500";
+    emphasisBackground =
+      "bg-amber-500 hover:bg-amber-400 bg-opacity-20 hover:bg-opacity-30";
   } else {
     emphasis = "";
+    emphasisBackground = "hover:bg-gray-700";
   }
 
   return (
-    <div className="pr-3 hover:bg-gray-700 flex">
+    <div className={`${emphasisBackground} pr-3  flex bg-opacity-25`}>
       <span className={`w-1 mr-2 ${emphasis} shrink-0`}></span>
       <div className="flex mt-2 mb-2 w-full">
         <img

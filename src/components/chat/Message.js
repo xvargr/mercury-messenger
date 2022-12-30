@@ -109,7 +109,7 @@ function ImageThumbnail(props) {
         />
       ) : null}
       <img
-        className="w-1/3 max-w-[20rem] my-1 rounded-md"
+        className="w-full md:w-1/2 max-w-[20rem] my-1 rounded-md cursor-pointer"
         src={imageObject.reduced}
         alt="attached"
         onClick={() => setImageExpanded(!imageExpanded)}

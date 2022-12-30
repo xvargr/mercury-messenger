@@ -103,6 +103,9 @@ export async function newCluster(args) {
     timestamp: clusterData.data.timestamp,
   };
 
+  console.log(messageContent);
+  return null;
+
   if (file) {
     const imageData = await uploadFromBuffer(file);
 

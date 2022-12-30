@@ -159,11 +159,7 @@ export function ImageExpandedModal(params) {
 
   return (
     <div
-      // id="modalBackground"
-      // tabIndex="-1"
-      // ref={modalRef}
       onClick={toggle}
-      // onKeyDown={toggle}
       className="top-0 left-0 w-full h-full bg-black text-gray-500 fixed bg-opacity-70 flex justify-center items-center z-30"
     >
       <img className="max-w-[90%] max-h-[90%]" src={imgSrc} alt="full size" />;
