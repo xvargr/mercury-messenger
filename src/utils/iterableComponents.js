@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
@@ -15,6 +15,7 @@ import {
 
 // utility hooks
 import useSocket from "./socket";
+import SelectableMemberBadge from "../components/ui/SelectableMemberBadge";
 
 export function FlashStack() {
   const { messageStack, unmountFlash } = useContext(FlashContext);
@@ -108,12 +109,11 @@ export function ChannelStack() {
   return channelStack;
 }
 
-export function MemberStack() {
+export function MemberStatusStack() {
   const { groupData, selectedGroup } = useContext(DataContext);
   const { peerHelpers } = useContext(DataContext);
 
   const thisGroup = groupData[selectedGroup._id];
-
   const memberStack = [];
 
   thisGroup.members.forEach((member) => {
@@ -126,6 +126,64 @@ export function MemberStack() {
     );
   });
   return memberStack;
+}
+
+export function MentionsSelector(props) {
+  const { initialSelection, onSelectionChange } = props;
+  const [selectedMembers, setSelectedMembers] = useState(initialSelection);
+  const { groupData, selectedGroup } = useContext(DataContext);
+
+  const thisGroup = groupData[selectedGroup._id];
+  const memberStack = [];
+
+  // on reopen, if there are previously selected users, restore them
+  useEffect(() => {
+    const verifiedSelection = initialSelection.filter((id) =>
+      thisGroup.members.some((member) => member._id === id)
+    ); // verify if user is still in group, edge case protection
+
+    setSelectedMembers(verifiedSelection);
+    // eslint-disable-next-line
+  }, []);
+
+  // pass changes in selection to parent component
+  useEffect(() => {
+    onSelectionChange(selectedMembers);
+    // eslint-disable-next-line
+  }, [selectedMembers]);
+
+  function toggleSelection(userId) {
+    setSelectedMembers((prevData) => {
+      const dataCopy = [...prevData];
+
+      if (!dataCopy.includes(userId)) {
+        dataCopy.push(userId);
+      } else return dataCopy.filter((id) => id !== userId);
+
+      return dataCopy;
+    });
+  }
+
+  thisGroup.members.forEach((member) => {
+    if (member._id === localStorage.userId) return null; // except for this user
+
+    const selected = selectedMembers.includes(member._id);
+
+    memberStack.push(
+      <SelectableMemberBadge
+        member={member}
+        key={member._id}
+        selected={selected}
+        onClick={toggleSelection}
+      />
+    );
+  });
+
+  return (
+    <div className="w-full overflow-x-hidden overflow-y-auto scrollbar-dark">
+      {memberStack}
+    </div>
+  );
 }
 
 // renders every cluster in the current chat
@@ -149,7 +207,6 @@ export function ChatStack() {
 
   // renders the sender/cluster wrapper
   function renderMessages(cluster) {
-    // todo support content other than text
     const content = cluster.content;
     const messageStack = [];
     const someFailed = content.some((message) => message?.failed);
