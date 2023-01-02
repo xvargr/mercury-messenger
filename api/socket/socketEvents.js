@@ -51,10 +51,14 @@ export async function constructInitData(args) {
         .sort({
           clusterTimestamp: "desc",
         })
-        .select(["content", "dateString", "timestamp", "clusterTimestamp"])
+        .select(["dateString", "timestamp", "clusterTimestamp"])
         .populate({
           path: "sender",
           select: ["userImage", "username", "userColor"],
+        })
+        .populate({
+          path: "content",
+          populate: { path: "mentions", select: "username", model: "User" },
         })
         .limit(NUM_TO_LOAD + 1);
 
@@ -103,9 +107,7 @@ export async function newCluster(args) {
     timestamp: clusterData.data.timestamp,
   };
 
-  console.log(messageContent);
-  return null;
-
+  // file upload
   if (file) {
     const imageData = await uploadFromBuffer(file);
 
@@ -131,7 +133,10 @@ export async function newCluster(args) {
       populate: { path: "userImage" },
     },
     { path: "group", select: ["name"] },
-    { path: "content" },
+    {
+      path: "content",
+      populate: { path: "mentions", select: "username", model: "User" },
+    },
   ]);
 
   socket
@@ -165,11 +170,24 @@ export async function appendCluster(args) {
     };
   }
 
-  function appendAndEmit() {
+  async function appendAndEmit() {
     parentCluster.append({
       content: messageContent,
       target: clusterData.target,
     });
+
+    const populatedCluster = await parentCluster.populate([
+      {
+        path: "sender",
+        select: ["username", "userColor"],
+        populate: { path: "userImage" },
+      },
+      { path: "group", select: ["name"] },
+      {
+        path: "content",
+        populate: { path: "mentions", select: "username", model: "User" },
+      },
+    ]);
 
     socket.to(`c:${parentCluster.channel}`).emit("appendMessage", {
       target: {
@@ -179,12 +197,8 @@ export async function appendCluster(args) {
           id: parentCluster._id,
         },
       },
-      // data: messageContent,
-      data: parentCluster.content[clusterData.target.index],
+      data: populatedCluster.content[clusterData.target.index],
     }); // sender still gets message // solution, use socket, not io to emit
-
-    console.log(messageContent);
-    console.log(parentCluster.content[clusterData.target.index]);
 
     callback({
       target: {
@@ -240,11 +254,8 @@ export async function appendCluster(args) {
   let parentCluster = await findParent(clusterData, true);
 
   // async wait for parentCluster to save
-  if (!parentCluster) {
-    waitForParent();
-  } else {
-    appendAndEmit();
-  }
+  if (!parentCluster) waitForParent();
+  else appendAndEmit();
 }
 
 export async function fetchMoreMessages(args) {
@@ -260,11 +271,16 @@ export async function fetchMoreMessages(args) {
     .sort({
       clusterTimestamp: "desc",
     })
-    .select(["content", "dateString", "timestamp", "clusterTimestamp"])
+    .select(["dateString", "timestamp", "clusterTimestamp"])
     .populate({
       path: "sender",
       select: ["userImage", "username", "userColor"],
     })
+    .populate({
+      path: "content",
+      populate: { path: "mentions", select: "username", model: "User" },
+    })
+
     .limit(NUM_TO_LOAD + 1);
 
   if (clusters.length < NUM_TO_LOAD + 1) {

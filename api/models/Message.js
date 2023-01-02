@@ -1,6 +1,8 @@
 import { v2 as cloudinary } from "cloudinary";
 import mongoose from "mongoose";
 
+// import User from "./User.js";
+
 // nested schema, needed this to make a virtual .get for cloudinary image resizing
 const ImageSchema = new mongoose.Schema(
   {
@@ -66,6 +68,14 @@ const ClusterSchema = new mongoose.Schema(
 
 ClusterSchema.virtual("lastMessage").get(function () {
   return this.content[this.content.length - 1];
+});
+
+ClusterSchema.virtual("mentions").get(function () {
+  let mentions = [];
+  this.content.forEach((content) => {
+    mentions = [...mentions, ...content.mentions];
+  });
+  return mentions;
 });
 
 ClusterSchema.pre("validate", function () {

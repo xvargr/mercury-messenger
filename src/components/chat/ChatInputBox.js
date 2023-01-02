@@ -6,6 +6,7 @@ import {
   CameraIcon,
   XIcon,
   PaperAirplaneIcon,
+  CheckIcon,
 } from "@heroicons/react/outline";
 
 import { MentionsSelector } from "../../utils/iterableComponents";
@@ -35,18 +36,37 @@ function AddMentionsButton(props) {
   const [expanded, setExpanded] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState([]);
 
-  useEffect(() => {
-    passSelection(selectedMembers);
-    // eslint-disable-next-line
-  }, [selectedMembers]);
+  function addSelection(id) {
+    setSelectedMembers((prevData) => {
+      const dataCopy = [...prevData];
+      dataCopy.push(id);
+      return dataCopy;
+    });
+  }
+
+  function removeSelection(id) {
+    setSelectedMembers((prevData) => {
+      const dataCopy = [...prevData];
+      dataCopy.push(id);
+      return dataCopy.filter((selectedId) => selectedId !== id);
+    });
+  }
 
   return (
     <>
       {!expanded || (
-        <div className="h-32 w-1/2 min-w-[10rem] p-1 absolute -top-[8.5rem] left-0 bg-gray-500 backdrop-blur-sm bg-opacity-70 rounded-lg shadow-md flex overflow-hidden">
+        <div className="h-[8.25rem] w-1/2 min-w-[10rem] p-1 absolute -top-[8.75rem] left-0 bg-gray-500 backdrop-blur-sm bg-opacity-70 rounded-lg shadow-md flex flex-col overflow-hidden">
           <MentionsSelector
-            initialSelection={selectedMembers}
-            onSelectionChange={(selection) => setSelectedMembers(selection)}
+            selectedMembers={selectedMembers}
+            onSelect={addSelection}
+            onDeselect={removeSelection}
+          />
+          <CheckIcon
+            className="w-7 absolute bottom-0 right-0 p-0.5 bg-green-500 text-gray-700 rounded-tl-xl hover:bg-green-400 cursor-pointer"
+            onClick={() => {
+              passSelection(selectedMembers);
+              setExpanded(false);
+            }}
           />
         </div>
       )}
@@ -55,11 +75,6 @@ function AddMentionsButton(props) {
           className="h-6 w-6 mr-2 text-gray-800 hover:text-gray-700 cursor-pointer"
           onClick={() => setExpanded(!expanded)}
         />
-        {!selectedMembers.length > 0 || (
-          <div className="w-6 h-6 absolute bottom-0 left-0 bg-amber-500 font-semibold rounded-full shadow-md flex justify-center items-center overflow-clip pointer-events-none">
-            {selectedMembers.length}
-          </div>
-        )}
       </div>
     </>
   );
@@ -104,10 +119,10 @@ function ChatInputBox(props) {
     textError: null,
     fileError: null,
   });
+  const [mentionsArray, setMentionsArray] = useState([]);
 
   const textRef = useRef();
   const fileRef = useRef();
-  const mentionsRef = useRef();
   const imagePreviewRef = useRef();
 
   useEffect(() => {
@@ -129,7 +144,7 @@ function ChatInputBox(props) {
 
     if (formHasContent && noError) {
       const messageData = {
-        mentions: mentionsRef.current || [],
+        mentions: mentionsArray,
         text: textRef.current.value || null,
         file: fileRef.current.files[0] || null,
         dateString: moment().format(),
@@ -138,9 +153,9 @@ function ChatInputBox(props) {
 
       textRef.current.value = null;
       fileRef.current.value = null;
-      mentionsRef.current.value = null;
+      setMentionsArray([]);
 
-      props.return(messageData); // todo clear mentions on send
+      props.return(messageData);
     }
   }
 
@@ -269,15 +284,24 @@ function ChatInputBox(props) {
   return (
     <form className="flex justify-center" onSubmit={returnMessageData}>
       <BlurBackdrop />
+
       <div
         className={`w-4/5 max-w-4xl ${
           imageAttached ? "h-[10.5rem]" : null
         } m-4 p-2 bg-gray-500 rounded-lg flex justify-around items-end shadow-lg absolute bottom-1`}
       >
         <ChatImagePreview />
+
+        {!mentionsArray.length > 0 || (
+          <div className="w-6 h-6 absolute bottom-2 left-2 bg-amber-500 font-semibold rounded-full shadow-md flex justify-center items-center overflow-clip z-10 pointer-events-none">
+            {mentionsArray.length}
+          </div>
+        )}
+
         <AddMentionsButton
-          passSelection={(selection) => (mentionsRef.current = selection)}
+          passSelection={(selection) => setMentionsArray(selection)}
         />
+
         <input
           type="text"
           id="text"
@@ -289,11 +313,13 @@ function ChatInputBox(props) {
             validateInput({ field: "text", input: e.target.value })
           }
         />
+
         <AttachImageButton
           onChange={updateImageInput}
           validate={validateInput}
           ref={fileRef}
         />
+
         <SubmitButton onClick={returnMessageData} errorState={inputError} />
       </div>
     </form>
