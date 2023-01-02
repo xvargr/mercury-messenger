@@ -73,7 +73,7 @@ function Sender(props) {
               style={{ color: sender.userColor }}
             >
               {sender.username}
-              {!mentions.length > 0 || (
+              {!mentions?.length > 0 || (
                 <span className="text-gray-800 pl-0.5 text-sm">
                   @{renderMentions()}
                 </span>

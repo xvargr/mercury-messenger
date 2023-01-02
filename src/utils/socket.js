@@ -259,6 +259,7 @@ export default function useSocket() {
     });
 
     function appendAcknowledged(res) {
+      console.log(res);
       setGroupData((prevStack) => {
         const dataCopy = { ...prevStack };
         const stackCopy = [
@@ -269,15 +270,34 @@ export default function useSocket() {
           (cluster) => cluster.id === res.target.cluster.id
         );
 
+        const thisCluster = {
+          ...dataCopy[res.target.group].chatData[res.target.channel][
+            clusterIndex
+          ],
+        };
+
         // find pending message
         const messageIndex = stackCopy[clusterIndex].content.findIndex(
           (message) =>
             message.timestamp === (res.err ? res.err : res.data.timestamp)
         ); // index always 0 because ternary and operator precedence, use parentheses to eval right side first
 
-        dataCopy[res.target.group].chatData[res.target.channel][
-          clusterIndex
-        ].content[messageIndex] = res.data;
+        thisCluster.content[messageIndex] = res.data;
+
+        if (res.data.mentions.length > 0) {
+          res.data.mentions.forEach((newMention) => {
+            const isNotMentioned = !thisCluster.mentions.find(
+              (existingMention) => newMention._id === existingMention._id
+            );
+
+            if (isNotMentioned) {
+              thisCluster.mentions.push(newMention);
+            }
+          });
+        }
+
+        dataCopy[res.target.group].chatData[res.target.channel][clusterIndex] =
+          thisCluster;
 
         return dataCopy;
       });

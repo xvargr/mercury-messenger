@@ -206,7 +206,7 @@ export async function appendCluster(args) {
         cluster: { id: parentCluster._id },
       },
       // data: messageContent,
-      data: parentCluster.content[clusterData.target.index],
+      data: populatedCluster.content[clusterData.target.index],
     });
   }
 

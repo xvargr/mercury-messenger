@@ -71,9 +71,14 @@ ClusterSchema.virtual("lastMessage").get(function () {
 });
 
 ClusterSchema.virtual("mentions").get(function () {
-  let mentions = [];
+  const mentions = [];
+
   this.content.forEach((content) => {
-    mentions = [...mentions, ...content.mentions];
+    content.mentions.forEach((newMention) => {
+      if (!mentions.find((mention) => mention._id === newMention._id)) {
+        mentions.push(newMention);
+      }
+    });
   });
   return mentions;
 });
