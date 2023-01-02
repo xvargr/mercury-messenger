@@ -138,16 +138,19 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("newMessage", function (res) {
-      const channelFocused =
-        selectedChannelRef.current?._id !== res.channel._id;
+      console.log("here");
+      const channelIsFocused =
+        selectedChannelRef.current?._id === res.channel._id;
 
-      if (!windowIsFocused || channelFocused) {
+      console.log("windowIsFocused", windowIsFocused);
+      console.log("channelFocused", channelIsFocused);
+
+      if (!windowIsFocused || !channelIsFocused) {
         notification.play();
       }
 
-      if (channelFocused) {
-        console.log("adding");
-        dataHelpers.setUnread({ add: true, channelId: res.channel._id }); // ! not working
+      if (!channelIsFocused) {
+        dataHelpers.setUnread({ add: true, channelId: res.channel._id });
       }
 
       setGroupData((prevData) => {
@@ -159,11 +162,10 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("appendMessage", function (res) {
-      console.log(res);
-      const channelFocused =
-        selectedChannelRef.current?._id !== res.target.channel;
+      const channelIsFocused =
+        selectedChannelRef.current?._id === res.channel._id;
 
-      if (windowIsFocused || channelFocused) {
+      if (windowIsFocused || !channelIsFocused) {
         notification.play();
       }
 
@@ -178,6 +180,23 @@ export function SocketStateProvider(props) {
 
         // update stack to contain verified message
         stackCopy[clusterIndex].content[res.target.index] = res.data;
+
+        // update mentions
+        if (res.data.mentions.length > 0) {
+          const mentionsCopy = stackCopy[clusterIndex].mentions;
+
+          // add new mentions if has not been mentioned before
+          res.data.mentions.forEach((user) => {
+            const isNotMentioned = !mentionsCopy.find(
+              (existingUser) => user._id === existingUser._id
+            );
+
+            if (isNotMentioned) {
+              mentionsCopy.push(user);
+            }
+          });
+        }
+
         dataCopy[res.target.group].chatData[res.target.channel] = stackCopy;
 
         return dataCopy;

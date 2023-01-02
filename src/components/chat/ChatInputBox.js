@@ -73,7 +73,10 @@ function AddMentionsButton(props) {
       <div className="relative">
         <AtSymbolIcon
           className="h-6 w-6 mr-2 text-gray-800 hover:text-gray-700 cursor-pointer"
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => {
+            setExpanded(!expanded);
+            setSelectedMembers([]);
+          }}
         />
       </div>
     </>

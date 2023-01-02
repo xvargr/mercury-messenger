@@ -234,9 +234,9 @@ export function ChatStack() {
   }
 
   chatData.forEach((cluster) => {
-    const userMentioned = cluster.mentions.some(
-      (user) => user._id === localStorage.userId
-    );
+    const userMentioned = cluster._id
+      ? cluster.mentions.some((user) => user._id === localStorage.userId)
+      : false;
 
     clusterStack.push(
       <Sender
