@@ -1,7 +1,17 @@
 import moment from "moment/moment";
+// import { ReplyIcon } from "@heroicons/react/outline";
 
 function Sender(props) {
-  const { sender, children, timestamp, pending, isAdmin } = props;
+  const {
+    sender,
+    children,
+    timestamp,
+    pending,
+    isAdmin,
+    userMentioned,
+    mentions,
+  } = props;
+
   let timeText;
   if (timestamp > Date.now() || Date.now() - timestamp < 30000) {
     timeText = "just now";
@@ -11,13 +21,38 @@ function Sender(props) {
 
   let emphasis;
   let emphasisBackground;
-  if (props.type === "mention") {
+  if (userMentioned) {
     emphasis = "bg-amber-500";
     emphasisBackground =
       "bg-amber-500 hover:bg-amber-400 bg-opacity-20 hover:bg-opacity-30";
   } else {
     emphasis = "";
     emphasisBackground = "hover:bg-gray-700";
+  }
+
+  function renderMentions() {
+    const mentionedNames = mentions.map((user) => user.username);
+    const stack = mentionedNames.reduce((accumulator, username, index) => {
+      if (index < 2) {
+        accumulator.push(
+          <span key={username}>
+            {username}
+            {index === mentionedNames.length - 1 || ","}
+          </span>
+        );
+      } else if (index === 2) {
+        accumulator.push(
+          <span
+            key={username}
+            title={mentionedNames.slice(2, mentionedNames.length)}
+          >
+            + {mentionedNames.length - 2} more
+          </span>
+        );
+      }
+      return accumulator;
+    }, []);
+    return stack;
   }
 
   return (
@@ -38,6 +73,11 @@ function Sender(props) {
               style={{ color: sender.userColor }}
             >
               {sender.username}
+              {!mentions.length > 0 || (
+                <span className="text-gray-800 pl-0.5 text-sm">
+                  @{renderMentions()}
+                </span>
+              )}
               <span className="text-gray-900 text-sm opacity-40">
                 {!isAdmin || " (admin)"}
               </span>

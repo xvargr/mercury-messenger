@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 
 import { DataContext } from "../components/context/DataContext";
 import { FlashContext } from "../components/context/FlashContext";
@@ -22,7 +22,6 @@ export function FlashStack() {
   const stack = [];
 
   messageStack?.forEach((message) => {
-    // messageStack?.map((message) => {
     const position = messageStack.indexOf(message);
 
     stack.push(
@@ -122,6 +121,7 @@ export function MemberStatusStack() {
         member={member}
         status={peerHelpers.getStatus(member._id)}
         key={member._id}
+        isAdmin={true}
       />
     );
   });
@@ -129,43 +129,19 @@ export function MemberStatusStack() {
 }
 
 export function MentionsSelector(props) {
-  const { initialSelection, onSelectionChange } = props;
-  const [selectedMembers, setSelectedMembers] = useState(initialSelection);
+  const { selectedMembers, onSelect, onDeselect } = props;
   const { groupData, selectedGroup } = useContext(DataContext);
 
   const thisGroup = groupData[selectedGroup._id];
   const memberStack = [];
 
-  // on reopen, if there are previously selected users, restore them
-  useEffect(() => {
-    const verifiedSelection = initialSelection.filter((id) =>
-      thisGroup.members.some((member) => member._id === id)
-    ); // verify if user is still in group, edge case protection
-
-    setSelectedMembers(verifiedSelection);
-    // eslint-disable-next-line
-  }, []);
-
-  // pass changes in selection to parent component
-  useEffect(() => {
-    onSelectionChange(selectedMembers);
-    // eslint-disable-next-line
-  }, [selectedMembers]);
-
   function toggleSelection(userId) {
-    setSelectedMembers((prevData) => {
-      const dataCopy = [...prevData];
-
-      if (!dataCopy.includes(userId)) {
-        dataCopy.push(userId);
-      } else return dataCopy.filter((id) => id !== userId);
-
-      return dataCopy;
-    });
+    if (!selectedMembers.includes(userId)) onSelect(userId);
+    else onDeselect(userId);
   }
 
   thisGroup.members.forEach((member) => {
-    if (member._id === localStorage.userId) return null; // except for this user
+    if (member._id === localStorage.userId) return null; // don't render this user
 
     const selected = selectedMembers.includes(member._id);
 
@@ -180,7 +156,7 @@ export function MentionsSelector(props) {
   });
 
   return (
-    <div className="w-full overflow-x-hidden overflow-y-auto scrollbar-dark">
+    <div className="w-full h-full overflow-x-hidden overflow-y-auto scrollbar-dark">
       {memberStack}
     </div>
   );
@@ -253,10 +229,15 @@ export function ChatStack() {
       }
       if (isGenesis) isGenesis = false;
     });
+
     return messageStack;
   }
 
   chatData.forEach((cluster) => {
+    const userMentioned = cluster.mentions.some(
+      (user) => user._id === localStorage.userId
+    );
+
     clusterStack.push(
       <Sender
         sender={cluster.sender}
@@ -264,6 +245,8 @@ export function ChatStack() {
         key={cluster.clusterTimestamp}
         pending={cluster._id ? false : true}
         isAdmin={isUserAdmin[cluster.sender._id]}
+        userMentioned={userMentioned}
+        mentions={cluster.mentions}
       >
         {renderMessages(cluster)}
       </Sender>
