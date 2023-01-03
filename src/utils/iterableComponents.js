@@ -240,6 +240,7 @@ export function ChatStack() {
 
     clusterStack.push(
       <Sender
+        clusterId={cluster._id}
         sender={cluster.sender}
         timestamp={cluster.clusterTimestamp}
         key={cluster.clusterTimestamp}

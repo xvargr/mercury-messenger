@@ -108,12 +108,17 @@ function ChatWindow() {
   }, [lastUpdate]);
 
   function sendOut(sendObj) {
+    console.log(sendObj);
     if (dataReady) {
       const { elapsed, lastCluster, lastSender } = dataHelpers.getLastInfo(
         selectedGroup._id,
         selectedChannel._id
       );
-      if (elapsed > 60000 || lastSender !== localStorage.username) {
+      if (
+        sendObj.reply ||
+        elapsed > 60000 ||
+        lastSender !== localStorage.username
+      ) {
         sendMessage({
           message: sendObj,
           target: { group: selectedGroup._id, channel: selectedChannel._id },

@@ -1,14 +1,20 @@
-import { useRef, useState, useEffect, forwardRef } from "react";
+import { useRef, useState, useEffect, forwardRef, useContext } from "react";
 import moment from "moment/moment";
 
+// svg
 import {
   AtSymbolIcon,
   CameraIcon,
   XIcon,
   PaperAirplaneIcon,
   CheckIcon,
+  ReplyIcon,
 } from "@heroicons/react/outline";
 
+// context
+import { ReplyContext } from "../context/RepliesContext";
+
+// components
 import { MentionsSelector } from "../../utils/iterableComponents";
 
 const AttachImageButton = forwardRef(function AttachImageButton(props, ref) {
@@ -36,6 +42,8 @@ function AddMentionsButton(props) {
   const [expanded, setExpanded] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState([]);
 
+  const { getReply } = useContext(ReplyContext);
+
   function addSelection(id) {
     setSelectedMembers((prevData) => {
       const dataCopy = [...prevData];
@@ -55,7 +63,11 @@ function AddMentionsButton(props) {
   return (
     <>
       {!expanded || (
-        <div className="h-[8.25rem] w-1/2 min-w-[10rem] p-1 absolute -top-[8.75rem] left-0 bg-gray-500 backdrop-blur-sm bg-opacity-70 rounded-lg shadow-md flex flex-col overflow-hidden">
+        <div
+          className={`h-[8.25rem] w-1/2 min-w-[10rem] p-1 absolute ${
+            getReply ? "-top-[10.25rem]" : "-top-[8.75rem]"
+          } left-0 bg-gray-500 backdrop-blur-sm bg-opacity-70 rounded-lg shadow-md flex flex-col overflow-hidden`}
+        >
           <MentionsSelector
             selectedMembers={selectedMembers}
             onSelect={addSelection}
@@ -74,8 +86,8 @@ function AddMentionsButton(props) {
         <AtSymbolIcon
           className="h-6 w-6 mr-2 text-gray-800 hover:text-gray-700 cursor-pointer"
           onClick={() => {
+            if (expanded) passSelection(selectedMembers);
             setExpanded(!expanded);
-            setSelectedMembers([]);
           }}
         />
       </div>
@@ -124,6 +136,8 @@ function ChatInputBox(props) {
   });
   const [mentionsArray, setMentionsArray] = useState([]);
 
+  const { getReply, clearReply } = useContext(ReplyContext);
+
   const textRef = useRef();
   const fileRef = useRef();
   const imagePreviewRef = useRef();
@@ -148,6 +162,7 @@ function ChatInputBox(props) {
     if (formHasContent && noError) {
       const messageData = {
         mentions: mentionsArray,
+        reply: getReply?.clusterId || null,
         text: textRef.current.value || null,
         file: fileRef.current.files[0] || null,
         dateString: moment().format(),
@@ -227,6 +242,19 @@ function ChatInputBox(props) {
     );
   }
 
+  function ReplyBar() {
+    return (
+      <div className="h-6 px-2 bg-gray-500 rounded-t-lg absolute -top-6 left-0 flex group">
+        <XIcon
+          className="w-5 text-mexican-red-600 bg-gray-500 cursor-pointer absolute left-2 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-100 ease-linear"
+          onClick={() => clearReply()}
+        />
+        <ReplyIcon className="w-5 mr-1 text-gray-800" />
+        <div>replying to {getReply.name}</div>
+      </div>
+    );
+  }
+
   function ChatImagePreview() {
     function handleClearImage() {
       fileRef.current.value = null;
@@ -290,9 +318,13 @@ function ChatInputBox(props) {
 
       <div
         className={`w-4/5 max-w-4xl ${
-          imageAttached ? "h-[10.5rem]" : null
-        } m-4 p-2 bg-gray-500 rounded-lg flex justify-around items-end shadow-lg absolute bottom-1`}
+          !imageAttached || "h-[10.5rem]"
+        } m-4 p-2 bg-gray-500 rounded-lg ${
+          !getReply || "rounded-tl-none"
+        } flex justify-around items-end shadow-lg absolute bottom-1`}
       >
+        {!getReply || <ReplyBar />}
+
         <ChatImagePreview />
 
         {!mentionsArray.length > 0 || (
