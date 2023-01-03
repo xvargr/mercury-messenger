@@ -138,12 +138,9 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("newMessage", function (res) {
-      console.log("here");
+      console.log("newMes", res);
       const channelIsFocused =
         selectedChannelRef.current?._id === res.channel._id;
-
-      console.log("windowIsFocused", windowIsFocused);
-      console.log("channelFocused", channelIsFocused);
 
       if (!windowIsFocused || !channelIsFocused) {
         notification.play();
@@ -163,7 +160,7 @@ export function SocketStateProvider(props) {
 
     socket.on("appendMessage", function (res) {
       const channelIsFocused =
-        selectedChannelRef.current?._id === res.channel._id;
+        selectedChannelRef.current?._id === res.target.channel;
 
       if (windowIsFocused || !channelIsFocused) {
         notification.play();
@@ -187,8 +184,8 @@ export function SocketStateProvider(props) {
 
           // add new mentions if has not been mentioned before
           res.data.mentions.forEach((user) => {
-            const isNotMentioned = !mentionsCopy.find(
-              (existingUser) => user._id === existingUser._id
+            const isNotMentioned = !mentionsCopy.some(
+              (existingUser) => existingUser._id === user._id
             );
 
             if (isNotMentioned) {

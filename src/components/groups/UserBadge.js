@@ -18,22 +18,22 @@ function UserBadge() {
   let nextStatus;
   switch (userStatus) {
     case "online":
-      statusIndicator = "border-2 bg-green-500 hover:bg-yellow-500";
+      statusIndicator = "border-2 bg-green-500";
       nextStatus = "away";
       break;
 
     case "away":
-      statusIndicator = "border-2 bg-yellow-500 hover:bg-red-500";
+      statusIndicator = "border-2 bg-yellow-500";
       nextStatus = "busy";
       break;
 
     case "busy":
-      statusIndicator = "border-2 bg-red-500 hover:bg-gray-500";
+      statusIndicator = "border-2 bg-red-500";
       nextStatus = "offline";
       break;
 
     case "offline":
-      statusIndicator = "border-2 bg-gray-600 hover:bg-green-500";
+      statusIndicator = "border-2 bg-gray-600";
       nextStatus = "online";
       break;
 
@@ -46,7 +46,7 @@ function UserBadge() {
       <span
         title={`change status to ${nextStatus}`}
         className={`w-2.5 h-2.5 group-hover:w-3 group-hover:h-3 ${statusIndicator} rounded-full border-solid border-4 box-content border-gray-800 absolute right-1.5 bottom-1.5 transition-all ease-in-out duration-200`}
-        onClick={() => forceStatusUpdate(nextStatus)}
+        onClick={(e) => forceStatusUpdate(nextStatus)}
       ></span>
     );
   }
@@ -56,7 +56,7 @@ function UserBadge() {
       className="relative group"
       to="/u"
       onClick={(e) => {
-        e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation(); // prevents nav to /user from clicking status button
       }}
     >
       <img

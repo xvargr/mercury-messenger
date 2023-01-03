@@ -11,6 +11,7 @@ const ImageSchema = new mongoose.Schema(
   },
   { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 );
+
 // virtual getter
 ImageSchema.virtual("reduced").get(function () {
   if (this.url) return this.url.replace("/upload", "/upload/w_300");
@@ -19,6 +20,7 @@ ImageSchema.virtual("reduced").get(function () {
 
 const MessageSchema = new mongoose.Schema({
   mentions: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  reply: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
   text: { type: String, trim: true },
   file: ImageSchema,
   dateString: { type: String, required: true },

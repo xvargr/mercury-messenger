@@ -133,6 +133,7 @@ export default function useSocket() {
     });
 
     function genesisAcknowledged(res) {
+      console.log("sendernewmes", res);
       setGroupData((prevStack) => {
         // setState expression is used to access the latest pending state before rerender
         // spread so that the values instead of the pointer is referenced by the new variable
@@ -259,7 +260,6 @@ export default function useSocket() {
     });
 
     function appendAcknowledged(res) {
-      console.log(res);
       setGroupData((prevStack) => {
         const dataCopy = { ...prevStack };
         const stackCopy = [
@@ -286,8 +286,8 @@ export default function useSocket() {
 
         if (res.data.mentions.length > 0) {
           res.data.mentions.forEach((newMention) => {
-            const isNotMentioned = !thisCluster.mentions.find(
-              (existingMention) => newMention._id === existingMention._id
+            const isNotMentioned = !thisCluster.mentions.some(
+              (existingMention) => existingMention._id === newMention._id
             );
 
             if (isNotMentioned) {

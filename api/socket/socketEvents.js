@@ -101,6 +101,7 @@ export async function newCluster(args) {
 
   const messageContent = {
     mentions: [...clusterData.data.mentions],
+    reply: clusterData.data.reply,
     text: clusterData.data.text,
     file: null,
     dateString: clusterData.data.dateString,
@@ -123,6 +124,9 @@ export async function newCluster(args) {
     group,
     content: [messageContent],
   });
+
+  console.log(newMessageCluster);
+  return null;
 
   await newMessageCluster.save();
 

@@ -19,40 +19,43 @@ import ChannelIndex from "./components/layout/ChannelIndex";
 import { DataStateProvider } from "./components/context/DataContext";
 import { FlashStateProvider } from "./components/context/FlashContext";
 import { SocketStateProvider } from "./components/context/SocketContext";
+import { RepliesStateProvider } from "./components/context/RepliesContext";
 
 function App() {
   return (
     <DataStateProvider>
       <FlashStateProvider>
         <SocketStateProvider>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/" element={<MainWindow />}>
-              <Route index element={<HomeWindow />} />
-              <Route path="u" element={<UserPage />} />
-              <Route path="g">
-                <Route path="new" element={<NewGroupPage />} />
-                <Route
-                  path=":group"
-                  element={
-                    <>
-                      <ChannelsBar />
-                      <Outlet />
-                    </>
-                  }
-                >
-                  <Route index element={<ChannelIndex />} />
-                  <Route path="settings" element={<GroupSettingsPage />} />
-                  <Route path="c">
-                    <Route path="new" element={<NewChannelPage />} />
-                    <Route path=":channel" element={<ChatWindow />} />
+          <RepliesStateProvider>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/" element={<MainWindow />}>
+                <Route index element={<HomeWindow />} />
+                <Route path="u" element={<UserPage />} />
+                <Route path="g">
+                  <Route path="new" element={<NewGroupPage />} />
+                  <Route
+                    path=":group"
+                    element={
+                      <>
+                        <ChannelsBar />
+                        <Outlet />
+                      </>
+                    }
+                  >
+                    <Route index element={<ChannelIndex />} />
+                    <Route path="settings" element={<GroupSettingsPage />} />
+                    <Route path="c">
+                      <Route path="new" element={<NewChannelPage />} />
+                      <Route path=":channel" element={<ChatWindow />} />
+                    </Route>
                   </Route>
                 </Route>
+                <Route path="404" element={<PageNotFound />} />
+                <Route path="*" element={<PageNotFound />} />
               </Route>
-              <Route path="404" element={<PageNotFound />} />
-              <Route path="*" element={<PageNotFound />} />
-            </Route>
-          </Routes>
+            </Routes>
+          </RepliesStateProvider>
         </SocketStateProvider>
       </FlashStateProvider>
     </DataStateProvider>

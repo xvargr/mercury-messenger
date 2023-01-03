@@ -1,5 +1,9 @@
+import { useContext } from "react";
 import moment from "moment/moment";
-// import { ReplyIcon } from "@heroicons/react/outline";
+
+import { ReplyIcon } from "@heroicons/react/outline";
+
+import { ReplyContext } from "../context/RepliesContext";
 
 function Sender(props) {
   const {
@@ -10,7 +14,10 @@ function Sender(props) {
     isAdmin,
     userMentioned,
     mentions,
+    clusterId,
   } = props;
+
+  const { setReply } = useContext(ReplyContext);
 
   let timeText;
   if (timestamp > Date.now() || Date.now() - timestamp < 30000) {
@@ -56,9 +63,9 @@ function Sender(props) {
   }
 
   return (
-    <div className={`${emphasisBackground} pr-3  flex bg-opacity-25`}>
+    <div className={`${emphasisBackground} pr-3 flex bg-opacity-25 group`}>
       <span className={`w-1 mr-2 ${emphasis} shrink-0`}></span>
-      <div className="flex mt-2 mb-2 w-full">
+      <div className="flex mt-2 mb-2 w-full relative">
         <img
           src={sender.userImage.thumbnailMedium}
           alt="profile"
@@ -66,6 +73,12 @@ function Sender(props) {
             pending ? "opacity-50" : null
           }`}
         />
+        {pending || (
+          <ReplyIcon
+            className="h-6 w-6 p-0.5 text-gray-800 bg-gray-500 hover:bg-gray-400 shadow-md opacity-0 group-hover:opacity-100 rounded-full absolute top-7 left-0 transition-opacity duration-75 ease-linear cursor-pointer"
+            onClick={() => setReply({ clusterId, name: sender.username })}
+          />
+        )}
         <span className="w-full flex flex-col overflow-hidden">
           <div className="flex justify-between items-center">
             <span
