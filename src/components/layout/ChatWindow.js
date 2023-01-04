@@ -108,7 +108,6 @@ function ChatWindow() {
   }, [lastUpdate]);
 
   function sendOut(sendObj) {
-    console.log(sendObj);
     if (dataReady) {
       const { elapsed, lastCluster, lastSender } = dataHelpers.getLastInfo(
         selectedGroup._id,

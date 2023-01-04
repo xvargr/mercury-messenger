@@ -9,6 +9,7 @@ import { GroupStack } from "../../utils/iterableComponents";
 
 // context
 import { DataContext } from "../context/DataContext";
+import MessageBadge from "../groups/MessageBadge";
 
 export default function GroupsBar() {
   const { dataReady } = useContext(DataContext);
@@ -37,6 +38,8 @@ export default function GroupsBar() {
         <Logo />
 
         <UserBadge />
+
+        {/* <MessageBadge /> */}
 
         <hr className="m-2 mb-0 mt-0 border-gray-600" />
 

@@ -234,10 +234,6 @@ export function ChatStack() {
   }
 
   chatData.forEach((cluster) => {
-    const userMentioned = cluster._id
-      ? cluster.mentions.some((user) => user._id === localStorage.userId)
-      : false;
-
     clusterStack.push(
       <Sender
         clusterId={cluster._id}
@@ -245,9 +241,8 @@ export function ChatStack() {
         timestamp={cluster.clusterTimestamp}
         key={cluster.clusterTimestamp}
         pending={cluster._id ? false : true}
-        isAdmin={isUserAdmin[cluster.sender._id]}
-        userMentioned={userMentioned}
         mentions={cluster.mentions}
+        reply={cluster.reply}
       >
         {renderMessages(cluster)}
       </Sender>

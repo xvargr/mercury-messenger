@@ -31,6 +31,19 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/" element={<MainWindow />}>
                 <Route index element={<HomeWindow />} />
+                {/* <Route path="m">
+                  <Route
+                    path=":member"
+                    element={
+                      <>
+                        <ChannelsBar />
+                        <Outlet />
+                      </>
+                    }
+                  >
+                    <Route index element={<ChannelIndex />} />
+                  </Route>
+                </Route> */}
                 <Route path="u" element={<UserPage />} />
                 <Route path="g">
                   <Route path="new" element={<NewGroupPage />} />
