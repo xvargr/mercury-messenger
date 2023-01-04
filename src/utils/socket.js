@@ -133,7 +133,6 @@ export default function useSocket() {
     });
 
     function genesisAcknowledged(res) {
-      console.log("sendernewmes", res);
       setGroupData((prevStack) => {
         // setState expression is used to access the latest pending state before rerender
         // spread so that the values instead of the pointer is referenced by the new variable

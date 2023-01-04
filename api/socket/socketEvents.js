@@ -60,6 +60,11 @@ export async function constructInitData(args) {
           path: "content",
           populate: { path: "mentions", select: "username", model: "User" },
         })
+        .populate({
+          path: "reply",
+          select: ["content"],
+          populate: [{ path: "sender", select: "username", model: "User" }],
+        })
         .limit(NUM_TO_LOAD + 1);
 
       // the extra 1 document is used to check if there are at least 1 more document after the ones that were sent
@@ -101,7 +106,6 @@ export async function newCluster(args) {
 
   const messageContent = {
     mentions: [...clusterData.data.mentions],
-    reply: clusterData.data.reply,
     text: clusterData.data.text,
     file: null,
     dateString: clusterData.data.dateString,
@@ -123,10 +127,8 @@ export async function newCluster(args) {
     channel,
     group,
     content: [messageContent],
+    reply: clusterData.data.reply || null,
   });
-
-  console.log(newMessageCluster);
-  return null;
 
   await newMessageCluster.save();
 
@@ -140,6 +142,11 @@ export async function newCluster(args) {
     {
       path: "content",
       populate: { path: "mentions", select: "username", model: "User" },
+    },
+    {
+      path: "reply",
+      select: ["content"],
+      populate: [{ path: "sender", select: "username", model: "User" }],
     },
   ]);
 

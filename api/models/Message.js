@@ -20,7 +20,6 @@ ImageSchema.virtual("reduced").get(function () {
 
 const MessageSchema = new mongoose.Schema({
   mentions: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-  reply: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
   text: { type: String, trim: true },
   file: ImageSchema,
   dateString: { type: String, required: true },
@@ -45,6 +44,7 @@ const ClusterSchema = new mongoose.Schema(
       required: true,
     },
     content: [MessageSchema],
+    reply: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
     clusterTimestamp: {
       type: Number,
       required: true,

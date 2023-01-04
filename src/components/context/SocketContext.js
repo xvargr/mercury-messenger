@@ -138,7 +138,6 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("newMessage", function (res) {
-      console.log("newMes", res);
       const channelIsFocused =
         selectedChannelRef.current?._id === res.channel._id;
 

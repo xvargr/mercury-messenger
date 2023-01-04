@@ -173,6 +173,7 @@ function ChatInputBox(props) {
       fileRef.current.value = null;
       setMentionsArray([]);
 
+      clearReply();
       props.return(messageData);
     }
   }
