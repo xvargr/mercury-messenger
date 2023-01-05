@@ -146,7 +146,7 @@ function LoginPage() {
   }
 
   return (
-    <div className="bgHeroDiagDark text-gray-400 w-screen h-screen flex flex-col items-center justify-evenly md:flex-row">
+    <main className="bgHeroDiagDark text-gray-400 w-screen h-screen flex flex-col items-center justify-evenly md:flex-row">
       <div className="text-3xl text-gray-red-600 font-montserrat font-semibold">
         MERCURY<span className="text-mexican-red-500 text-4xl">.</span>
       </div>
@@ -219,7 +219,7 @@ function LoginPage() {
 
         <CircleButton status={buttonStatus} className="mr-6" />
       </form>
-    </div>
+    </main>
   );
 }
 

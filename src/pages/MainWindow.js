@@ -34,11 +34,12 @@ function MainWindow() {
 
   return (
     <main
-      className="w-screen h-screen font-nunito overflow-hidden flex justify-center bgHeroTopo"
+      className="w-screen font-nunito overflow-hidden flex justify-center bgHeroTopo" // see tailwind base
       onMouseMove={statusUpdater}
       onKeyDown={statusUpdater}
       onClick={statusUpdater}
       onLoad={statusUpdater}
+      onTouchStart={statusUpdater}
     >
       <ReconnectingModal />
       <FlashStack />

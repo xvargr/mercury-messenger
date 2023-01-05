@@ -15,8 +15,8 @@ export default function useSocket() {
 
   const userStatus = peerHelpers.getStatus(localStorage.userId);
 
-  const SOCKET_TIMEOUT = 6000; // 6 secs
-  const AWAY_TIMEOUT = 180000; // 3 minutes
+  const socketTimeout = 6000; // 6 secs
+  const awayTimeout = 180000; // 3 minutes
 
   // stale closure fix
   const socketRef = useRef(socket);
@@ -57,7 +57,7 @@ export default function useSocket() {
       awayTimerRef.current = setTimeout(() => {
         if (!statusForcedRef.current) emitStatus({ status: "away" });
         mouseMoveTimerRef.current = null;
-      }, AWAY_TIMEOUT);
+      }, awayTimeout);
     }
 
     // console.log("ref", statusForcedRef.current, "state", statusForced); // always false
@@ -187,7 +187,7 @@ export default function useSocket() {
     // console.log(JSON.stringify(genesisCluster)); // emit fails with arg as failed object as it is a circular reference, fix by spread or reassigning
 
     socket
-      .timeout(SOCKET_TIMEOUT)
+      .timeout(socketTimeout)
       .emit("newCluster", { ...genesisCluster }, (err, res) => {
         // set failed property on message if timed out or error
         if (err) genesisTimedOut();
@@ -326,7 +326,7 @@ export default function useSocket() {
     }
 
     socket
-      .timeout(SOCKET_TIMEOUT)
+      .timeout(socketTimeout)
       .emit("appendCluster", appendObject, (err, res) => {
         if (err || res.failed)
           appendTimedOut(); // handle err if append fails on backend with res.failed in addition to timeout
@@ -365,7 +365,7 @@ export default function useSocket() {
     return new Promise((resolve, reject) => {
       resolve(
         socket
-          .timeout(SOCKET_TIMEOUT)
+          .timeout(socketTimeout)
           .emit("fetchMore", fetchParams, (err, res) => {
             if (err || res.failed) return { err: "timed out" };
             else fetchReceived(res);

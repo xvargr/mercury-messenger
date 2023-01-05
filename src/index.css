@@ -4,6 +4,34 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  /* required to fix bounce up refresh on scroll up when div is already scrolled to top */
+  /* https://stackoverflow.com/questions/29894997/prevent-ios-bounce-without-disabling-scroll-ability */
+  html {
+    position: fixed;
+    overflow: hidden;
+    /* height: 100%; */
+  }
+
+  /* body {
+    width: 100vw;
+    height: 100vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  } */
+
+  html * {
+    overscroll-behavior: contain;
+  }
+
+  /* fix 100vh not actually full view issue on mobile */
+  main {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+}
+
 @layer utilities {
   .scrollbar-none::-webkit-scrollbar {
     width: 0;
