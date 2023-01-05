@@ -106,7 +106,7 @@ export function ReconnectingModal(params) {
   return (
     <>
       <div
-        className={`absolute justify-self-center justify-around font-bold bg-gray-500 text-gray-900 h-12 w-1/3 max-w-lg p-1 rounded-b-md shadow-md transition-transform ease-out transform ${transform} z-50`}
+        className={`absolute justify-self-center justify-around font-bold bg-gray-500 text-gray-900 h-12 w-1/2 sm:w-1/3 max-w-lg p-1 rounded-b-md shadow-md transition-transform ease-out transform ${transform} z-50`}
       >
         <span className="h-full w-full flex justify-center items-center p-1">
           reconnecting
@@ -114,7 +114,7 @@ export function ReconnectingModal(params) {
         </span>
       </div>
       <div
-        className={`w-full h-full bg-black absolute ${opacity} transition-opacity duration-300 ease-in-out z-40`}
+        className={`w-screen h-screen bg-black absolute ${opacity} transition-opacity duration-300 ease-in-out z-40`}
       ></div>
     </>
   );

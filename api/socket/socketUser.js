@@ -102,6 +102,8 @@ const socketUsers = {
       if (forced) this.connectedUsers[index].statusForced = true;
     } else {
       console.warn("!-> user not found");
+      console.log(target);
+      console.log(this.connectedUsers);
       // throw new Error("user not found");
     }
   },

@@ -9,7 +9,7 @@ import { GroupStack } from "../../utils/iterableComponents";
 
 // context
 import { DataContext } from "../context/DataContext";
-import MessageBadge from "../groups/MessageBadge";
+// import MessageBadge from "../groups/MessageBadge";
 
 export default function GroupsBar() {
   const { dataReady } = useContext(DataContext);

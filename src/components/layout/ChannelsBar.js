@@ -37,7 +37,7 @@ function ChannelsBar() {
     );
   } else {
     return (
-      <section className="bg-gray-700 h-screen w-1/4 lg:w-1/5 max-w-sm min-w-[10rem] md:min-w-[15rem] flex-shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
+      <section className="bg-gray-700 h-screen w-[13rem] lg:w-1/5 max-w-sm min-w-[10rem] md:min-w-[15rem] flex-shrink-0 overflow-hidden scrollbar-dark flex flex-col items-center">
         <GroupBanner name={selectedGroup.name} />
         <div className="w-full h-full flex-grow overflow-y-scroll scrollbar-none flex flex-col items-center justify-between">
           <div className="w-full max-h-[50%] grow flex flex-col items-center overflow-y-auto overflow-x-hidden scrollbar-dark">
@@ -52,7 +52,7 @@ function ChannelsBar() {
 
           <hr className="w-1/3 mb-2 mt-2 border-gray-800" />
 
-          <div className="w-full h-1/2 py-1 flex flex-col items-center overflow-y-auto overflow-x-hidden scrollbar-dark">
+          <div className="w-full h-1/2 py-1 flex flex-col items-center overflow-y-auto overflow-x-hidden scrollbar-dark contain-scroll">
             <MemberStatusStack />
           </div>
         </div>
