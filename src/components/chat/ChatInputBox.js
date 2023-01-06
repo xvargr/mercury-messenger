@@ -115,7 +115,7 @@ function SubmitButton(props) {
   return (
     <>
       <PaperAirplaneIcon
-        className={`${submitButtonStyle} h-6 w-6 rotate-90`}
+        className={`${submitButtonStyle} h-6 w-6 shrink-0 rotate-90`}
         onClick={onClick}
       />
       <div
@@ -198,7 +198,7 @@ function ChatInputBox(props) {
       setInputError((prevData) => {
         const dataCopy = { ...prevData };
 
-        if (input.size > 5e6) {
+        if (input.size > 3e6) {
           dataCopy.fileError = "File exceeds 3MB";
         } else {
           dataCopy.fileError = null;
@@ -318,7 +318,7 @@ function ChatInputBox(props) {
       <BlurBackdrop />
 
       <div
-        className={`w-4/5 max-w-4xl ${
+        className={`w-[90%] md:w-4/5 max-w-4xl ${
           !imageAttached || "h-[10.5rem]"
         } m-4 p-2 bg-gray-500 rounded-lg ${
           !getReply || "rounded-tl-none"
@@ -344,7 +344,7 @@ function ChatInputBox(props) {
           ref={textRef}
           placeholder="Say something..."
           autoComplete="off"
-          className="bg-inherit focus:outline-none flex-grow  font-nunito"
+          className="bg-inherit focus:outline-none flex-grow font-nunito"
           onChange={(e) =>
             validateInput({ field: "text", input: e.target.value })
           }

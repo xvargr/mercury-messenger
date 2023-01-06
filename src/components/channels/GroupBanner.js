@@ -117,10 +117,10 @@ function GroupBanner(props) {
   function TrayCollapsed() {
     return (
       <div
-        className="w-12 h-3 bg-gray-800 rounded-b-lg fixed top-10 flex justify-center items-center shadow-md hover:h-4 transition-all cursor-pointer group"
+        className="w-20 h-4 md:w-12 md:h-3 bg-gray-800 rounded-b-lg fixed top-10 flex justify-center items-center shadow-md hover:h-6 transition-all cursor-pointer group"
         onClick={expandHandler}
       >
-        <ChevronDownIcon className="h-3 w-3 text-gray-700 group-hover:text-gray-500 transition-colors" />
+        <ChevronDownIcon className="h-6 w-6 md:w-3 md:-h-3 text-gray-700 group-hover:text-gray-500 transition-colors" />
       </div>
     );
   }

@@ -27,20 +27,22 @@ export default function ImageSelectorPreview(props) {
 
   if (loading || !imageSrc) {
     return (
-      <div className="w-72 h-72 grow-0 shrink-0 rounded-full bg-gray-500 animate-pulse"></div>
+      <div className="w-[15rem] h-[15rem] md:w-72 md:h-72 grow-0 shrink-0 rounded-full bg-gray-500 animate-pulse"></div>
     );
   } else {
     return (
       <>
-        <label htmlFor="image" className="group hover:cursor-pointer">
+        <label htmlFor="image" className="group relative hover:cursor-pointer">
           <PhotographIcon
-            className={`relative -mt-[6rem] top-[12rem] left-[6rem] text-gray-400 h-[6rem] opacity-0 hover:cursor-pointer group-hover:opacity-100 transition-all duration-100 z-10 shadow-md ${props.className}`}
+            className={
+              "absolute top-[4rem] left-[4rem] h-[4rem] sm:top-[5rem] sm:left-[5rem] sm:h-[5rem] md:top-[6rem] md:left-[6rem] md:h-[6rem] text-gray-400  opacity-0 hover:cursor-pointer group-hover:opacity-100 transition-all duration-100 z-10 shadow-md"
+            }
           />
           <div className="group-hover:brightness-[0.4] group-hover:cursor-pointer transition-all duration-100">
             <img
               src={previewConditions()}
               alt="profile"
-              className="w-72 h-72 rounded-full object-cover"
+              className="w-[12rem] h-[12rem] sm:w-[15rem] sm:h-[15rem] md:w-72 md:h-72 rounded-full object-cover"
             />
           </div>
         </label>

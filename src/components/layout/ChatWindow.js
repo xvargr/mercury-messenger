@@ -4,7 +4,7 @@ import { useInView } from "react-intersection-observer";
 
 // components
 import ChatInputBox from "../chat/ChatInputBox";
-import ChannelBanner from "../chat/ChatBanner";
+import ChatBanner from "../chat/ChatBanner";
 import GoToBottomButton from "../chat/GoToBottomButton";
 import Dots from "../ui/Dots";
 
@@ -170,8 +170,8 @@ function ChatWindow() {
 
   if (!dataReady || !chatMounted || !stateRestored) {
     return (
-      <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
-        <ChannelBanner name={channel} />
+      <section className="w-full h-full flex-grow min-w-0 bg-gray-600 overflow-x-hidden flex flex-col absolute right-0 top-0 md:relative">
+        <ChatBanner name={channel} pending />
 
         <div className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth">
           {memoizedSkeleton}
@@ -180,13 +180,13 @@ function ChatWindow() {
     );
   } else {
     return (
-      <section className="w-full min-w-0 bg-gray-600 overflow-x-hidden flex flex-col relative">
+      <section className="w-full h-full flex-grow min-w-0 bg-gray-600 overflow-x-hidden flex flex-col absolute right-0 top-0 md:relative">
         {/* // firefox does not respect flex shrink without width min 0 ! */}
 
-        <ChannelBanner name={selectedChannel.name} />
+        <ChatBanner name={selectedChannel.name} />
 
         <div
-          className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth"
+          className="overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth"
           id="chatWindow"
           onScroll={() => handleScroll()}
           ref={chatWindowRef}
