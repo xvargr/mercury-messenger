@@ -15,7 +15,7 @@ export default function useSocket() {
 
   const userStatus = peerHelpers.getStatus(localStorage.userId);
 
-  const socketTimeout = 6000; // 6 secs
+  const socketTimeout = 12000; // 12 secs
   const awayTimeout = 180000; // 3 minutes
 
   // stale closure fix

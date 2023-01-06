@@ -179,11 +179,8 @@ function UserPage() {
         />
       ) : null}
 
-      <div className="bg-gray-700 h-full w-full flex flex-col items-center justify-evenly">
-        <form
-          className="w-4/5 h-4/5 flex flex-col justify-center items-center"
-          onSubmit={modifyUser}
-        >
+      <div className="bg-gray-700 w-full py-2 flex flex-col items-center justify-between md:justify-evenly">
+        <form className="flex flex-col items-center" onSubmit={modifyUser}>
           <ImageSelectorPreview
             imageSrc={localStorage.userImage}
             passData={updateImage}
@@ -192,7 +189,7 @@ function UserPage() {
             username
           </label>
           <InputBox
-            className="w-[16.9rem] mt-4 bg-gray-600 group hover:bg-gray-500 relative"
+            className="w-[16.5rem] sm:w-[16.9rem] mt-4 bg-gray-600 group hover:bg-gray-500 relative"
             transferFocus={(e) => e.target.children.username?.focus()}
           >
             <input
@@ -226,27 +223,29 @@ function UserPage() {
               "#f9b4ab",
               "#d527b7",
             ]}
-            className="mt-1"
+            className="mt-1 mb-6"
             triangle="top-right"
             onChange={(color, e) => onColorChange(color, e)}
           />
-          <TextButton className="mt-4" text={buttonText} disabled={inpErr} />
+          <TextButton text={buttonText} disabled={inpErr} />
           <div className=" h-4 mt-4 -mb-16 text-mexican-red-500 font-bold">
             {feedback}
           </div>
         </form>
 
-        <CircleButton
-          status="logout"
-          className="text-mexican-red-400 hover:text-mexican-red-500"
-          color="gray-600"
-          onClick={logOutUser}
-        />
-        <div
-          className="text-gray-900 hover:cursor-pointer"
-          onClick={toggleDeleteModal}
-        >
-          delete account
+        <div className="flex flex-col items-center justify-between">
+          <CircleButton
+            status="logout"
+            className="text-mexican-red-400 hover:text-mexican-red-500"
+            color="gray-600"
+            onClick={logOutUser}
+          />
+          <div
+            className="mt-2 text-gray-900 hover:cursor-pointer"
+            onClick={toggleDeleteModal}
+          >
+            delete account
+          </div>
         </div>
       </div>
     </>

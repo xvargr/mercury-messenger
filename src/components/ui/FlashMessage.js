@@ -76,7 +76,8 @@ export function FlashMessage(props) {
 
   return (
     <div
-      className={`relative m-2 pr-6 w-96 min-h-[3rem] h-fit rounded-xl backdrop-blur-sm flex shadow-md z-50 ${fadeClass}`}
+      // className={`relative m-2 pr-6 w-96 min-h-[3rem] h-fit rounded-xl backdrop-blur-sm flex shadow-md z-50 ${fadeClass}`}
+      className={`relative m-2 pr-6 md:w-96 min-h-[3rem] h-fit rounded-xl backdrop-blur-sm flex shadow-md z-50 ${fadeClass}`}
     >
       <div className="w-full h-full absolute -z-10 rounded-xl bg-gray-500 opacity-70"></div>
       <XIcon
@@ -84,7 +85,9 @@ export function FlashMessage(props) {
         onClick={unmountThis}
       />
       {charm}
-      <p className="text-gray-900 ml-2 self-center">{message}</p>
+      <p className="w-full md:w-fit text-gray-900 ml-2 self-center">
+        {message}
+      </p>
     </div>
   );
 }

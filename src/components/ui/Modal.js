@@ -84,8 +84,8 @@ export function DeleteUserModal(props) {
 }
 
 export function ReconnectingModal(params) {
-  const [transform, setTransform] = useState("-translate-y-12");
-  const [opacity, setOpacity] = useState("-translate-y-12");
+  const [transform, setTransform] = useState("-translate-y-14");
+  const [opacity, setOpacity] = useState("opacity-0");
 
   const { socket } = useContext(SocketContext);
 
@@ -97,7 +97,7 @@ export function ReconnectingModal(params) {
       }, 75);
     } else {
       setTimeout(() => {
-        setTransform("-translate-y-12");
+        setTransform("-translate-y-14");
         setOpacity("opacity-0 pointer-events-none");
       }, 75);
     }

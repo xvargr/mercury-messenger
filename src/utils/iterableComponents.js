@@ -73,13 +73,8 @@ export function GroupStack() {
 }
 
 export function ChannelStack() {
-  const {
-    groupData,
-    setSelectedChannel,
-    selectedGroup,
-    selectedChannel,
-    dataHelpers,
-  } = useContext(DataContext);
+  const { groupData, selectedGroup, selectedChannel, dataHelpers } =
+    useContext(DataContext);
 
   const thisGroup = groupData[selectedGroup._id];
 
@@ -99,7 +94,6 @@ export function ChannelStack() {
         type="text"
         unread={dataHelpers.getUnread({ channelId: channel._id })}
         key={channel._id}
-        onClick={() => setSelectedChannel(channel)}
         isAdmin={isAdmin}
       />
     );

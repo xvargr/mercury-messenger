@@ -5,7 +5,8 @@ import { DataContext } from "../context/DataContext";
 import useSocket from "../../utils/socket";
 
 function UserBadge() {
-  const { peerData, peerHelpers } = useContext(DataContext);
+  const { setSelectedGroup, setSelectedChannel, peerData, peerHelpers } =
+    useContext(DataContext);
   const { forceStatusUpdate } = useSocket();
 
   const userStatus = useMemo(
@@ -57,6 +58,8 @@ function UserBadge() {
       to="/u"
       onClick={(e) => {
         e.nativeEvent.stopImmediatePropagation(); // prevents nav to /user from clicking status button
+        setSelectedChannel(null);
+        setSelectedGroup(null);
       }}
     >
       <img

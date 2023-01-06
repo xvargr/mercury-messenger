@@ -27,16 +27,16 @@ export default function MemberStatusBadge(props) {
     <div className="flex w-11/12 p-1 m-0.5 rounded-lg items-center">
       <div className="flex relative shrink-0">
         <img
-          className="w-10 h-10 md:w-12 md:h-12 mr-1.5 object-cover rounded-full"
+          className="w-12 h-12 mr-1.5 object-cover rounded-full"
           src={member.userImage.thumbnailSmall || member.userImage.url}
           alt="profile thumbnail"
         />
         <span
-          className={`w-2 h-2 md:w-2.5 md:h-2.5 ${statusIndicator} rounded-full border-solid border-2 md:border-[3px] box-content border-gray-700 absolute right-1.5 bottom-0`}
+          className={`w-2.5 h-2.5 ${statusIndicator} rounded-full border-solid border-[3px] box-content border-gray-700 absolute right-1.5 bottom-0`}
           title={status}
         ></span>
       </div>
-      <div className="truncate">{member.username}</div>
+      <div className="truncate text-lg md:text-base">{member.username}</div>
     </div>
   );
 }

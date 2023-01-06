@@ -41,7 +41,9 @@ function ChannelBadge(props) {
   let Charm;
   switch (props.type) {
     case "text":
-      Charm = <HashtagIcon className="w-5 h-5 text-gray-800 shrink-0" />;
+      Charm = (
+        <HashtagIcon className="w-6 h-6 md:w-5 md:h-5 text-gray-800 shrink-0" />
+      );
       break;
     case "task":
       Charm = <FolderIcon className="w-5 h-5 text-gray-800 shrink-0" />;
@@ -55,15 +57,10 @@ function ChannelBadge(props) {
     if (props.unread <= 0) return null;
     else
       return (
-        <div className="w-5 h-5 bg-red-500 text-white font-semibold rounded-full shadow-md flex justify-center items-center overflow-clip absolute">
+        <div className="w-6 h-6 md:w-5 md:h-5 bg-red-500 text-white font-semibold rounded-full shadow-md flex justify-center items-center overflow-clip absolute">
           {props.unread}
         </div>
       );
-  }
-
-  // pass name to parent on click
-  function passOnClick() {
-    props.onClick(props.data);
   }
 
   useEffect(() => {
@@ -135,56 +132,61 @@ function ChannelBadge(props) {
       });
   }
 
-  function toggleEditForm() {
+  function toggleEditForm(e) {
+    e.preventDefault();
     if (isEditing) {
       setIsEditing(false);
       setShowDialogue(false);
     } else setIsEditing(true);
   }
 
-  if (isEditing && selectedChannel?.name !== props.data.name)
-    toggleEditForm(false); // useEffect cleanup could do the job as well, or props.selected
+  function setChannel() {
+    setSelectedChannel(props.data);
+  }
+
+  if (isEditing && selectedChannel?.name !== props.data.name) {
+    setIsEditing(false); // useEffect cleanup could do the job as well, or props.selected
+  }
 
   if (isEditing) {
     return (
-      <Link
-        onClick={passOnClick}
-        to={`c/${props.data.name}`}
-        className={`h-8 w-5/6 m-0.5 pl-2 py-1 pr-1 ${emphasis} rounded-lg flex justify-between items-center transition-colors ease-in duration-75 group`}
+      <div
+        className={`h-10 w-2/3 md:h-8 md:w-5/6 m-0.5 py-1 px-2 ${emphasis} text-lg md:text-base rounded-lg flex justify-between items-center transition-colors ease-in duration-75 group relative`}
       >
-        <div className="w-full h-full flex flex-col items-center">
-          <form onSubmit={editChannel}>
+        {Charm}
+        <div className="w-full h-full flex min-w-0 flex-col items-center justify-center">
+          <form className="w-full" onSubmit={editChannel}>
             <input
               type="text"
               value={nameField}
               maxLength="20"
-              className="w-full bg-gray-600 focus:outline-none"
+              className="focus:outline-none bg-inherit"
               onChange={(e) => setNameField(e.target.value)}
               ref={(input) => input && input.focus()}
             />
           </form>
           {showDialogue ? (
-            <div className="w-full bg-gray-600 -m-6 truncate">
+            <div className="w-full bg-gray-600 -m-[1.625rem] md:-m-6 truncate">
               Delete channel?
             </div>
           ) : null}
         </div>
         <TrashIcon
-          className="h-6 text-gray-900 hover:text-mexican-red-600 transition-colors ease-in duration-75"
+          className="h-6 text-gray-900 hover:text-mexican-red-600 transition-colors ease-in duration-75 shrink-0 cursor-pointer"
           onClick={deleteChannel}
         />
         <XIcon
-          className="h-6 text-gray-900 hover:text-gray-400 transition-colors ease-in duration-75"
-          onClick={toggleEditForm}
+          className="h-6 text-gray-900 hover:text-gray-400 transition-colors ease-in duration-75 shrink-0 cursor-pointer"
+          onClick={(e) => toggleEditForm(e)}
         />
-      </Link>
+      </div>
     );
   } else {
     return (
       <Link
-        onClick={passOnClick}
+        onClick={setChannel}
         to={`c/${props.data.name}`}
-        className={`h-8 w-5/6 m-0.5 pl-1 py-1 pr-0 ${emphasis} rounded-lg flex justify-between items-center transition-colors ease-in duration-75 group relative`}
+        className={`h-10 w-2/3 md:h-8 md:w-5/6 m-0.5 py-1 px-2 md:pr-1 ${emphasis} text-lg md:text-base rounded-lg flex justify-between items-center transition-colors ease-in duration-75 group relative`}
       >
         <UnreadBadge />
         <div className="max-w-[85%] flex items-center">
@@ -193,8 +195,8 @@ function ChannelBadge(props) {
         </div>
         {props.isAdmin ? (
           <DotsVerticalIcon
-            className="h-5 w-5 shrink-0 text-gray-900 hover:text-gray-400 opacity-0 group-hover:opacity-100 rounded-full transition-all ease-in duration-75"
-            onClick={toggleEditForm}
+            className="h-5 w-5 shrink-0 text-gray-900 hover:text-gray-400 md:opacity-0 md:group-hover:opacity-100 rounded-full transition-all ease-in duration-75"
+            onClick={(e) => toggleEditForm(e)}
           />
         ) : null}
       </Link>
