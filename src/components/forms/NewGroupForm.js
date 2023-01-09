@@ -71,7 +71,7 @@ function NewGroupForm(props) {
   }
 
   return (
-    <CardFloat className="w-3/4 max-w-2xl">
+    <CardFloat className="w-full md:w-3/4 md:max-w-2xl">
       <div className="text-mexican-red-600 mb-2 font-montserrat font-semibold">
         New Group
       </div>
@@ -102,9 +102,9 @@ function NewGroupForm(props) {
             .JPG, .JPEG, or .PNG (max 3MB)
           </span>
         </label>
-        <div className="flex justify-end mt-2">
-          <div className="h-full p-2 pl-0">{feedback}</div>
-          <CircleButton status={buttonStatus}></CircleButton>
+        <div className="flex justify-between mt-2">
+          <div className="h-full w-5/6 p-2 pl-0">{feedback}</div>
+          <CircleButton className="h-10" status={buttonStatus}></CircleButton>
         </div>
       </form>
     </CardFloat>

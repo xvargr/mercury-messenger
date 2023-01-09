@@ -52,7 +52,7 @@ export function DeleteUserModal(props) {
       onKeyDown={toggle}
       className="bg-black text-gray-500 absolute w-full h-full bg-opacity-80 flex justify-center items-center z-20"
     >
-      <div className="bg-gray-800 w-1/2 max-w-2xl h-1/3 max-h-60 rounded-lg relative">
+      <div className="bg-gray-800 w-4/5 md:w-1/2 md:max-w-2xl h-1/3 max-h-60 rounded-lg relative">
         <XIcon
           id="modalCloseButton"
           className="w-6 text-mexican-red-600 hover:text-mexican-red-500 absolute top-0 right-0 m-1 hover:cursor-pointer"
@@ -125,7 +125,7 @@ export function ConfirmChangesModal(props) {
 
   return (
     <div
-      className={`absolute ${
+      className={`absolute left-0 right-0 m-auto ${
         show ? "translate-y-16" : "translate-y-0"
       } -top-4 w-5/6 h-11 bg-gray-500 shadow-md rounded-lg px-4 transition-transform ease-in-out duration-200 flex items-center justify-between z-20`}
     >
@@ -162,7 +162,7 @@ export function ImageExpandedModal(params) {
       onClick={toggle}
       className="top-0 left-0 w-full h-full bg-black text-gray-500 fixed bg-opacity-70 flex justify-center items-center z-30"
     >
-      <img className="max-w-[90%] max-h-[90%]" src={imgSrc} alt="full size" />;
+      <img className="max-w-[90%] max-h-[90%]" src={imgSrc} alt="full size" />
     </div>
   );
 }

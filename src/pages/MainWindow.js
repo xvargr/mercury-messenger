@@ -13,8 +13,8 @@ import { DataContext } from "../components/context/DataContext";
 import { SocketContext } from "../components/context/SocketContext";
 
 // utility
-import useStateRestore from "../utils/restoreState";
 import useSocket from "../utils/socket";
+import useStateRestore from "../utils/restoreState";
 
 function MainWindow() {
   const navigate = useNavigate();
@@ -26,20 +26,20 @@ function MainWindow() {
 
   // redirect to login if not logged in
   useEffect(() => {
-    if (!localStorage.username) navigate("/login");
-    else if (socket && !isLoggedIn) navigate("/login");
+    if (!localStorage.username || (socket && !isLoggedIn)) navigate("/login");
     else setIsLoggedIn(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   });
 
   return (
     <main
-      className="w-screen font-nunito overflow-hidden flex justify-center bgHeroTopo" // see tailwind base
+      className="w-screen font-nunito flex justify-center bgHeroTopo fullscreen" // see tailwind base
       onMouseMove={statusUpdater}
       onKeyDown={statusUpdater}
       onClick={statusUpdater}
       onLoad={statusUpdater}
-      onTouchStart={statusUpdater}
+      onTouchEnd={statusUpdater}
+      onTouchMove={statusUpdater}
     >
       <ReconnectingModal />
       <FlashStack />

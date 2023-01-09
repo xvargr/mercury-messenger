@@ -213,9 +213,9 @@ function GroupSettingsPage() {
 
   if (!dataReady) {
     return (
-      <div className="w-full flex flex-col bg-gray-600 items-center relative">
-        <ChannelBanner />
-        <div className="w-full h-screen flex flex-col items-center overflow-y-auto scrollbar-dark">
+      <div className="w-full h-full flex-grow min-w-0 bg-gray-600 overflow-x-hidden flex flex-col fixed right-0 top-0 md:relative">
+        <ChannelBanner pending />
+        <div className="w-full h-full flex flex-col items-center overflow-y-auto scrollbar-dark">
           <div className="flex flex-col lg:flex-row max-w-4xl w-full h-80 justify-evenly items-center mb-6 mt-12 shrink-0">
             <ImageSelectorPreview loading />
             <label className="text-lg mt-2 lg:mt-0 font-medium text-gray-400">
@@ -248,7 +248,8 @@ function GroupSettingsPage() {
     );
   } else {
     return (
-      <div className="w-full flex flex-col bg-gray-600 items-center relative">
+      // <div className="w-full flex flex-col bg-gray-600 items-center relative">
+      <div className="w-full h-full flex-grow min-w-0 bg-gray-600 overflow-x-hidden flex flex-col fixed right-0 top-0 md:relative">
         <ChannelBanner name={"settings"} />
         <ConfirmChangesModal
           show={showConfirmation || formIsPending}
@@ -257,7 +258,7 @@ function GroupSettingsPage() {
           pending={formIsPending}
         />
         <form
-          className="w-full h-screen flex flex-col items-center overflow-y-auto scrollbar-dark"
+          className="w-full h-full flex flex-col items-center overflow-y-auto scrollbar-dark"
           onSubmit={submitGroupEdit}
         >
           <div className="flex flex-col lg:flex-row max-w-4xl w-full h-80 justify-evenly items-center mb-6 mt-12 shrink-0">

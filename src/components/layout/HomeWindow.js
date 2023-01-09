@@ -8,9 +8,9 @@ const HomeWindow = () => {
         <h1 className="text-mexican-red-700 text-4xl">TODOS:</h1>
         <ul className="list-disc ml-8">
           <li>mobile ui optimization</li>
-          <li>view height when virtual keyboard is activated</li>
-          <li>new ch/grp page</li>
-          <li>settings, user, group page</li>
+          <li>
+            view height when virtual keyboard is activated, fuggin impossible
+          </li>
         </ul>
       </div>
     </div>
