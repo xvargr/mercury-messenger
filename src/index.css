@@ -10,7 +10,10 @@
   html {
     position: fixed;
     overflow: hidden;
-    /* height: 100%; */
+    touch-action: none;
+  }
+  html * {
+    overscroll-behavior: contain;
   }
 
   /* body {
@@ -20,19 +23,45 @@
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   } */
+  /* body {
+    height: 200px;
+    height: -webkit-fill-available;
 
-  html * {
-    overscroll-behavior: contain;
-  }
+    background-color: cyan;
+    position: fixed;
+    overflow: hidden;
+  } */
+  /* body {
+    background-color: red;
+    position: fixed;
+  } */
 
   /* fix 100vh not actually full view issue on mobile */
   main {
     height: 100vh;
     height: -webkit-fill-available;
+    position: fixed;
+    overflow: hidden;
+    overscroll-behavior: contain;
   }
+
+  /* #root {
+    width: 100vw;
+    height: 100vh;
+    background-color: red;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+  } */
 }
 
 @layer utilities {
+  .scrollLock {
+    touch-action: none;
+  }
+
   .scrollbar-none::-webkit-scrollbar {
     width: 0;
     height: 0;

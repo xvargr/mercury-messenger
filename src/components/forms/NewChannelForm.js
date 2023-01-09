@@ -9,6 +9,7 @@ import { DataContext } from "../context/DataContext";
 
 // SVG
 import { ArrowRightIcon } from "@heroicons/react/solid";
+import { Link } from "react-router-dom";
 
 // vars
 let channelNameInput;
@@ -75,10 +76,16 @@ function NewChannelForm(props) {
 
   return (
     <form
-      className="bg-gray-700 w-full flex justify-center items-center bgHeroDiagLight"
+      className="bg-gray-700 w-full h-full flex justify-center items-center bgHeroDiagLight absolute md:static"
       onSubmit={submitHandler}
     >
-      <CardFloat className="w-3/4 max-w-2xl">
+      <CardFloat className="w-full m-2 md:w-3/4 md:max-w-2xl">
+        <Link
+          to={`/g/${selectedGroup.name}`}
+          className="my-1 text-gray-400 h-6 md:h-0 md:opacity-0 md:fixed"
+        >
+          &lt; back
+        </Link>
         <div className="text-mexican-red-600 mb-2 font-montserrat font-semibold">
           New Channel
         </div>

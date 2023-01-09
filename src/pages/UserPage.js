@@ -179,7 +179,7 @@ function UserPage() {
         />
       ) : null}
 
-      <div className="bg-gray-700 w-full py-2 flex flex-col items-center justify-between md:justify-evenly">
+      <div className="bg-gray-700 w-full py-2 flex sm:items-center justify-center">
         <form className="flex flex-col items-center" onSubmit={modifyUser}>
           <ImageSelectorPreview
             imageSrc={localStorage.userImage}
@@ -233,7 +233,7 @@ function UserPage() {
           </div>
         </form>
 
-        <div className="flex flex-col items-center justify-between">
+        <div className="flex flex-col items-center justify-between absolute bottom-0">
           <CircleButton
             status="logout"
             className="text-mexican-red-400 hover:text-mexican-red-500"

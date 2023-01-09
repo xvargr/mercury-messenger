@@ -170,7 +170,7 @@ function ChatWindow() {
 
   if (!dataReady || !chatMounted || !stateRestored) {
     return (
-      <section className="w-full h-full flex-grow min-w-0 bg-gray-600 overflow-x-hidden flex flex-col absolute right-0 top-0 md:relative">
+      <section className="w-full h-full flex-grow min-w-0 bg-gray-600 overflow-x-hidden flex flex-col fixed right-0 top-0 md:relative">
         <ChatBanner name={channel} pending />
 
         <div className="w-full flex-grow overflow-y-auto overflow-x-hidden scrollbar-dark scroll-smooth">
@@ -180,7 +180,7 @@ function ChatWindow() {
     );
   } else {
     return (
-      <section className="w-full h-full flex-grow min-w-0 bg-gray-600 overflow-x-hidden flex flex-col absolute right-0 top-0 md:relative">
+      <section className="w-full h-full flex-grow min-w-0 bg-gray-600 overflow-x-hidden flex flex-col fixed right-0 top-0 md:relative">
         {/* // firefox does not respect flex shrink without width min 0 ! */}
 
         <ChatBanner name={selectedChannel.name} />

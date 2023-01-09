@@ -143,7 +143,7 @@ function ChatInputBox(props) {
   const imagePreviewRef = useRef();
 
   useEffect(() => {
-    textRef.current.focus();
+    if (window.innerWidth >= 768) textRef.current.focus();
   }, []);
 
   // eslint-disable-next-line
@@ -234,7 +234,7 @@ function ChatInputBox(props) {
     return (
       <>
         <div
-          className={`w-full ml-2 ${blurHeight} backdrop-blur-sm bottom-0 -left-2 absolute pointer-events-none blurMask45`}
+          className={`w-full ml-2  ${blurHeight} backdrop-blur-sm bottom-0 -left-2 absolute pointer-events-none blurMask45`}
         ></div>
         <div
           className={`w-full ml-2 ${blurHeight} bg-gray-600 bottom-0 -left-2 absolute pointer-events-none blurMask70`}

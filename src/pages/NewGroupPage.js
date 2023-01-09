@@ -72,7 +72,7 @@ function NewGroupPage() {
   }
 
   return (
-    <div className="bg-gray-700 w-full flex flex-col justify-evenly items-center bgHeroDiagDark">
+    <div className="bg-gray-700 w-full flex flex-col p-2 justify-evenly items-center bgHeroDiagDark">
       <NewGroupForm onNewGroup={newGroupHandler} err={axiosCreateErr} />
       <JoinByInvite onJoinGroup={joinGroupHandler} err={axiosJoinErr} />
     </div>

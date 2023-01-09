@@ -103,7 +103,7 @@ ClusterSchema.pre("deleteMany", async function () {
   );
 
   if (imageIds.length > 0) {
-    cloudinary.api.delete_resources(imageIds).then((res) => console.log(res));
+    cloudinary.api.delete_resources(imageIds);
   }
 });
 

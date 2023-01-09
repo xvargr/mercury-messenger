@@ -155,21 +155,21 @@ function ChannelBadge(props) {
       >
         {Charm}
         <div className="w-full h-full flex min-w-0 flex-col items-center justify-center">
-          <form className="w-full" onSubmit={editChannel}>
+          <form className="w-full relative" onSubmit={editChannel}>
             <input
               type="text"
               value={nameField}
               maxLength="20"
-              className="focus:outline-none bg-inherit"
+              className="focus:outline-none bg-inherit w-full"
               onChange={(e) => setNameField(e.target.value)}
               ref={(input) => input && input.focus()}
             />
+            {!showDialogue || (
+              <div className="w-full bg-gray-600 truncate absolute top-0 left-0">
+                Delete channel?
+              </div>
+            )}
           </form>
-          {showDialogue ? (
-            <div className="w-full bg-gray-600 -m-[1.625rem] md:-m-6 truncate">
-              Delete channel?
-            </div>
-          ) : null}
         </div>
         <TrashIcon
           className="h-6 text-gray-900 hover:text-mexican-red-600 transition-colors ease-in duration-75 shrink-0 cursor-pointer"
