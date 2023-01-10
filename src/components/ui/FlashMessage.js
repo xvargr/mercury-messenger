@@ -85,7 +85,7 @@ export function FlashMessage(props) {
         onClick={unmountThis}
       />
       {charm}
-      <p className="w-full md:w-fit text-gray-900 ml-2 self-center">
+      <p className="w-full md:w-fit text-gray-900 ml-2 mr-4 self-center">
         {message}
       </p>
     </div>

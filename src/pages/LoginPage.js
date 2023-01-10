@@ -48,8 +48,10 @@ function LoginPage() {
     if (formState === "register") {
       if (userData.username.length < 3 || userData.username.length > 20) {
         giveError("username must be 3 to 20 characters long");
-      } else if (/[^\w\d ]+/.test(userData.username)) {
+      } else if (/[^\w\d]+/.test(userData.username)) {
         giveError("username must not contain special characters");
+      } else if (/\s/.test(userData.password)) {
+        giveError("password cannot contain spaces");
       } else if (
         userData.password.length < 8 ||
         userData.password.length > 200
@@ -147,7 +149,7 @@ function LoginPage() {
 
   return (
     <main className="bgHeroDiagDark text-gray-400 w-screen h-screen flex flex-col items-center justify-evenly md:flex-row">
-      <div className="text-3xl text-gray-red-600 font-montserrat font-semibold">
+      <div className="text-3xl text-gray-400 font-montserrat font-semibold">
         MERCURY<span className="text-mexican-red-500 text-4xl">.</span>
       </div>
 

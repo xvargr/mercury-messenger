@@ -5,6 +5,8 @@ const ChannelSchema = new mongoose.Schema({
   name: {
     type: String,
     trim: true,
+    minlength: 3,
+    maxlength: 20,
     required: true,
   },
   type: { type: String, enum: ["text", "task"], required: true },

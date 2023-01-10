@@ -27,6 +27,8 @@ const GroupSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      minlength: 3,
+      maxlength: 20,
       unique: true,
       // unique: true,
     },

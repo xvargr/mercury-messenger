@@ -1,5 +1,9 @@
 import { v2 as cloudinary } from "cloudinary";
 
+// socketData
+import socketUsers from "../socket/socketUser.js";
+
+// models
 import Group from "../models/Group.js";
 import User from "../models/User.js";
 import Channel from "../models/Channel.js";
@@ -35,7 +39,7 @@ export async function fetchGroups(req, res) {
 
 export async function newGroup(req, res) {
   const newGroup = new Group({
-    name: req.body.name.trim(),
+    name: req.body.name,
     image: { url: req.file.path, filename: req.file.filename },
     channels: { text: [], task: [] },
     members: [],
@@ -196,7 +200,16 @@ export async function joinWithCode(req, res) {
 
   const initData = await socketSync.groupEmit({
     target: { type: "group", id: group._id },
-    change: { type: "join", data: group, extra: { user } },
+    change: {
+      type: "join",
+      data: group,
+      extra: {
+        user,
+        partialPeerData: {
+          [user._id]: { status: socketUsers.getStatus(user._id) },
+        },
+      },
+    },
     messages: [
       { message: `${user.username} joined "${group.name}"`, type: "alert" },
     ],
