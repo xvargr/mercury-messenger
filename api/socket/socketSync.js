@@ -55,7 +55,14 @@ const socketSync = {
 
       // join user status rooms
       change.data.members.forEach((member) => {
-        senderSocket.join(`s:${member.id}`);
+        senderSocket.join(`s:${member.id}`); // sender join other member's status room
+
+        // current members join incoming user's status room
+        const memberSocketId = socketUsers.getSocketId(member._id);
+        if (memberSocketId) {
+          const memberSocket = io.sockets.sockets.get(memberSocketId);
+          memberSocket.join(`s:${initiator.id}`);
+        }
       });
     }
 
@@ -125,6 +132,8 @@ const socketSync = {
   statusEmit(args) {
     const io = socketInstance.io;
     const { target, change } = args;
+
+    // console.log(`stat ch ${target} => ${change}`);
 
     io.in(`s:${target}`)
       // .except(senderSocketId)

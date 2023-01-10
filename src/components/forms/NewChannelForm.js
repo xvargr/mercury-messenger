@@ -19,8 +19,7 @@ function NewChannelForm(props) {
   const [inpErr, setInpErr] = useState(true);
   const [feedback, setFeedback] = useState("");
   const [buttonStatus, setButtonStatus] = useState("error");
-  const { selectedGroup } = useContext(DataContext);
-  // const { groupData } = useContext(DataContext);
+  const { selectedGroup, dataReady } = useContext(DataContext);
 
   useEffect(() => {
     if (props.err.message && feedback !== props.err.message) {
@@ -33,7 +32,7 @@ function NewChannelForm(props) {
 
   function onChangeHandler(e) {
     if (e.target.type === "text") {
-      channelNameInput = e.target.value;
+      channelNameInput = e.target.value.trim();
     } else if (e.target.type === "radio") {
       channelTypeInput = e.target.value;
     }
@@ -80,12 +79,14 @@ function NewChannelForm(props) {
       onSubmit={submitHandler}
     >
       <CardFloat className="w-full m-2 md:w-3/4 md:max-w-2xl">
-        <Link
-          to={`/g/${selectedGroup.name}`}
-          className="my-1 text-gray-400 h-6 md:h-0 md:opacity-0 md:fixed"
-        >
-          &lt; back
-        </Link>
+        {!dataReady || (
+          <Link
+            to={`/g/${selectedGroup.name}`}
+            className="my-1 text-gray-400 h-6 md:h-0 md:opacity-0 md:fixed"
+          >
+            &lt; back
+          </Link>
+        )}
         <div className="text-mexican-red-600 mb-2 font-montserrat font-semibold">
           New Channel
         </div>

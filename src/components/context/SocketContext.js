@@ -319,6 +319,7 @@ export function SocketStateProvider(props) {
           dataCopy[target.id].members.push(change.extra.user);
           return dataCopy;
         });
+        dataHelpers.mergePeers(change.extra.partialPeerData);
       }
 
       function leftGroup(params) {

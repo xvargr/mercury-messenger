@@ -15,7 +15,7 @@ export default function TextButton(props) {
     default:
       bgLight = "bg-gray-500";
       bgDark = "bg-gray-600";
-      bgDisabled = "opacity-70";
+      bgDisabled = "opacity-50";
       break;
   }
 

@@ -12,7 +12,7 @@ const socketUsers = {
     this.connectedUsers.push({
       userId: socket.request.user.id,
       status: user.forcedStatus ?? "online",
-      statusForced: false,
+      statusForced: user.forcedStatus ? true : false,
       socket: {
         id: socket.id,
         address: socket.request.connection.remoteAddress,
@@ -71,8 +71,16 @@ const socketUsers = {
     );
   },
 
-  getSocketId(idString) {
+  getSocketId(id) {
+    const idString = id.toString();
     const result = this.connectedUsers.find((user) => user.userId === idString);
+    console.log(result); // ! sometimes undefined
+    if (!result) {
+      console.log("not found/ not connected"); // ! sometimes undefined
+      // console.log("idString", idString);
+      // console.log("connectedUsers", this.connectedUsers);
+      return null;
+    }
     return result.socket.id;
   },
 

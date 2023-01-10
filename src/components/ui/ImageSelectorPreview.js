@@ -35,7 +35,7 @@ export default function ImageSelectorPreview(props) {
         <label htmlFor="image" className="group relative hover:cursor-pointer">
           <PhotographIcon
             className={
-              "absolute top-[4rem] left-[4rem] h-[4rem] sm:top-[5rem] sm:left-[5rem] sm:h-[5rem] md:top-[6rem] md:left-[6rem] md:h-[6rem] text-gray-400  opacity-0 hover:cursor-pointer group-hover:opacity-100 transition-all duration-100 z-10 shadow-md"
+              "absolute top-[4rem] left-[4rem] h-[4rem] sm:top-[5rem] sm:left-[5rem] sm:h-[5rem] md:top-[6rem] md:left-[6rem] md:h-[6rem] text-gray-400  opacity-0 hover:cursor-pointer group-hover:opacity-100 transition-all duration-100 z-10"
             }
           />
           <div className="group-hover:brightness-[0.4] group-hover:cursor-pointer transition-all duration-100">

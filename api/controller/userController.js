@@ -15,7 +15,7 @@ export async function newUser(req, res) {
   const hashedPw = bcrypt.hashSync(req.body.password, 10);
 
   const newUser = new User({
-    username: req.body.username,
+    username: req.body.username.trim(),
     password: hashedPw,
     userImage: {
       url: undefined,
@@ -79,7 +79,7 @@ export async function editUser(req, res) {
   const image = req.file;
   const update = {};
 
-  if (name) update.username = name;
+  if (name) update.username = name.trim();
   if (image) {
     update.userImage = {
       url: image.path,

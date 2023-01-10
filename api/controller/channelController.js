@@ -51,7 +51,7 @@ export async function editChannel(req, res) {
     throw new ExpressError("Forbidden", 403);
   }
 
-  if (req.body.name.length < 3) {
+  if (req.body.name.trim().length < 3) {
     throw new ExpressError("Channel name must be 3 characters or more", 400);
   }
   channel.name = req.body.name.substring(0, 20); // limit20char

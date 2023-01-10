@@ -17,12 +17,6 @@ import { SocketContext } from "../components/context/SocketContext";
 // utility hooks
 import axiosInstance from "../utils/axios";
 
-const userForm = {
-  name: "",
-  image: null,
-  color: null,
-};
-
 function UserPage() {
   const navigate = useNavigate();
   const { setIsLoggedIn, setDataMounted, setChatMounted } =
@@ -30,12 +24,16 @@ function UserPage() {
   const { pushFlashMessage } = useContext(FlashContext);
   const { socketClear } = useContext(SocketContext);
 
-  const [inpErr, setInpErr] = useState(true);
+  const [formState, setFormState] = useState({});
   const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
-  const [buttonText, setButtonText] = useState("Keep changes");
-  const [feedback, setFeedback] = useState("");
   const [passwordFeedback, setPasswordFeedback] = useState(null);
   const [passwordInput, setPasswordInput] = useState("");
+
+  const [formData, setFormData] = useState({
+    name: localStorage.username || "",
+    image: null,
+    color: null,
+  });
 
   const nameInputRef = useRef();
   const colorPreviewRef = useRef();
@@ -45,6 +43,35 @@ function UserPage() {
   useEffect(() => {
     nameInputRef.current.value = localStorage.username;
   }, []);
+
+  useEffect(() => {
+    const error = {};
+
+    if (formData.name !== null) {
+      if (formData.name.length < 3 || formData.name.length > 20) {
+        error.nameError = "username must be 3 to 20 characters";
+      } else if (/[^\w\d ]+/.test(formData.name)) {
+        error.nameError = "username must not contain special characters";
+      } else if (formData.name === localStorage.username) {
+        if (!formData.color && !formData.image) error.nameError = true;
+      } else {
+        error.nameError = false;
+      }
+    }
+    if (formData.image) {
+      if (formData.image.size > 3e6) {
+        error.imageError = "image exceeds 3MB";
+      } else {
+        error.imageError = false;
+      }
+    }
+
+    setFormState({
+      error: error.nameError || error.imageError ? true : false,
+      message: error.nameError || error.imageError,
+    });
+    // eslint-disable-next-line
+  }, [formData]);
 
   function logOutUser() {
     userAccount
@@ -90,13 +117,19 @@ function UserPage() {
 
   function modifyUser(e) {
     e.preventDefault();
-    setButtonText("Processing...");
-    setInpErr(true);
+
+    if (formState.error) return null;
+
+    setFormState({
+      error: false,
+      pending: true,
+      message: null,
+    });
 
     let userData = new FormData();
-    if (userForm.name) userData.append("name", userForm.name);
-    if (userForm.color) userData.append("color", userForm.color);
-    if (userForm.image) userData.append("file", userForm.image);
+    if (formData.name) userData.append("name", formData.name);
+    if (formData.color) userData.append("color", formData.color);
+    if (formData.image) userData.append("file", formData.image);
 
     userAccount
       .edit(localStorage.userId, userData)
@@ -117,35 +150,28 @@ function UserPage() {
         navigate("/");
       })
       .catch((err) => {
-        setButtonText("Keep changes");
-        setInpErr(false);
+        setFormState({
+          error: false,
+          pending: false,
+          message: null,
+        });
         pushFlashMessage(err.response.data.messages);
       });
   }
 
-  function onUsernameChange(e) {
-    userForm.name = e.target.value;
-    if (e.target.value.length < 3 || e.target.value.length > 20) {
-      setFeedback("username must be 3 to 20 characters");
-      setInpErr(true);
-    } else {
-      setFeedback("");
-      setInpErr(false);
+  function updateFormData(params) {
+    const { e, data, type } = params;
+
+    function setNewValue(key, value) {
+      setFormData({ ...formData, [key]: value });
     }
-    setButtonText("Keep changes");
-  }
 
-  function onColorChange(color, e) {
-    userForm.color = color.hex;
-    colorPreviewRef.current.style.backgroundColor = color.hex;
-    setInpErr(false);
-    setButtonText("Keep changes");
-  }
-
-  function updateImage(data) {
-    userForm.image = data;
-    setInpErr(false);
-    setButtonText("Keep changes");
+    if (type === "name") setNewValue(type, e.target.value.trim());
+    else if (type === "image") setNewValue(type, e);
+    else if (type === "color") {
+      setNewValue(type, data.hex);
+      colorPreviewRef.current.style.backgroundColor = data.hex;
+    }
   }
 
   function toggleDeleteModal(e) {
@@ -183,7 +209,7 @@ function UserPage() {
         <form className="flex flex-col items-center" onSubmit={modifyUser}>
           <ImageSelectorPreview
             imageSrc={localStorage.userImage}
-            passData={updateImage}
+            passData={(e) => updateFormData({ e, type: "image" })}
           />
           <label htmlFor="username" className="sr-only">
             username
@@ -197,7 +223,7 @@ function UserPage() {
               name="username"
               id="username"
               className="block w-full bg-gray-600 focus:outline-none text-center font-semibold text-gray-300 group-hover:bg-gray-500 transition-colors duration-75 ease-in"
-              onChange={onUsernameChange}
+              onChange={(e) => updateFormData({ e, type: "name" })}
               ref={nameInputRef}
               autoComplete="off"
             />
@@ -223,13 +249,18 @@ function UserPage() {
               "#f9b4ab",
               "#d527b7",
             ]}
-            className="mt-1 mb-6"
+            className="mt-1 m-6 shadow-md picker-overwrite"
             triangle="top-right"
-            onChange={(color, e) => onColorChange(color, e)}
+            onChange={(color, e) =>
+              updateFormData({ e, data: color, type: "color" })
+            }
           />
-          <TextButton text={buttonText} disabled={inpErr} />
+          <TextButton
+            text={formState.pending ? "processing..." : "keep changes"}
+            disabled={formState.error || formState.pending}
+          />
           <div className=" h-4 mt-4 -mb-16 text-mexican-red-500 font-bold">
-            {feedback}
+            {!formState.error || formState.message}
           </div>
         </form>
 

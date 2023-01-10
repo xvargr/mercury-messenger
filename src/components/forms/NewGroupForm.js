@@ -20,14 +20,9 @@ function NewGroupForm(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.err]);
 
-  useEffect(() => {
-    groupNameInput = null;
-    groupImageInput = null;
-  }, []);
-
   function onChangeHandler(e) {
     if (e.target.type === "text") {
-      groupNameInput = e.target.value;
+      groupNameInput = e.target.value.trim();
     } else if (e.target.type === "file") {
       groupImageInput = e.target.files[0];
     }
@@ -48,7 +43,7 @@ function NewGroupForm(props) {
       giveError("Name must not be more than 20 characters");
     } else if (!groupImageInput) {
       giveError("An image is required");
-    } else if (groupImageInput.size > 3145728) {
+    } else if (groupImageInput.size > 3e6) {
       giveError("Image exceeds 3MB");
     } else {
       setInpErr(false);
