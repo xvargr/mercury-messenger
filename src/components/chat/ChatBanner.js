@@ -16,7 +16,10 @@ function ChannelBanner(props) {
           to={`/g/${selectedGroup.name}`}
           onClick={() => setSelectedChannel(null)}
         >
-          <ChevronDoubleLeftIcon className="h-10 p-1 pr-2 absolute top-0 left-0 bg-gray-700 hover:bg-gray-600 rounded-r-full shadow-md transition-colors duration-150" />
+          <div className="h-10 pr-4 absolute flex items-center top-0 left-0 bg-gray-700 hover:bg-gray-600 rounded-r-full shadow-md transition-colors duration-150">
+            <ChevronDoubleLeftIcon className="h-10 p-1 pr-2 " />
+            <span className="font-semibold">{selectedGroup.name}</span>
+          </div>
         </Link>
       )}
       <div className="m-2">{props.name}</div>

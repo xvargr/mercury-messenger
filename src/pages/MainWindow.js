@@ -6,7 +6,7 @@ import GroupsBar from "../components/layout/GroupsBar";
 import { FlashStack } from "../utils/iterableComponents";
 
 // ui
-import { ReconnectingModal } from "../components/ui/Modal";
+import { IntroductionModal, ReconnectingModal } from "../components/ui/Modal";
 
 // context
 import { DataContext } from "../components/context/DataContext";
@@ -41,6 +41,7 @@ function MainWindow() {
       onTouchEnd={statusUpdater}
       onTouchMove={statusUpdater}
     >
+      {!localStorage.introduction || <IntroductionModal />}
       <ReconnectingModal />
       <FlashStack />
       <GroupsBar />

@@ -37,6 +37,7 @@ export function SocketStateProvider(props) {
     setIsLoggedIn,
     setStatusForced,
     peerHelpers,
+    setSocketError,
   } = useContext(DataContext);
 
   const { userGroups } = axiosInstance();
@@ -107,6 +108,7 @@ export function SocketStateProvider(props) {
             }
           });
 
+          setSocketError(null);
           setDataMounted(true);
         })
         .catch((e) => e); // axios abort throws error unless it's caught here
@@ -114,7 +116,14 @@ export function SocketStateProvider(props) {
       setSocketStatus({ connected: true, code: null, message: null });
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", (res) => {
+      console.log(res); // transport close || io server disconnect
+      if (res === "transport close") {
+        setSocketError("server unavailable");
+      } else if (res === "io server disconnect") {
+        setSocketError("click to use on this device");
+      }
+
       setChatMounted(false);
       setSocketStatus({ connected: false, code: 503, message: null });
     });
