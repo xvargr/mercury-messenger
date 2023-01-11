@@ -125,6 +125,9 @@ function LoginPage() {
             res.data.userData.userImageMedium
           );
           localStorage.setItem("userColor", res.data.userData.userColor);
+          if (formState === "register") {
+            localStorage.setItem("introduction", true);
+          }
 
           navigate("/");
         })
@@ -158,7 +161,7 @@ function LoginPage() {
         onSubmit={submitHandler}
       >
         <div className="w-3/4 h-full flex flex-col justify-between items-center">
-          <div className="h-6 mt-1">{feedback}</div>
+          <div className="h-6 mt-1 text-mexican-red-500">{feedback}</div>
           <div className="w-full flex flex-col items-center">
             <label htmlFor="username" className="sr-only">
               username

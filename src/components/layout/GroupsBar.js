@@ -19,7 +19,7 @@ export default function GroupsBar() {
       <nav className="bg-gray-800 flex flex-col overflow-hidden shrink-0">
         <Logo className="bg-gray-800" />
 
-        <UserBadge />
+        <UserBadge loading />
 
         <hr className="m-2 mb-0 mt-0 border-gray-600" />
 

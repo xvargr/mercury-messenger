@@ -29,7 +29,6 @@ export async function newUser(req, res) {
 
   req.logIn(user, (err) => {
     if (err) throw err;
-    console.log(user);
     res.status(201).json({
       userData: {
         username: user.username,

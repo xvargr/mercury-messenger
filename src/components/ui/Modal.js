@@ -7,6 +7,7 @@ import { SocketContext } from "../context/SocketContext";
 import { XIcon, CheckIcon } from "@heroicons/react/outline";
 import InputBox from "./InputBox";
 import Dots from "../ui/Dots";
+import { DataContext } from "../context/DataContext";
 
 const spinnerSvg = (
   <svg
@@ -88,6 +89,7 @@ export function ReconnectingModal(params) {
   const [opacity, setOpacity] = useState("opacity-0");
 
   const { socket } = useContext(SocketContext);
+  const { socketError } = useContext(DataContext);
 
   useEffect(() => {
     if (!socket?.connected) {
@@ -106,11 +108,20 @@ export function ReconnectingModal(params) {
   return (
     <>
       <div
-        className={`absolute justify-self-center justify-around font-bold bg-gray-500 text-gray-900 h-12 w-1/2 sm:w-1/3 max-w-lg p-1 rounded-b-md shadow-md transition-transform ease-out transform ${transform} z-50`}
+        onClick={() => {
+          if (socketError) window.location.reload(false);
+        }}
+        className={`
+        ${transform} 
+        ${socketError ? "cursor-pointer" : null} 
+        h-12 w-fit p-6 md:px-8 py-1 absolute justify-self-center justify-around font-bold bg-gray-500 text-gray-900 rounded-b-md shadow-md transition-transform ease-out transform 
+        z-50`}
       >
         <span className="h-full w-full flex justify-center items-center p-1">
-          reconnecting
-          <Dots className="flex w-10 justify-around items-center p-0.5 m-2 fill-gray-700" />
+          {socketError ? socketError : "reconnecting"}
+          {socketError ? null : (
+            <Dots className="flex w-10 justify-around items-center p-0.5 m-2 fill-gray-700" />
+          )}
         </span>
       </div>
       <div
@@ -165,4 +176,81 @@ export function ImageExpandedModal(params) {
       <img className="max-w-[90%] max-h-[90%]" src={imgSrc} alt="full size" />
     </div>
   );
+}
+
+export function IntroductionModal() {
+  const [introDone, setIntroDone] = useState(
+    localStorage.introduction ? false : true
+  );
+
+  function disableIntro() {
+    setIntroDone(true);
+    localStorage.removeItem("introduction");
+  }
+
+  if (!introDone) {
+    return (
+      <>
+        <div
+          onClick={(e) => {
+            e.nativeEvent.stopPropagation();
+            disableIntro();
+          }}
+          className="top-0 left-0 w-full h-full bg-black fixed bg-opacity-50 z-30"
+        ></div>
+        <div className="w-11/12 max-w-[70rem] max-h-[95%] h-fit p-3 absolute top-0 bottom-0 left-0 right-0 m-auto bg-gray-700 text-gray-300 rounded-lg shadow-md scrollbar-dark overflow-y-auto overflow-x-hidden z-30">
+          <h1 className="text-3xl font-montserrat font-semibold text-mexican-red-500">
+            Welcome to Mercury
+          </h1>
+
+          <h2 className="font-semibold text-lg mt-3">What is Mercury?</h2>
+          <p>
+            Mercury is a group messaging application inspired by Discord and
+            Slack. This project is created primarily for me to learn React and
+            Tailwind, as well as to get some practice with restful APIs and
+            databases.
+          </p>
+          <p className="mt-1">
+            Socket.io is used to facilitate messaging between clients and
+            communicating behind the scenes events. Some more traditional
+            requests uses Axios to communicate with the backend. The database
+            for this application is MongoDb, which is a noSQL database while
+            images are stored on Cloudinary.
+          </p>
+          <h2 className="font-semibold text-lg mt-3">Features</h2>
+          <ul className="list-disc ml-8">
+            <li>Create groups and channels for different discussions</li>
+            <li>Group messaging with replies and mentions</li>
+            <li>Message image attachments</li>
+            <li>Invite, promote, and kick users from group</li>
+            <li>Customizable user profiles</li>
+          </ul>
+          <h2 className="font-semibold text-lg mt-3">Source code and more</h2>
+          <p>
+            See the source code on{" "}
+            <a
+              className="text-mexican-red-500 font-semibold hover:underline hover:text-mexican-red-400"
+              href="https://github.com/xvargr"
+            >
+              github
+            </a>
+            . For more projects and information about me, visit{" "}
+            <a
+              className="text-mexican-red-500 font-semibold hover:underline hover:text-mexican-red-400"
+              href="https://vargr.dev"
+            >
+              vargr.dev
+            </a>
+            . For more projects
+          </p>
+          <div
+            onClick={disableIntro}
+            className="w-40 sticky bottom-0 left-0 right-0 m-auto sm:mr-0 bg-mexican-red-600 hover:bg-mexican-red-500 p-1 text-center rounded-full mt-8 shadow-md transition-colors cursor-pointer"
+          >
+            close
+          </div>
+        </div>
+      </>
+    );
+  } else return null;
 }

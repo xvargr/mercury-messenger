@@ -26,6 +26,8 @@ export function DataStateProvider(props) {
 
   const [unreadState, setUnreadState] = useState({});
 
+  const [socketError, setSocketError] = useState(null);
+
   const { updateStored } = useLocalFallback();
 
   // this ref is used to prevent stale closure in the helper functions below
@@ -341,6 +343,8 @@ export function DataStateProvider(props) {
     selectedChatIsDepleted,
     statusForced,
     setStatusForced,
+    socketError,
+    setSocketError,
 
     dataHelpers: {
       getChannelIndex,

@@ -19,7 +19,7 @@ import axiosInstance from "../utils/axios";
 
 function UserPage() {
   const navigate = useNavigate();
-  const { setIsLoggedIn, setDataMounted, setChatMounted } =
+  const { setIsLoggedIn, setDataMounted, setChatMounted, dataReady } =
     useContext(DataContext);
   const { pushFlashMessage } = useContext(FlashContext);
   const { socketClear } = useContext(SocketContext);
@@ -41,8 +41,10 @@ function UserPage() {
   const { userAccount } = axiosInstance();
 
   useEffect(() => {
-    nameInputRef.current.value = localStorage.username;
-  }, []);
+    if (nameInputRef.current) {
+      nameInputRef.current.value = localStorage.username;
+    }
+  }, [dataReady]);
 
   useEffect(() => {
     const error = {};
@@ -194,93 +196,114 @@ function UserPage() {
     setPasswordInput(input);
   }
 
-  return (
-    <>
-      {deleteModalIsOpen ? (
-        <DeleteUserModal
-          toggle={toggleDeleteModal}
-          onSubmit={deleteUser}
-          sendBack={passwordOnChange}
-          feedback={passwordFeedback}
-        />
-      ) : null}
-
-      <div className="bg-gray-700 w-full py-2 flex sm:items-center justify-center">
-        <form className="flex flex-col items-center" onSubmit={modifyUser}>
-          <ImageSelectorPreview
-            imageSrc={localStorage.userImage}
-            passData={(e) => updateFormData({ e, type: "image" })}
-          />
-          <label htmlFor="username" className="sr-only">
-            username
-          </label>
-          <InputBox
-            className="w-[16.5rem] sm:w-[16.9rem] mt-4 bg-gray-600 group hover:bg-gray-500 relative"
-            transferFocus={(e) => e.target.children.username?.focus()}
-          >
-            <input
-              type="text"
-              name="username"
-              id="username"
-              className="block w-full bg-gray-600 focus:outline-none text-center font-semibold text-gray-300 group-hover:bg-gray-500 transition-colors duration-75 ease-in"
-              onChange={(e) => updateFormData({ e, type: "name" })}
-              ref={nameInputRef}
-              autoComplete="off"
-            />
-            <span
-              className={
-                "w-7 h-7 rounded-full border-2 border-gray-400 absolute right-0 top-0 m-1 hover:cursor-pointer"
-              }
-              style={{ backgroundColor: `${localStorage.userColor}` }}
-              ref={colorPreviewRef}
-            ></span>
-          </InputBox>
-          <TwitterPicker
-            color={localStorage.userColor}
-            colors={[
-              "#e74645",
-              "#fb7756",
-              "#facd60",
-              "#fdfa66",
-              "#1ac0c6",
-              "#072448",
-              "#309975",
-              "#bbd4ce",
-              "#f9b4ab",
-              "#d527b7",
-            ]}
-            className="mt-1 m-6 shadow-md picker-overwrite"
-            triangle="top-right"
-            onChange={(color, e) =>
-              updateFormData({ e, data: color, type: "color" })
-            }
-          />
-          <TextButton
-            text={formState.pending ? "processing..." : "keep changes"}
-            disabled={formState.error || formState.pending}
-          />
-          <div className=" h-4 mt-4 -mb-16 text-mexican-red-500 font-bold">
-            {!formState.error || formState.message}
-          </div>
-        </form>
-
+  if (!dataReady) {
+    return (
+      <div className="bg-gray-700 w-full h-full py-2 flex sm:items-center justify-center">
+        <div className="flex flex-col items-center">
+          <ImageSelectorPreview loading />
+          <div className="w-[16.5rem] sm:w-[16.9rem] h-10 mt-4 bg-gray-600 group hover:bg-gray-500 rounded-md animate-pulse relative"></div>
+          <div className="w-full h-24 m-2 bg-gray-600 rounded-md animate-pulse"></div>
+        </div>
         <div className="flex flex-col items-center justify-between absolute bottom-0">
           <CircleButton
             status="logout"
             className="text-mexican-red-400 hover:text-mexican-red-500"
             color="gray-600"
-            onClick={logOutUser}
           />
-          <div
-            className="mt-2 text-gray-900 hover:cursor-pointer"
-            onClick={toggleDeleteModal}
-          >
+          <div className="mt-2 text-gray-900 hover:cursor-pointer">
             delete account
           </div>
         </div>
       </div>
-    </>
-  );
+    );
+  } else
+    return (
+      <>
+        {deleteModalIsOpen ? (
+          <DeleteUserModal
+            toggle={toggleDeleteModal}
+            onSubmit={deleteUser}
+            sendBack={passwordOnChange}
+            feedback={passwordFeedback}
+          />
+        ) : null}
+
+        <div className="bg-gray-700 w-full py-2 flex sm:items-center justify-center">
+          <form className="flex flex-col items-center" onSubmit={modifyUser}>
+            <ImageSelectorPreview
+              imageSrc={localStorage.userImage}
+              passData={(e) => updateFormData({ e, type: "image" })}
+            />
+            <label htmlFor="username" className="sr-only">
+              username
+            </label>
+            <InputBox
+              className="w-[16.5rem] sm:w-[16.9rem] mt-4 bg-gray-600 group hover:bg-gray-500 relative"
+              transferFocus={(e) => e.target.children.username?.focus()}
+            >
+              <input
+                type="text"
+                name="username"
+                id="username"
+                className="block w-full bg-gray-600 focus:outline-none text-center font-semibold text-gray-300 group-hover:bg-gray-500 transition-colors duration-75 ease-in"
+                onChange={(e) => updateFormData({ e, type: "name" })}
+                ref={nameInputRef}
+                autoComplete="off"
+              />
+              <span
+                className={
+                  "w-7 h-7 rounded-full border-2 border-gray-400 absolute right-0 top-0 m-1 hover:cursor-pointer"
+                }
+                style={{ backgroundColor: `${localStorage.userColor}` }}
+                ref={colorPreviewRef}
+              ></span>
+            </InputBox>
+            <TwitterPicker
+              color={localStorage.userColor}
+              colors={[
+                "#e74645",
+                "#fb7756",
+                "#facd60",
+                "#fdfa66",
+                "#1ac0c6",
+                "#072448",
+                "#309975",
+                "#bbd4ce",
+                "#f9b4ab",
+                "#d527b7",
+              ]}
+              className="mt-1 mb-3 shadow-md picker-overwrite"
+              triangle="top-right"
+              onChange={(color, e) =>
+                updateFormData({ e, data: color, type: "color" })
+              }
+            />
+            <TextButton
+              text={formState.pending ? "processing..." : "keep changes"}
+              disabled={formState.error || formState.pending}
+            />
+            <div className=" h-4 mt-4 -mb-16 text-mexican-red-500 font-bold">
+              {!formState.error || formState.message}
+            </div>
+          </form>
+
+          <div className="flex flex-col items-center justify-between absolute bottom-0">
+            <CircleButton
+              status="logout"
+              className="text-mexican-red-400 hover:text-mexican-red-500"
+              color="gray-600"
+              onClick={logOutUser}
+            />
+            <div
+              className="mt-2 text-gray-900 hover:cursor-pointer"
+              onClick={toggleDeleteModal}
+            >
+              delete account
+            </div>
+          </div>
+        </div>
+      </>
+    );
 }
 
 export default UserPage;

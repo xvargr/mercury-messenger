@@ -71,9 +71,8 @@ GroupSchema.virtual("inviteLink").get(function () {
 GroupSchema.pre("remove", async function (next) {
   cloudinary.uploader.destroy(this.image.filename);
   // delete associated channels
-  const textArr = Array.from(this.channels.text, (channel) => channel.id);
-  const taskArr = Array.from(this.channels.task, (channel) => channel.id);
-
+  const textArr = this.channels.text.map((channel) => channel.id);
+  const taskArr = this.channels.task.map((channel) => channel.id);
   const channelsArr = [...textArr, ...taskArr];
 
   // message cleanup is needed here as well as deleting channels using preRemove does not triggers channel preRemove hook

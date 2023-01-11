@@ -97,7 +97,7 @@ function AddMentionsButton(props) {
 
 function SubmitButton(props) {
   const { onClick, errorState } = props;
-  const [errorOpacity, setErrorOpacity] = useState();
+  const [errorOpacity, setErrorOpacity] = useState("opacity-0");
   const [submitButtonStyle, setSubmitButtonStyle] = useState();
   const [lastError, setLastError] = useState();
 

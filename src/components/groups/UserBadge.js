@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { DataContext } from "../context/DataContext";
 import useSocket from "../../utils/socket";
 
-function UserBadge() {
+function UserBadge(props) {
   const { setSelectedGroup, setSelectedChannel, peerData, peerHelpers } =
     useContext(DataContext);
   const { forceStatusUpdate } = useSocket();
@@ -52,24 +52,30 @@ function UserBadge() {
     );
   }
 
-  return (
-    <Link
-      className="relative group"
-      to="/u"
-      onClick={(e) => {
-        e.nativeEvent.stopImmediatePropagation(); // prevents nav to /user from clicking status button
-        setSelectedChannel(null);
-        setSelectedGroup(null);
-      }}
-    >
-      <img
-        src={localStorage.userImageSmall}
-        className="bg-gray-700 h-16 w-16 m-2 mt-0 object-cover rounded-2xl inline-block group-hover:rounded-lg transition-all ease-in"
-        alt="profile"
-      />
-      <StatusButton />
-    </Link>
-  );
+  if (props.loading) {
+    return (
+      <div className="bg-gray-700 h-16 w-16 m-2 mt-0 rounded-2xl inline-block transition-all animate-pulse" />
+    );
+  } else {
+    return (
+      <Link
+        className="relative group"
+        to="/u"
+        onClick={(e) => {
+          e.nativeEvent.stopImmediatePropagation(); // prevents nav to /user from clicking status button
+          setSelectedChannel(null);
+          setSelectedGroup(null);
+        }}
+      >
+        <img
+          src={localStorage.userImageSmall}
+          className="bg-gray-700 h-16 w-16 m-2 mt-0 object-cover rounded-2xl inline-block group-hover:rounded-lg transition-all ease-in"
+          alt="profile"
+        />
+        <StatusButton />
+      </Link>
+    );
+  }
 }
 
 export default UserBadge;

@@ -42,17 +42,20 @@ const socketInstance = {
         next(err); // refuse connection
       } else if (socketUsers.isConnected(socket)) {
         // already connected
-
         const prevUser = socketUsers.connectedUsers.find(
           (user) => user.userId === socket.request.user._id.toString()
         );
 
-        const prevSocket = io.sockets.sockets.get(prevUser.socket.id);
+        // wait for the previous device to disconnect first, else can cause de-sync of connected sockets
+        // and connectedUsers object
+        await socketUsers
+          .disconnect({ userId: socket.request.user._id })
+          .then(() => {
+            const prevSocket = io.sockets.sockets.get(prevUser.socket.id);
+            prevSocket?.disconnect();
+            socketUsers.connect(socket);
+          });
 
-        prevSocket?.disconnect();
-        socketUsers.disconnect({ userId: socket.request.user._id });
-
-        socketUsers.connect(socket);
         next();
       } else {
         socketUsers.connect(socket);
@@ -61,10 +64,11 @@ const socketInstance = {
     });
 
     io.on("connection", async function (socket) {
-      console.log("currently connected: ", socketUsers.connectedUsers);
-      console.log("users connected: ", socketUsers.connectedUsers.length);
-
       const sender = socket.request.user;
+
+      console.log("currently connected: ", socketUsers.connectedUsers);
+      console.log(`i-> ${sender.username} connected`);
+      console.log("i-> current users: ", socketUsers.connectedUsers.length);
 
       // sends chat data of all groups that user is a part of
       socket.on("requestInitData", (clusterData, callback) => {
@@ -91,8 +95,8 @@ const socketInstance = {
 
       socket.on("disconnect", function () {
         socketUsers.disconnect({ userId: socket.request.user._id });
-        console.log("currently connected: ", socketUsers.connectedUsers);
-        console.log("users connected: ", socketUsers.connectedUsers.length);
+        // console.log("currently connected: ", socketUsers.connectedUsers);
+        // console.log("users connected: ", socketUsers.connectedUsers.length);
       });
     });
   },
