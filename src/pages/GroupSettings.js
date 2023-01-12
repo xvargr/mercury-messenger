@@ -170,7 +170,7 @@ function GroupSettingsPage() {
           navigate(`/g/${res.data.group.name}`);
         })
         .catch((err) => {
-          console.log(err);
+          // console.log(err);
           if (err.response) pushFlashMessage(err.response.data.messages); // network err has no response key
           setFormIsPending(false);
         });

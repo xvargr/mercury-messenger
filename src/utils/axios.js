@@ -48,7 +48,7 @@ export default function useAxiosInstance() {
 
   // retry conditions
   function handleErrors(err) {
-    console.log(err);
+    // console.log(err);
     // if (err.response.data.messages) {
     //   console.log("flash handler");
     //   pushFlashMessage(err.response.data.messages);

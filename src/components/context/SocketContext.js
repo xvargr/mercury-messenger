@@ -117,7 +117,6 @@ export function SocketStateProvider(props) {
     });
 
     socket.on("disconnect", (res) => {
-      console.log(res); // transport close || io server disconnect
       if (res === "transport close") {
         setSocketError("server unavailable");
       } else if (res === "io server disconnect") {
