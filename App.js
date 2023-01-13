@@ -6,6 +6,8 @@ import cors from "cors";
 import MongoStore from "connect-mongo";
 import session from "express-session";
 import { createServer } from "http";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 // utils
 import passport from "./utils/passportDefine.js";
@@ -22,17 +24,13 @@ import userRouter from "./router/userRouter.js";
 import groupRouter from "./router/groupRouter.js";
 import channelRouter from "./router/channelRouter.js";
 
-//!
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // global vars reassignments, instances, env variables
 const app = express();
-const API_PORT = 3000;
-const DOMAIN = process.env.APP_DOMAIN;
+const DOMAIN_NAME = process.env.DOMAIN_NAME;
+const PORT = process.env.PORT;
 const httpServer = createServer(app); // create a server for express, need this to reuse server instance for socket.io
 
 socketInstance.connectServer(httpServer); // pass the created server to socket
@@ -56,7 +54,7 @@ db.once("open", function () {
 // middleware
 app.use(
   cors({
-    origin: DOMAIN,
+    origin: `${DOMAIN_NAME}:${PORT}`,
     optionsSuccessStatus: 200,
     credentials: true,
   })
@@ -85,9 +83,8 @@ passport.deserializeUser((id, done) => {
   User.findById(id, (err, user) => done(err, user));
 }); // find cookie's user id and match from db
 
-app.use(express.static(`${__dirname}/client/build`));
-
 // serve react app
+app.use(express.static(`${__dirname}/client/build`));
 app.get("/", (req, res) => {
   res.sendFile(`${__dirname}/client/build`);
 });
@@ -138,6 +135,6 @@ app.use(function (err, req, res, next) {
 //   console.log(`--> Mercury api listening on port ${API_PORT}`);
 // }); // this is express' server, below we created our own with both express and socket on it
 
-httpServer.listen(API_PORT, () =>
-  console.log(`--> Mercury api listening on port ${API_PORT}`)
+httpServer.listen(PORT, () =>
+  console.log(`--> Mercury api listening on port ${PORT} of ${DOMAIN_NAME}`)
 );
