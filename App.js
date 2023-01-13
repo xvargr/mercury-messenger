@@ -94,6 +94,11 @@ app.use("/u", userRouter);
 app.use("/g", groupRouter);
 app.use("/c", channelRouter);
 
+// health check path
+app.get("/health", (req, res) => {
+  res.status(200).send("Ok");
+});
+
 // socket.io middleware
 const wrap = (middleware) => (socket, next) => {
   middleware(socket.request, {}, next);
