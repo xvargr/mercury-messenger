@@ -71,7 +71,7 @@ export function SocketStateProvider(props) {
 
   function connectSocket() {
     setSocket(
-      io(`${window.location.protocol}//${window.location.hostname}:3100`, {
+      io(`${window.location.protocol}//${window.location.hostname}:3000`, {
         withCredentials: true,
       })
     );

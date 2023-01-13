@@ -24,7 +24,7 @@ import channelRouter from "./router/channelRouter.js";
 
 // global vars reassignments, instances, env variables
 const app = express();
-const API_PORT = 3100;
+const API_PORT = 3000;
 const DOMAIN = process.env.APP_DOMAIN;
 const httpServer = createServer(app); // create a server for express, need this to reuse server instance for socket.io
 
@@ -49,7 +49,7 @@ db.once("open", function () {
 // middleware
 app.use(
   cors({
-    origin: [DOMAIN, "http://192.168.0.137:3000"],
+    origin: DOMAIN,
     optionsSuccessStatus: 200,
     credentials: true,
   })
@@ -77,6 +77,13 @@ passport.serializeUser((user, done) => done(null, user.id)); // stores a cookie 
 passport.deserializeUser((id, done) => {
   User.findById(id, (err, user) => done(err, user));
 }); // find cookie's user id and match from db
+
+app.use(express.static("public"));
+
+// serve react app
+app.get("/", (req, res) => {
+  res.sendFile("public");
+});
 
 // path router
 app.use("/u", userRouter);
