@@ -11,7 +11,8 @@ import {
   broadcastStatusChange,
 } from "./socketEvents.js";
 
-const DOMAIN = process.env.APP_DOMAIN;
+const DOMAIN_NAME = process.env.DOMAIN_NAME;
+const PORT = process.env.PORT;
 
 // socket object for initializing io and handling events
 const socketInstance = {
@@ -21,7 +22,7 @@ const socketInstance = {
     this.io = new Server(server, {
       maxHttpBufferSize: 5e6, // 5MB
       cors: {
-        origin: [DOMAIN, "http://192.168.0.137:3000"],
+        origin: `${DOMAIN_NAME}:${PORT}`,
         credentials: true,
       },
       serveClient: false,
