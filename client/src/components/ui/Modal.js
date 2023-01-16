@@ -241,7 +241,6 @@ export function IntroductionModal() {
             >
               vargr.dev
             </a>
-            . For more projects
           </p>
           <div
             onClick={disableIntro}
