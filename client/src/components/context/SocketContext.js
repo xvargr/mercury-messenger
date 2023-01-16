@@ -2,11 +2,15 @@ import { useState, createContext, useContext, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
+// context
 import { FlashContext } from "./FlashContext";
 import { DataContext } from "./DataContext";
 
 // utility hooks
 import axiosInstance from "../../utils/axios";
+
+// config
+import config from "../../config";
 
 export const SocketContext = createContext();
 
@@ -71,7 +75,7 @@ export function SocketStateProvider(props) {
 
   function connectSocket() {
     setSocket(
-      io(`${window.location.protocol}//${window.location.hostname}:3000`, {
+      io(config.ORIGIN, {
         withCredentials: true,
       })
     );
