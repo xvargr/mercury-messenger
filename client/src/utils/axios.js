@@ -3,7 +3,11 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import axiosRetry from "axios-retry";
 
+// context
 import { FlashContext } from "../components/context/FlashContext";
+
+// config
+import config from "../config";
 
 export default function useAxiosInstance() {
   const { pushFlashMessage } = useContext(FlashContext);
@@ -11,7 +15,7 @@ export default function useAxiosInstance() {
 
   // axios instance config
   const instanceConfig = {
-    baseURL: `${window.location.protocol}//${window.location.hostname}:3000`, // ! temporary
+    baseURL: config.ORIGIN,
     withCredentials: true,
   };
 
