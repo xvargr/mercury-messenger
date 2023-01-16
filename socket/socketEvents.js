@@ -117,8 +117,8 @@ export async function newCluster(args) {
     const imageData = await uploadFromBuffer(file);
 
     messageContent.file = {
-      filename: imageData.filename,
-      url: imageData.path,
+      filename: imageData.public_id,
+      url: imageData.secure_url,
     };
   }
 
