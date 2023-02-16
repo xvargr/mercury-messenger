@@ -103,9 +103,7 @@ app.get(
     optionsSuccessStatus: 200,
     credentials: false,
   }),
-  // cors({ origin: "*" }),
   (req, res) => {
-    // res.set("Access-Control-Allow-Origin", "*");
     console.log("HCCK");
     res.status(200).send("Ok");
   }
