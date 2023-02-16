@@ -57,6 +57,7 @@ app.use(
     origin: `${DOMAIN_NAME}:${PORT}`,
     optionsSuccessStatus: 200,
     credentials: true,
+    preflightContinue: true,
   })
 );
 app.set("trust proxy", true); // for passing IP addresses if express is behind a reverse proxy
@@ -95,9 +96,20 @@ app.use("/g", groupRouter);
 app.use("/c", channelRouter);
 
 // health check path
-app.get("/health", (req, res) => {
-  res.status(200).send("Ok");
-});
+app.get(
+  "/health",
+  cors({
+    origin: "*",
+    optionsSuccessStatus: 200,
+    credentials: false,
+  }),
+  // cors({ origin: "*" }),
+  (req, res) => {
+    // res.set("Access-Control-Allow-Origin", "*");
+    console.log("HCCK");
+    res.status(200).send("Ok");
+  }
+);
 
 // socket.io middleware
 const wrap = (middleware) => (socket, next) => {
