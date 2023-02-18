@@ -6,8 +6,6 @@ databases.
 
 Socket.io is used to facilitate messaging between clients and
 communicating behind the scenes events. Some more traditional
-requests uses Axios to communicate with the backend. The database
-for this application is MongoDb, which is a noSQL database while
-images are stored on Cloudinary.
+requests uses Axios to communicate with the backend
 
 deployed at => https://mercury-messenger.onrender.com
