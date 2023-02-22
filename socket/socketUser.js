@@ -7,9 +7,6 @@ const socketUsers = {
   connectedUsers: [],
 
   connect(socket) {
-    console.log("SOCKET CONNECTING");
-    console.log(socket.request.user);
-
     const user = socket.request.user;
 
     this.connectedUsers.push({
