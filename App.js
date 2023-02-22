@@ -104,7 +104,6 @@ app.get(
     credentials: false,
   }),
   (req, res) => {
-    console.log("HCCK");
     res.status(200).send("Ok");
   }
 );
