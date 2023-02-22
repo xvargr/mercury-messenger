@@ -1,6 +1,11 @@
+import "dotenv/config";
 import bcrypt from "bcryptjs";
 
 import User from "../models/User.js";
+import Group from "../models/Group.js";
+
+import socketSync from "../socket/socketSync.js";
+import socketUsers from "../socket/socketUser.js";
 
 import passport from "../utils/passportDefine.js";
 import ExpressError from "../utils/ExpressError.js";
@@ -27,8 +32,20 @@ export async function newUser(req, res) {
 
   const user = await User.findOne({ username: newUser.username });
 
+  // join public group
+  const group = await Group.findById(process.env.PUBLIC_GROUP_ID).populate({
+    path: "members",
+    select: "username",
+  });
+
+  if (group) {
+    group.members.push(user);
+    await group.save();
+  }
+
   req.logIn(user, (err) => {
     if (err) throw err;
+
     res.status(201).json({
       userData: {
         username: user.username,
@@ -39,6 +56,31 @@ export async function newUser(req, res) {
         userColor: user.userColor,
       },
     });
+
+    if (group) {
+      setTimeout(() => {
+        socketSync.groupEmit({
+          target: { type: "group", id: group._id },
+          change: {
+            type: "join",
+            data: group,
+            extra: {
+              user,
+              partialPeerData: {
+                [user._id]: { status: socketUsers.getStatus(user._id) },
+              },
+            },
+          },
+          messages: [
+            {
+              message: `${user.username} joined "${group.name}"`,
+              type: "alert",
+            },
+          ],
+          initiator: req.user,
+        });
+      }, 1000);
+    }
   });
 }
 
@@ -110,11 +152,25 @@ export async function deleteUser(req, res) {
   if (req.user.id !== req.params.uid) throw new ExpressError("Forbidden", 403);
 
   const user = await User.findById(req.user.id);
+  const groups = await Group.find({ members: req.user });
 
   const passwordCheck = await bcrypt.compare(req.body.password, user.password);
 
   if (!passwordCheck) throw new ExpressError("INCORRECT PASSWORD", 403);
   else await user.remove();
+
+  groups.forEach((group) => {
+    socketSync.groupEmit({
+      target: { type: "group", id: group._id },
+      change: { type: "leave", data: group, extra: { userId: req.user.id } },
+      messages: [
+        { message: `${req.user.username} left ${group.name}`, type: "alert" },
+      ],
+      initiator: req.user,
+    });
+  });
+
+  socketUsers.disconnect({ userId: req.user.id });
 
   res.status(200).send("ok");
 }
