@@ -133,15 +133,10 @@ const socketSync = {
     const io = socketInstance.io;
     const { target, change } = args;
 
-    // console.log(`stat ch ${target} => ${change}`);
-
-    io.in(`s:${target}`)
-      // .except(senderSocketId)
-      .emit("statusChange", {
-        target,
-        change,
-        // messages: [...messages],
-      });
+    io.in(`s:${target}`).emit("statusChange", {
+      target,
+      change,
+    });
   },
 };
 

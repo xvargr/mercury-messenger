@@ -206,7 +206,7 @@ export function IntroductionModal() {
           <h2 className="font-semibold text-lg mt-3">What is Mercury?</h2>
           <p>
             Mercury is a group messaging application inspired by Discord and
-            Slack. This project is created primarily for me to learn React and
+            Slack. This project is created primarily to learn React and
             Tailwind, as well as to get some practice with restful APIs and
             databases.
           </p>

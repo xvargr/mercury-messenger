@@ -7,6 +7,9 @@ const socketUsers = {
   connectedUsers: [],
 
   connect(socket) {
+    console.log("SOCKET CONNECTING");
+    console.log(socket.request.user);
+
     const user = socket.request.user;
 
     this.connectedUsers.push({
@@ -35,7 +38,6 @@ const socketUsers = {
 
       // user already disconnected before proper dismount
       if (index < 0) {
-        // console.log("user disconnected unexpectedly");
         broadcastStatusChange({
           target: userId,
           statusData: { status: "offline" },
@@ -67,7 +69,6 @@ const socketUsers = {
 
       this.connectedUsers.splice(index, 1);
 
-      // console.log("currently connected: ", this.connectedUsers);
       console.log(`i-> ${user.username} disconnected`);
       console.log("i-> current users: ", this.connectedUsers.length);
 
@@ -84,11 +85,8 @@ const socketUsers = {
   getSocketId(id) {
     const idString = id.toString();
     const result = this.connectedUsers.find((user) => user.userId === idString);
-    console.log(result);
     if (!result) {
-      console.log("not found/ not connected");
-      // console.log("idString", idString);
-      // console.log("connectedUsers", this.connectedUsers);
+      console.warn("socket not found / not connected");
       return null;
     }
     return result.socket.id;
@@ -119,9 +117,7 @@ const socketUsers = {
       this.connectedUsers[index].status = status;
       if (forced) this.connectedUsers[index].statusForced = true;
     } else {
-      // console.log(this.connectedUsers);
       console.warn(`!-> status update failed, user ${target} not found`);
-      // throw new Error("user not found");
     }
   },
 };
